@@ -1,0 +1,26 @@
+{
+  "name": "world-connect-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ebosebastien68-maker/world-connect-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ebosebastien68-maker/world-connect-/issues"
+  },
+  "homepage": "https://github.com/ebosebastien68-maker/world-connect-#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}
