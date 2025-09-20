@@ -1,5 +1,6 @@
 // js/main.js
 
+import { db } from './supabaseClient.js'; // <-- C'EST LA LIGNE QUI MANQUAIT
 import { getCurrentUser } from './services/authService.js';
 import { renderNavbar } from './components/Navbar.js';
 import { renderPostFeed } from './components/PostFeed.js';
