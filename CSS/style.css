@@ -1,0 +1,176 @@
+/* css/style.css */
+:root {
+    --primary-color: #007bff;
+    --border-color: #ddd;
+    --background-color: #f4f4f4;
+    --card-bg-color: #fff;
+    --text-color: #333;
+    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+/* --- Navbar --- */
+header {
+    background-color: var(--card-bg-color);
+    padding: 10px 20px;
+    box-shadow: var(--shadow);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+.nav-links button, .nav-links a {
+    margin-left: 15px;
+    padding: 8px 12px;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1rem;
+}
+.nav-links button:hover {
+    opacity: 0.9;
+}
+.nav-links .logout-btn {
+    background-color: #dc3545;
+}
+
+/* --- Modale de Connexion --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.modal-content h2 {
+    margin-top: 0;
+}
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+.modal-content button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+#admin-toggle {
+    text-align: center;
+    margin-top: 15px;
+    color: var(--primary-color);
+    cursor: pointer;
+}
+
+/* --- Posts --- */
+.post-card {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+}
+.post-card-header {
+    padding: 15px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+}
+.post-card-body {
+    padding: 15px;
+}
+.post-card-body h3 {
+    margin-top: 0;
+}
+.post-card-footer {
+    padding: 10px 15px;
+    border-top: 1px solid var(--border-color);
+    background-color: #f9f9f9;
+}
+.post-card-footer button {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+/* --- Formulaires --- */
+.form-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+.form-card input, .form-card textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.form-card button {
+    padding: 10px 15px;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* --- User List --- */
+.user-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
