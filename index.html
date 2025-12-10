@@ -1884,6 +1884,10 @@
             </div>
             <div class="menu-item" id="admin-item" style="display: none;">
                 <i class="fas fa-user-shield"></i>
+                <span>Admin</span>
+            </div>
+            <div class="menu-item" id="administration-item" style="display: none;" onclick="window.location.href='publier.html'">
+                <i class="fas fa-edit"></i>
                 <span>Administration</span>
             </div>
             <div class="menu-item" id="settings-item" onclick="window.location.href='parametre.html'">
@@ -2535,11 +2539,13 @@
                 document.getElementById('logout-item').style.display = 'flex';
                 document.getElementById('user-name').textContent = `${userProfile.prenom} ${userProfile.nom}`;
                 
-                // Afficher le menu Admin seulement si l'utilisateur est admin
+                // Afficher les menus Admin seulement si l'utilisateur est admin
                 if (userProfile.role === 'admin') {
                     document.getElementById('admin-item').style.display = 'flex';
+                    document.getElementById('administration-item').style.display = 'flex';
                 } else {
                     document.getElementById('admin-item').style.display = 'none';
+                    document.getElementById('administration-item').style.display = 'none';
                 }
             }
         }
