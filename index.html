@@ -2229,7 +2229,7 @@
             if (!swRegistration) return;
             
             try {
-                const vapidPublicKey = 'BEDVco0GQtfwptI7b5r5v6nrwdN_mYlSR0SM1s80MMuxwGSoPBeDohL3SxyXWoJLX8aQsXNsv9VQxBfj68JqnsI';
+                const vapidPublicKey = 'BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA';
                 const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
                 
                 const subscription = await swRegistration.pushManager.subscribe({
