@@ -1191,11 +1191,12 @@
             padding: 16px 20px;
             border-top: 1px solid var(--border-color);
             border-bottom: 1px solid var(--border-color);
-            background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.02));
+            background: var(--bg-secondary);
+            backdrop-filter: blur(10px);
         }
 
         body.dark-mode .reactions {
-            background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.02));
+            background: var(--bg-secondary);
         }
 
         .reaction-btn {
@@ -1260,10 +1261,13 @@
             padding: 2px 8px;
             border-radius: 12px;
             background: rgba(0, 0, 0, 0.05);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
         body.dark-mode .reaction-btn span {
             background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
         }
 
         /* Styles spécifiques par type de réaction */
@@ -1292,9 +1296,16 @@
         }
 
         .reaction-btn.active span {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
+            color: white !important;
             font-weight: 800;
             transform: scale(1.1);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .reaction-btn.active i {
+            color: white !important;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
 
         .reaction-btn.active i {
@@ -1855,6 +1866,11 @@
                 <i class="fas fa-plus-circle"></i>
                 <span>World Connect</span>
             </div>
+            
+            <div class="nav-item" data-page="game" data-title="Jeu de Course 3D">
+                <i class="fas fa-gamepad"></i>
+                <span>Jeu 3D</span>
+            </div>
 
             <div class="menu-divider"></div>
 
@@ -1866,8 +1882,8 @@
                 <i class="fas fa-user"></i>
                 <span id="user-name">Mon Profil</span>
             </div>
-            <div class="menu-item" id="admin-item" style="display: none;" onclick="window.location.href='publier.html'">
-                <i class="fas fa-edit"></i>
+            <div class="menu-item" id="admin-item" style="display: none;">
+                <i class="fas fa-user-shield"></i>
                 <span>Administration</span>
             </div>
             <div class="menu-item" id="settings-item" onclick="window.location.href='parametre.html'">
@@ -1950,6 +1966,22 @@
         </div>
 
         <div id="plus-page" class="spa-page">
+            <div class="iframe-container">
+                <div class="iframe-loader">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="game-page" class="spa-page">
+            <div class="iframe-container">
+                <div class="iframe-loader">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="admin-page" class="spa-page">
             <div class="iframe-container">
                 <div class="iframe-loader">
                     <div class="spinner"></div>
@@ -2216,9 +2248,9 @@
                 
                 if (permission === 'granted') {
                     await subscribeToPushNotifications();
-                    ToastManager.success('Notifications activées', 'Vous recevrez les notifications push');
+                    ToastManager.success('Notifications activées', 'Vous recevrez désormais nos notifications pour une meilleure performance');
                 } else if (permission === 'denied') {
-                    ToastManager.warning('Notifications désactivées', 'Activez-les dans les paramètres du navigateur');
+                    ToastManager.warning('Notifications désactivées', 'Activez-les dans les paramètres de votre navigateur pour ne rien manquer');
                 }
             } catch (error) {
                 console.error('❌ Erreur permission:', error);
@@ -2502,8 +2534,12 @@
                 document.getElementById('profile-item').style.display = 'flex';
                 document.getElementById('logout-item').style.display = 'flex';
                 document.getElementById('user-name').textContent = `${userProfile.prenom} ${userProfile.nom}`;
+                
+                // Afficher le menu Admin seulement si l'utilisateur est admin
                 if (userProfile.role === 'admin') {
                     document.getElementById('admin-item').style.display = 'flex';
+                } else {
+                    document.getElementById('admin-item').style.display = 'none';
                 }
             }
         }
@@ -2609,7 +2645,16 @@
                 
                 const iframe = document.createElement('iframe');
                 iframe.className = 'page-iframe';
-                iframe.src = `${pageName}.html`;
+                
+                // Déterminer le fichier source selon la page
+                if (pageName === 'game') {
+                    iframe.src = 'offline.html';
+                } else if (pageName === 'admin') {
+                    iframe.src = 'publier.html';
+                } else {
+                    iframe.src = `${pageName}.html`;
+                }
+                
                 iframe.style.opacity = '0';
                 iframe.style.transition = 'opacity 0.3s';
                 
@@ -2646,6 +2691,15 @@
                     menuToggleBtn.classList.remove('active');
                     clearTimeout(menuTimeout);
                 });
+            });
+            
+            // Menu Admin avec gestion des clics
+            document.getElementById('admin-item').addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateToPage('admin', 'Administration');
+                navbar.classList.remove('show');
+                menuToggleBtn.classList.remove('active');
+                clearTimeout(menuTimeout);
             });
 
             document.addEventListener('click', function(e) {
@@ -2889,22 +2943,26 @@
                     ToastManager.error('Hors ligne', 'Vérifiez votre connexion Internet');
                 } else if (error.message.includes('Supabase')) {
                     document.getElementById('empty-state').innerHTML = `
-                        <i class="fas fa-database"></i>
-                        <h3>Erreur de base de données</h3>
-                        <p>${error.message}</p>
-                        <button onclick="loadArticles()" style="margin-top: 20px; padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer;">Réessayer</button>
+                        <i class="fas fa-wifi-slash" style="color: var(--accent-red);"></i>
+                        <h3>Problème de connexion</h3>
+                        <p>Veuillez vérifier votre connexion Internet et réessayer</p>
+                        <button onclick="loadArticles()" style="margin-top: 20px; padding: 12px 24px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(107, 114, 73, 0.3); transition: all 0.3s ease;">
+                            <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>Réessayer
+                        </button>
                     `;
                     document.getElementById('empty-state').style.display = 'block';
-                    ToastManager.error('Erreur', 'Problème avec la base de données');
+                    ToastManager.error('Erreur de connexion', 'Veuillez vérifier votre connexion Internet');
                 } else {
                     document.getElementById('empty-state').innerHTML = `
-                        <i class="fas fa-exclamation-triangle"></i>
+                        <i class="fas fa-exclamation-triangle" style="color: var(--accent-yellow);"></i>
                         <h3>Erreur de chargement</h3>
-                        <p>${error.message}</p>
-                        <button onclick="loadArticles()" style="margin-top: 20px; padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer;">Réessayer</button>
+                        <p>Impossible de charger les articles pour le moment</p>
+                        <button onclick="loadArticles()" style="margin-top: 20px; padding: 12px 24px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(107, 114, 73, 0.3); transition: all 0.3s ease;">
+                            <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>Réessayer
+                        </button>
                     `;
                     document.getElementById('empty-state').style.display = 'block';
-                    ToastManager.error('Erreur', 'Impossible de charger les articles');
+                    ToastManager.error('Erreur', 'Une erreur est survenue');
                 }
             }
         }
