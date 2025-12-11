@@ -2700,13 +2700,17 @@
             });
             
             // Menu Admin avec gestion des clics
-            document.getElementById('admin-item').addEventListener('click', function(e) {
-                e.preventDefault();
-                navigateToPage('admin', 'Administration');
-                navbar.classList.remove('show');
-                menuToggleBtn.classList.remove('active');
-                clearTimeout(menuTimeout);
-            });
+            const adminItem = document.getElementById('admin-item');
+            if (adminItem) {
+                adminItem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigateToPage('admin', 'Administration');
+                    navbar.classList.remove('show');
+                    menuToggleBtn.classList.remove('active');
+                    clearTimeout(menuTimeout);
+                });
+            }
 
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.share-menu') && !e.target.closest('.share-btn')) {
@@ -2738,11 +2742,24 @@
         function navigateToPage(page, title) {
             if (page === currentPage) return;
 
+            // Vérifier que la page existe
+            const targetPage = document.getElementById(`${page}-page`);
+            if (!targetPage) {
+                console.error(`❌ Page ${page}-page introuvable`);
+                ToastManager.error('Erreur', `Page ${page} non disponible`);
+                return;
+            }
+
             document.querySelectorAll('.spa-page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active'));
             
-            document.getElementById(`${page}-page`).classList.add('active');
-            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+            targetPage.classList.add('active');
+            
+            const navItem = document.querySelector(`[data-page="${page}"]`);
+            if (navItem) {
+                navItem.classList.add('active');
+            }
+            
             document.getElementById('page-title').textContent = title;
             
             currentPage = page;
