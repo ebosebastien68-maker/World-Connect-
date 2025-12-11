@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Control - Supabase Interactions</title>
+    <title>Master Control - Simulé Simplifié</title>
     <style>
         :root {
             --primary: #667eea;
             --secondary: #764ba2;
-            --accent: #00f260;
-            --bg: #f3f4f6;
             --text: #1f2937;
         }
 
@@ -37,200 +35,102 @@
             text-align: center;
         }
 
-        .header h1 { margin: 0; font-size: 2rem; }
-        .header p { opacity: 0.8; margin-top: 10px; }
+        .tabs { display: flex; background: #e5e7eb; padding: 5px; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: transparent; font-weight: 600; color: #6b7280; cursor: pointer; transition: all 0.3s; border-radius: 12px; }
+        .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 
-        /* Navigation Tabs */
-        .tabs {
-            display: flex;
-            background: #e5e7eb;
-            padding: 5px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            background: transparent;
-            font-weight: 600;
-            color: #6b7280;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-radius: 12px;
-        }
-
-        .tab-btn.active {
-            background: white;
-            color: var(--primary);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        /* Content Sections */
-        .section {
-            display: none;
-            padding: 40px;
-            animation: fadeIn 0.3s ease;
-        }
-
+        .section { display: none; padding: 30px 40px; animation: fadeIn 0.3s ease; }
         .section.active { display: block; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Inputs */
         .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #4b5563; }
         .form-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 16px;
-            font-family: monospace;
-            transition: 0.3s;
+            width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; font-family: monospace; transition: 0.3s;
         }
         .form-input:focus { border-color: var(--primary); outline: none; }
+        textarea.form-input { min-height: 200px; line-height: 1.5; resize: vertical; }
 
-        /* Grid for Reactions */
-        .reactions-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .reaction-card {
-            background: #f9fafb;
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-            border: 1px solid #e5e7eb;
-        }
-
-        .reaction-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
-
-        /* Text Area for Discussions */
-        textarea.form-input {
-            min-height: 200px;
-            font-family: monospace;
-            line-height: 1.5;
-            resize: vertical;
-        }
-
-        .helper-text {
-            font-size: 0.85rem;
-            color: #6b7280;
-            background: #f3f4f6;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--primary);
-        }
-
-        /* Action Button */
         .btn-action {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(to right, #11998e, #38ef7d);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 20px;
+            width: 100%; padding: 18px; background: linear-gradient(to right, #11998e, #38ef7d); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.2s; margin-top: 20px;
         }
-
         .btn-action:hover { transform: scale(1.02); }
         .btn-action:disabled { background: #d1d5db; transform: none; cursor: not-allowed; }
-
-        /* Status Box */
-        .status-box {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            display: none;
-        }
-        .status-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .status-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
-        .loading {
-            display: inline-block;
-            width: 20px; height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s infinite;
-        }
+        
+        .helper-text { font-size: 0.85rem; color: #6b7280; background: #f3f4f6; padding: 10px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary); }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Search Section specific styles */
+        .search-results { max-height: 400px; overflow-y: auto; background: #f9fafb; border-radius: 10px; padding: 15px; }
+        .target-item { 
+            display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 8px; border-bottom: 1px solid #eee; background: white; border-radius: 8px; 
+        }
+        .target-item:last-child { border-bottom: none; }
+        .target-info { font-size: 14px; }
+        .target-info strong { color: var(--primary); font-weight: 700; display: block; margin-bottom: 5px; }
+        .target-info span { display: block; color: #6b7280; }
+        .copy-btn { padding: 8px 15px; background: #f0f4ff; color: var(--primary); border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>⚡ Supabase Interactions</h1>
-        <p>Générateur de Trafic Simulé Unifié</p>
+        <h1>💬 Contrôle des Discussions Simplifié</h1>
+        <p>Génération de Commentaires ou Réponses multiples sur un ID unique</p>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('reactions')">❤️ Réactions Massives</button>
-        <button class="tab-btn" onclick="switchTab('discussions')">💬 Discussions & Réponses</button>
+        <button class="tab-btn active" onclick="switchTab('search')">🔍 IDs Cibles</button>
+        <button class="tab-btn" onclick="switchTab('simple_discussions')">✍️ Insertion Multiple</button>
     </div>
 
-    <div id="reactions" class="section active">
+    <div id="search" class="section active">
+        <h2>IDs Récents pour Copie</h2>
+        <p class="helper-text">
+            Cliquez sur "Charger les Cibles" pour obtenir les IDs récents des Articles et Commentaires. Copiez l'ID pour l'utiliser dans l'onglet d'Insertion.
+        </p>
+        
+        <button class="btn-action" id="fetchTargetsBtn" onclick="fetchTargets()">
+            Charger les Cibles Récents
+        </button>
+
+        <div id="searchResults" class="search-results" style="margin-top: 20px;">
+            <p style="text-align: center; color: #6b7280;">Aucune cible chargée.</p>
+        </div>
+    </div>
+
+    <div id="simple_discussions" class="section">
+        <h2>Insertion de Commentaires/Réponses en Vrac</h2>
+        
         <div class="input-group">
-            <label>ID de l'Article Cible (UUID)</label>
-            <input type="text" id="articleId" class="form-input" placeholder="ex: a0eebc99-9c0b-..." />
+            <label>UUID de l'Article ou du Commentaire Cible (UUID)</label>
+            <input type="text" id="targetIdInput" class="form-input" placeholder="Collez l'ID ici..." />
         </div>
 
-        <div class="reactions-grid">
-            <div class="reaction-card">
-                <span class="reaction-icon">👍</span>
-                <label>Like</label>
-                <input type="number" id="countLike" class="form-input" value="0" min="0">
-            </div>
-            <div class="reaction-card">
-                <span class="reaction-icon">❤️</span>
-                <label>Love</label>
-                <input type="number" id="countLove" class="form-input" value="0" min="0">
-            </div>
-            <div class="reaction-card">
-                <span class="reaction-icon">😆</span>
-                <label>Rire</label>
-                <input type="number" id="countRire" class="form-input" value="0" min="0">
-            </div>
-            <div class="reaction-card">
-                <span class="reaction-icon">😡</span>
-                <label>Colère</label>
-                <input type="number" id="countColere" class="form-input" value="0" min="0">
-            </div>
-        </div>
-
-        <button class="btn-action" onclick="sendReactions()">Envoyer les Réactions</button>
-    </div>
-
-    <div id="discussions" class="section">
         <div class="helper-text">
-            <strong>Comment ça marche ?</strong> Collez vos textes ci-dessous. Le système détecte automatiquement si l'ID entre crochets est un <em>Article</em> (pour créer un commentaire) ou un <em>Commentaire</em> (pour créer une réponse).
+            <strong>Format des Messages:</strong> Chaque message doit commencer par un numéro entre crochets.
             <br><br>
-            <code>[UUID_ARTICLE] Waouh super article !</code><br>
-            <code>[UUID_COMMENTAIRE] Je ne suis pas d'accord avec toi.</code>
+            <code>[1] Premier commentaire/réponse...</code><br>
+            <code>[2] Deuxième message simulé...</code><br>
+            <code>[3] Et ainsi de suite...</code>
         </div>
 
         <div class="input-group">
-            <label>Zone de Texte (Bulk)</label>
-            <textarea id="bulkText" class="form-input" placeholder="[123e4567-e89b-12d3-a456-426614174000] C'est vraiment intéressant !
-[987fcdeb-51a2-43c1-z987-123456789000] Merci pour ce commentaire."></textarea>
+            <label>Messages en Vrac</label>
+            <textarea id="simpleBulkText" class="form-input" placeholder="[1] J'adore cette approche !
+[2] Je ne suis pas d'accord, mais c'est un bon point.
+[3] Merci pour l'article/le commentaire !"></textarea>
         </div>
 
-        <button class="btn-action" onclick="sendDiscussions()">Analyser et Insérer</button>
+        <button class="btn-action" id="simpleInsertBtn" onclick="sendSimpleBulkText()">
+            🚀 Insérer Tous les Messages
+        </button>
     </div>
-
+    
     <div id="statusBox" class="status-box"></div>
 </div>
 
 <script>
-    // URL DE VOTRE EDGE FUNCTION
     const FUNCTION_URL = 'https://odkbkloukpzvwxaomkfe.supabase.co/functions/v1/manage-interactions';
 
     function switchTab(tabName) {
@@ -238,7 +138,8 @@
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         
         document.getElementById(tabName).classList.add('active');
-        event.target.classList.add('active');
+        // Active le bouton correspondant
+        document.querySelector(`.tab-btn[onclick*="${tabName}"]`).classList.add('active');
         hideStatus();
     }
 
@@ -253,40 +154,11 @@
         document.getElementById('statusBox').style.display = 'none';
     }
 
-    async function sendReactions() {
-        const article_id = document.getElementById('articleId').value.trim();
-        if (!article_id) return showStatus("ID Article manquant", "error");
-
-        const reactions = {
-            like: parseInt(document.getElementById('countLike').value) || 0,
-            love: parseInt(document.getElementById('countLove').value) || 0,
-            rire: parseInt(document.getElementById('countRire').value) || 0,
-            colere: parseInt(document.getElementById('countColere').value) || 0
-        };
-
-        const total = Object.values(reactions).reduce((a,b)=>a+b,0);
-        if (total === 0) return showStatus("Aucune réaction spécifiée", "error");
-
-        performRequest({
-            mode: 'reactions',
-            article_id,
-            reactions
-        });
-    }
-
-    async function sendDiscussions() {
-        const raw_text = document.getElementById('bulkText').value;
-        if (!raw_text.trim()) return showStatus("Le texte est vide", "error");
-
-        performRequest({
-            mode: 'discussions',
-            raw_text
-        });
-    }
-
-    async function performRequest(payload) {
-        const btns = document.querySelectorAll('.btn-action');
-        btns.forEach(b => { b.disabled = true; b.innerHTML = '<span class="loading"></span> Traitement...'; });
+    async function performRequest(payload, actionElementId) {
+        const btn = document.getElementById(actionElementId);
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="loading"></span> Traitement...`;
         hideStatus();
 
         try {
@@ -300,19 +172,92 @@
             
             if (!data.success) throw new Error(data.error || "Erreur inconnue");
 
-            if (payload.mode === 'reactions') {
-                showStatus(`✅ Succès ! ${data.added.like + data.added.love + data.added.rire + data.added.colere} réactions ajoutées.`, 'success');
-            } else {
-                showStatus(`✅ Analyse terminée : <br>• ${data.stats.comments_created} Commentaires créés<br>• ${data.stats.replies_created} Réponses créées`, 'success');
+            if (payload.mode === 'simple_bulk_text') {
+                 showStatus(`✅ Succès ! ${data.stats.total_messages_inserted} messages insérés. Type de cible: ${data.stats.target_type}.`, 'success');
             }
 
         } catch (e) {
             showStatus("❌ Erreur: " + e.message, "error");
         } finally {
-            btns.forEach(b => { b.disabled = false; b.innerText = b.onclick === sendReactions ? 'Envoyer les Réactions' : 'Analyser et Insérer'; });
+            btn.disabled = false;
+            btn.innerText = originalText;
         }
     }
-</script>
 
+    async function sendSimpleBulkText() {
+        const target_id = document.getElementById('targetIdInput').value.trim();
+        const raw_text = document.getElementById('simpleBulkText').value;
+        
+        if (!target_id) return showStatus("Veuillez saisir l'ID Cible (Article ou Commentaire).", "error");
+        if (!raw_text.trim()) return showStatus("Veuillez saisir les messages au format [N] Message.", "error");
+
+        performRequest({
+            mode: 'simple_bulk_text',
+            target_id,
+            raw_text
+        }, 'simpleInsertBtn');
+    }
+
+    // ==========================================
+    // LOGIQUE DE RÉCUPÉRATION DES CIBLES
+    // ==========================================
+    async function fetchTargets() {
+        const resultsContainer = document.getElementById('searchResults');
+        const btn = document.getElementById('fetchTargetsBtn');
+        const originalText = btn.innerText;
+        
+        btn.disabled = true;
+        btn.innerHTML = `<span class="loading"></span> Chargement...`;
+        resultsContainer.innerHTML = '<p style="text-align: center; color: #6b7280;">Chargement...</p>';
+
+        try {
+            const res = await fetch(FUNCTION_URL + '/targets', { method: 'GET' });
+            const data = await res.json();
+
+            if (!data.success || !data.targets || data.targets.length === 0) {
+                 resultsContainer.innerHTML = '<p style="text-align: center; color: #6b7280;">Aucune cible trouvée ou erreur de fonction.</p>';
+                 return;
+            }
+
+            const html = data.targets.map(target => `
+                <div class="target-item">
+                    <div class="target-info">
+                        <strong>${target.type}</strong>
+                        <span>ID: ${target.id}</span>
+                        <span>Aperçu: ${target.preview}</span>
+                    </div>
+                    <button class="copy-btn" onclick="copyId('${target.id}')">Copier ID</button>
+                </div>
+            `).join('');
+            
+            resultsContainer.innerHTML = html;
+
+        } catch (e) {
+            resultsContainer.innerHTML = `<p style="text-align: center; color: red;">Erreur de connexion: ${e.message}</p>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    }
+    
+    function copyId(id) {
+        navigator.clipboard.writeText(id).then(() => {
+            alert(`ID copié: ${id}`);
+            // Optionnel: basculer directement vers l'onglet d'insertion
+            switchTab('simple_discussions');
+            document.getElementById('targetIdInput').value = id;
+            document.getElementById('targetIdInput').focus();
+        }).catch(err => {
+            console.error('Erreur de copie:', err);
+            alert('Échec de la copie. Veuillez copier manuellement: ' + id);
+        });
+    }
+    
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', () => {
+        switchTab('search');
+    });
+
+</script>
 </body>
 </html>
