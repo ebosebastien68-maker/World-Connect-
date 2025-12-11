@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Gestion des Rôles</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Administration</h1>
+        <p class="subtitle">Promotion d'utilisateur au rôle Admin</p>
+
+        <div class="info-box">
+            <strong>⚠️ Important :</strong> Vous devez être admin pour effectuer cette action. Cette opération donnera les privilèges administrateur à l'utilisateur ciblé.
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="adminForm">
+            <div class="form-group">
+                <label for="adminEmail">📧 Votre Email (Admin)</label>
+                <input 
+                    type="email" 
+                    id="adminEmail" 
+                    placeholder="admin@example.com"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="adminPassword">🔑 Votre Mot de Passe</label>
+                <input 
+                    type="password" 
+                    id="adminPassword" 
+                    placeholder="••••••••"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="targetUserId">👤 ID de l'Utilisateur à Promouvoir</label>
+                <input 
+                    type="text" 
+                    id="targetUserId" 
+                    placeholder="a58c273b-7a15-4aa4-95af-691589d72bbb"
+                    required
+                >
+            </div>
+
+            <button type="submit" id="submitBtn">
+                Promouvoir au rôle Admin
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const API_URL = 'https://odkbkloukpzvwxaomkfe.supabase.co/functions/v1/admin';
+        
+        const form = document.getElementById('adminForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const alertBox = document.getElementById('alert');
+
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert ${type}`;
+            alertBox.style.display = 'block';
+            
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+
+        function setLoading(loading) {
+            submitBtn.disabled = loading;
+            if (loading) {
+                submitBtn.innerHTML = '<span class="loader"></span>Traitement en cours...';
+            } else {
+                submitBtn.innerHTML = 'Promouvoir au rôle Admin';
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const adminEmail = document.getElementById('adminEmail').value.trim();
+            const adminPassword = document.getElementById('adminPassword').value;
+            const targetUserId = document.getElementById('targetUserId').value.trim();
+
+            // Validation basique
+            if (!adminEmail || !adminPassword || !targetUserId) {
+                showAlert('⚠️ Tous les champs sont requis', 'error');
+                return;
+            }
+
+            // Validation format UUID (optionnel mais recommandé)
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!uuidRegex.test(targetUserId)) {
+                showAlert('⚠️ Format d\'ID utilisateur invalide', 'error');
+                return;
+            }
+
+            setLoading(true);
+            showAlert('🔄 Vérification des permissions...', 'info');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        admin_email: adminEmail,
+                        admin_password: adminPassword,
+                        target_user_id: targetUserId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showAlert(`✅ Succès ! L'utilisateur ${targetUserId.substring(0, 8)}... est maintenant admin.`, 'success');
+                    
+                    // Réinitialiser le formulaire après 2 secondes
+                    setTimeout(() => {
+                        form.reset();
+                    }, 2000);
+                } else {
+                    // Gestion des différentes erreurs
+                    let errorMessage = data.error || 'Erreur inconnue';
+                    
+                    if (response.status === 401) {
+                        errorMessage = '🔐 Identifiants incorrects';
+                    } else if (response.status === 403) {
+                        errorMessage = '🚫 Vous n\'avez pas les droits admin';
+                    } else if (response.status === 404) {
+                        errorMessage = '❓ Utilisateur cible introuvable';
+                    }
+                    
+                    showAlert(errorMessage, 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showAlert('❌ Erreur de connexion au serveur', 'error');
+            } finally {
+                setLoading(false);
+            }
+        });
+    </script>
+</body>
+</html>
