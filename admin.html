@@ -609,6 +609,14 @@
                     requestBody.target_user_id = targetUserId;
                 }
 
+                console.log('Envoi de la requête avec:', {
+                    admin_email: adminEmail,
+                    has_password: !!adminPassword,
+                    role: role,
+                    target_type: currentTab,
+                    target_value: currentTab === 'email' ? targetEmail : targetUserId
+                });
+
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
@@ -617,7 +625,10 @@
                     body: JSON.stringify(requestBody)
                 });
 
+                console.log('Réponse reçue - Status:', response.status);
+
                 const data = await response.json();
+                console.log('Données reçues:', data);
 
                 if (response.ok && data.success) {
                     const userName = data.user?.name || 'l\'utilisateur';
@@ -642,6 +653,7 @@
                 } else {
                     // Gestion des erreurs
                     let errorMessage = data.message || data.error || 'Erreur inconnue';
+                    console.error('Erreur API:', errorMessage);
                     
                     if (response.status === 401) {
                         errorMessage = '🔐 <strong>Authentification échouée</strong><br>Email ou mot de passe incorrect.';
@@ -653,15 +665,18 @@
                         }
                     } else if (response.status === 404) {
                         errorMessage = '❓ <strong>Utilisateur introuvable</strong><br>Vérifiez l\'email ou l\'ID saisi.';
+                    } else if (response.status === 400) {
+                        errorMessage = `⚠️ <strong>Données invalides</strong><br>${data.message || 'Vérifiez les informations saisies.'}`;
                     }
                     
                     showAlert(errorMessage, 'error');
                 }
             } catch (error) {
-                console.error('Erreur:', error);
+                console.error('Erreur JavaScript:', error);
                 showAlert(
                     '<strong>❌ Erreur de connexion</strong><br>' +
-                    'Impossible de contacter le serveur. Vérifiez votre connexion internet.', 
+                    'Impossible de contacter le serveur. Vérifiez votre connexion internet.<br>' +
+                    '<small>Détails: ' + error.message + '</small>', 
                     'error'
                 );
             } finally {
