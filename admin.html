@@ -12,106 +12,52 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: backgroundMove 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes backgroundMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+            padding: 50px;
+            max-width: 600px;
             width: 100%;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s ease;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-            text-align: center;
-        }
-
-        .subtitle {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
+        @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
@@ -119,33 +65,257 @@
             }
         }
 
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .icon-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        h1 {
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #f5f5f5;
+            padding: 6px;
+            border-radius: 12px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab:hover:not(.active) {
+            color: #333;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        input::placeholder {
+            color: #9ca3af;
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .role-option {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            background: white;
+        }
+
+        .role-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .role-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .role-option .role-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .role-option .role-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: none;
+            animation: slideIn 0.4s ease;
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 4px solid;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         .alert.success {
-            background: #d4edda;
-            color: #155724;
-            border: 2px solid #c3e6cb;
+            background: #ecfdf5;
+            color: #065f46;
+            border-color: #10b981;
         }
 
         .alert.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 2px solid #f5c6cb;
+            background: #fef2f2;
+            color: #991b1b;
+            border-color: #ef4444;
         }
 
         .alert.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 2px solid #bee5eb;
+            background: #eff6ff;
+            color: #1e40af;
+            border-color: #3b82f6;
         }
 
         .loader {
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 0.8s linear infinite;
-            margin-right: 8px;
+            margin-right: 10px;
+            vertical-align: middle;
         }
 
         @keyframes spin {
@@ -153,64 +323,122 @@
         }
 
         .info-box {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            font-size: 13px;
-            color: #555;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-left: 4px solid #3b82f6;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #1e40af;
+            line-height: 1.6;
         }
 
         .info-box strong {
-            color: #667eea;
+            color: #1e3a8a;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+            margin: 30px 0;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .role-selector {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔐 Administration</h1>
-        <p class="subtitle">Promotion d'utilisateur au rôle Admin</p>
+        <div class="header">
+            <div class="icon-badge">🔐</div>
+            <h1>Administration</h1>
+            <p class="subtitle">Gestion des rôles utilisateurs</p>
+        </div>
 
         <div class="info-box">
-            <strong>⚠️ Important :</strong> Vous devez être admin pour effectuer cette action. Cette opération donnera les privilèges administrateur à l'utilisateur ciblé.
+            <strong>⚠️ Zone Sécurisée</strong>
+            Seuls les administrateurs peuvent modifier les rôles. Cette action donnera ou retirera les privilèges administrateur à un utilisateur.
         </div>
 
         <div id="alert" class="alert"></div>
 
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('email')">Par Email</button>
+            <button class="tab" onclick="switchTab('userid')">Par User ID</button>
+        </div>
+
         <form id="adminForm">
-            <div class="form-group">
-                <label for="adminEmail">📧 Votre Email (Admin)</label>
-                <input 
-                    type="email" 
-                    id="adminEmail" 
-                    placeholder="admin@example.com"
-                    required
-                >
+            <!-- Section Email -->
+            <div id="emailSection" class="form-section active">
+                <div class="form-group">
+                    <label>
+                        <span>📧</span>
+                        <span>Email de l'utilisateur cible</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <input 
+                            type="email" 
+                            id="targetEmail" 
+                            placeholder="utilisateur@example.com"
+                            autocomplete="email"
+                        >
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="adminPassword">🔑 Votre Mot de Passe</label>
-                <input 
-                    type="password" 
-                    id="adminPassword" 
-                    placeholder="••••••••"
-                    required
-                >
+            <!-- Section User ID -->
+            <div id="useridSection" class="form-section">
+                <div class="form-group">
+                    <label>
+                        <span>👤</span>
+                        <span>ID de l'utilisateur (UUID)</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="targetUserId" 
+                            placeholder="a58c273b-7a15-4aa4-95af-691589d72bbb"
+                            pattern="[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
+                        >
+                    </div>
+                </div>
             </div>
 
+            <div class="divider"></div>
+
             <div class="form-group">
-                <label for="targetUserId">👤 ID de l'Utilisateur à Promouvoir</label>
-                <input 
-                    type="text" 
-                    id="targetUserId" 
-                    placeholder="a58c273b-7a15-4aa4-95af-691589d72bbb"
-                    required
-                >
+                <label>
+                    <span>🎯</span>
+                    <span>Rôle à attribuer</span>
+                </label>
+                <div class="role-selector">
+                    <div class="role-option selected" onclick="selectRole('admin')" data-role="admin">
+                        <div class="role-icon">👑</div>
+                        <div class="role-name">Admin</div>
+                    </div>
+                    <div class="role-option" onclick="selectRole('user')" data-role="user">
+                        <div class="role-icon">👤</div>
+                        <div class="role-name">Utilisateur</div>
+                    </div>
+                </div>
+                <input type="hidden" id="roleInput" value="admin">
             </div>
 
             <button type="submit" id="submitBtn">
-                Promouvoir au rôle Admin
+                Appliquer le changement de rôle
             </button>
         </form>
     </div>
@@ -221,15 +449,42 @@
         const form = document.getElementById('adminForm');
         const submitBtn = document.getElementById('submitBtn');
         const alertBox = document.getElementById('alert');
+        let currentTab = 'email';
+
+        // Gestion des onglets
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Mise à jour des onglets
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Mise à jour des sections
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tab + 'Section').classList.add('active');
+            
+            // Réinitialiser les champs
+            document.getElementById('targetEmail').value = '';
+            document.getElementById('targetUserId').value = '';
+        }
+
+        // Gestion de la sélection de rôle
+        function selectRole(role) {
+            document.querySelectorAll('.role-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            document.getElementById('roleInput').value = role;
+        }
 
         function showAlert(message, type) {
-            alertBox.textContent = message;
+            alertBox.innerHTML = message;
             alertBox.className = `alert ${type}`;
             alertBox.style.display = 'block';
             
             setTimeout(() => {
                 alertBox.style.display = 'none';
-            }, 5000);
+            }, 6000);
         }
 
         function setLoading(loading) {
@@ -237,76 +492,115 @@
             if (loading) {
                 submitBtn.innerHTML = '<span class="loader"></span>Traitement en cours...';
             } else {
-                submitBtn.innerHTML = 'Promouvoir au rôle Admin';
+                submitBtn.innerHTML = 'Appliquer le changement de rôle';
             }
         }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const adminEmail = document.getElementById('adminEmail').value.trim();
-            const adminPassword = document.getElementById('adminPassword').value;
+            const targetEmail = document.getElementById('targetEmail').value.trim();
             const targetUserId = document.getElementById('targetUserId').value.trim();
+            const role = document.getElementById('roleInput').value;
 
-            // Validation basique
-            if (!adminEmail || !adminPassword || !targetUserId) {
-                showAlert('⚠️ Tous les champs sont requis', 'error');
+            // Validation selon l'onglet actif
+            if (currentTab === 'email' && !targetEmail) {
+                showAlert('⚠️ Veuillez saisir l\'email de l\'utilisateur', 'error');
                 return;
             }
 
-            // Validation format UUID (optionnel mais recommandé)
-            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            if (!uuidRegex.test(targetUserId)) {
-                showAlert('⚠️ Format d\'ID utilisateur invalide', 'error');
+            if (currentTab === 'userid' && !targetUserId) {
+                showAlert('⚠️ Veuillez saisir l\'ID de l\'utilisateur', 'error');
                 return;
+            }
+
+            // Validation format UUID si ID fourni
+            if (currentTab === 'userid') {
+                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+                if (!uuidRegex.test(targetUserId)) {
+                    showAlert('⚠️ Format d\'ID utilisateur invalide (UUID requis)', 'error');
+                    return;
+                }
             }
 
             setLoading(true);
-            showAlert('🔄 Vérification des permissions...', 'info');
+            showAlert('🔄 Vérification des permissions et traitement en cours...', 'info');
 
             try {
+                // Récupérer le token de session Supabase
+                const token = localStorage.getItem('supabase.auth.token') || 
+                             sessionStorage.getItem('supabase.auth.token');
+
+                if (!token) {
+                    showAlert('🔐 Vous devez être connecté pour effectuer cette action', 'error');
+                    setLoading(false);
+                    return;
+                }
+
+                // Préparation du body selon l'onglet
+                const requestBody = {
+                    role: role
+                };
+
+                if (currentTab === 'email') {
+                    requestBody.email = targetEmail;
+                } else {
+                    requestBody.user_id = targetUserId;
+                }
+
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({
-                        admin_email: adminEmail,
-                        admin_password: adminPassword,
-                        target_user_id: targetUserId
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    showAlert(`✅ Succès ! L'utilisateur ${targetUserId.substring(0, 8)}... est maintenant admin.`, 'success');
+                    const userName = data.user?.name || 'l\'utilisateur';
+                    const roleEmoji = role === 'admin' ? '👑' : '👤';
+                    const roleText = role === 'admin' ? 'administrateur' : 'utilisateur standard';
+                    
+                    showAlert(
+                        `✅ <strong>Succès !</strong><br>` +
+                        `${roleEmoji} ${userName} est maintenant ${roleText}.`, 
+                        'success'
+                    );
                     
                     // Réinitialiser le formulaire après 2 secondes
                     setTimeout(() => {
                         form.reset();
+                        document.querySelector('.role-option[data-role="admin"]').classList.add('selected');
+                        document.querySelector('.role-option[data-role="user"]').classList.remove('selected');
                     }, 2000);
                 } else {
                     // Gestion des différentes erreurs
-                    let errorMessage = data.error || 'Erreur inconnue';
+                    let errorMessage = data.message || data.error || 'Erreur inconnue';
                     
                     if (response.status === 401) {
-                        errorMessage = '🔐 Identifiants incorrects';
+                        errorMessage = '🔐 Session expirée ou identifiants invalides. Veuillez vous reconnecter.';
                     } else if (response.status === 403) {
-                        errorMessage = '🚫 Vous n\'avez pas les droits admin';
+                        errorMessage = '🚫 Accès refusé. Seuls les administrateurs peuvent modifier les rôles.';
                     } else if (response.status === 404) {
-                        errorMessage = '❓ Utilisateur cible introuvable';
+                        errorMessage = '❓ Utilisateur introuvable. Vérifiez l\'email ou l\'ID.';
                     }
                     
-                    showAlert(errorMessage, 'error');
+                    showAlert(`<strong>Erreur</strong><br>${errorMessage}`, 'error');
                 }
             } catch (error) {
                 console.error('Erreur:', error);
-                showAlert('❌ Erreur de connexion au serveur', 'error');
+                showAlert(
+                    '<strong>❌ Erreur de connexion</strong><br>' +
+                    'Impossible de contacter le serveur. Vérifiez votre connexion.', 
+                    'error'
+                );
             } finally {
                 setLoading(false);
             }
         });
     </script>
 </body>
-</html>
+    </html>
