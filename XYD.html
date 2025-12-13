@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Injection Bulk de Réponses</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            padding: 30px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px; 
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 { 
+            text-align: center; 
+            color: #333; 
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .card { 
+            background: #f8f9fa; 
+            padding: 25px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+        }
+        h2 { 
+            margin-top: 0; 
+            color: #667eea; 
+            font-size: 20px; 
+            border-bottom: 2px solid #667eea; 
+            padding-bottom: 10px; 
+            margin-bottom: 20px;
+        }
+        .label { 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+            display: block; 
+            color: #555;
+        }
+        input[type="text"], input[type="number"], textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            margin-bottom: 15px; 
+            font-size: 15px;
+            transition: border 0.3s;
+        }
+        input:focus, textarea:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        textarea {
+            min-height: 120px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        button { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            border: none; 
+            padding: 15px 25px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 16px; 
+            font-weight: bold; 
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        pre { 
+            background: #272822; 
+            color: #f8f8f2; 
+            padding: 20px; 
+            border-radius: 8px; 
+            overflow-x: auto; 
+            white-space: pre-wrap; 
+            font-family: 'Consolas', monospace; 
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            color: #0d47a1;
+        }
+        .success { color: #10b981; font-weight: bold; }
+        .error { color: #ef4444; font-weight: bold; }
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>💬 Injection Bulk de Réponses aux Commentaires</h1>
+
+        <div class="info-box">
+            <strong>ℹ️ Information :</strong> Cet outil permet d'injecter massivement des réponses simulées à un commentaire spécifique en utilisant des profils publics qui n'ont jamais interagi avec l'article concerné.
+        </div>
+
+        <div class="card">
+            <label class="label">🔗 URL de la Edge Function</label>
+            <input type="text" id="urlInput" value="https://odkbkloukpzvwxaomkfe.supabase.co/functions/v1/bulk-replies">
+        </div>
+
+        <div class="card">
+            <h2>🎯 Paramètres de l'Injection</h2>
+            
+            <label class="label">💬 Session ID (ID du commentaire parent)</label>
+            <input type="text" id="sessionIdInput" placeholder="Ex: f2a8b9c1-4d3e-4a7b-b0c1-3f6e5d9a2b1c">
+            
+            <label class="label">📄 Article ID (pour vérifier les profils utilisés)</label>
+            <input type="text" id="articleIdInput" placeholder="Ex: bf75c8a3-1234-5678-9abc-def012345678">
+            
+            <label class="label">🔢 Nombre de réponses à générer</label>
+            <input type="number" id="replyCountInput" value="10" min="1" max="10000">
+            
+            <label class="label">📝 Pool de textes (un par ligne)</label>
+            <textarea id="replyTextsInput" placeholder="Entrez un texte de réponse par ligne...
+Ex:
+Merci pour ce partage !
+Très intéressant comme point de vue.
+Je suis d'accord avec toi.
+Belle analyse !">Merci pour ce partage !
+Très intéressant comme point de vue.
+Je suis d'accord avec toi.
+Belle analyse !
+C'est exactement ce que je pensais.
+Super commentaire !
+Bien dit !
+👍 J'approuve totalement.
+Excellente remarque.
+Ça mérite réflexion.</textarea>
+        </div>
+
+        <div class="card">
+            <button id="submitBtn" onclick="sendReplies()">🚀 Lancer l'Injection de Réponses</button>
+        </div>
+
+        <div class="card">
+            <h2>📊 Résultat</h2>
+            <pre id="resultDisplay">// En attente d'injection...</pre>
+        </div>
+    </div>
+
+    <script>
+        async function sendReplies() {
+            const display = document.getElementById('resultDisplay');
+            const submitBtn = document.getElementById('submitBtn');
+            const url = document.getElementById('urlInput').value.trim();
+            const sessionId = document.getElementById('sessionIdInput').value.trim();
+            const articleId = document.getElementById('articleIdInput').value.trim();
+            const replyCount = parseInt(document.getElementById('replyCountInput').value);
+            const replyTextsRaw = document.getElementById('replyTextsInput').value;
+
+            // Validation
+            if (!sessionId) {
+                alert("⚠️ Veuillez entrer un Session ID valide");
+                return;
+            }
+            if (!articleId) {
+                alert("⚠️ Veuillez entrer un Article ID valide");
+                return;
+            }
+            if (replyCount <= 0 || isNaN(replyCount)) {
+                alert("⚠️ Le nombre de réponses doit être supérieur à 0");
+                return;
+            }
+
+            // Parse les textes (un par ligne, ignorer les lignes vides)
+            const replyTexts = replyTextsRaw
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+
+            if (replyTexts.length === 0) {
+                alert("⚠️ Veuillez entrer au moins un texte de réponse");
+                return;
+            }
+
+            // Préparation du payload
+            const payload = {
+                session_id: sessionId,
+                article_id: articleId,
+                reply_count: replyCount,
+                reply_texts: replyTexts
+            };
+
+            display.textContent = "⏳ Injection en cours...\n" + JSON.stringify(payload, null, 2);
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loader"></span>Injection en cours...';
+
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                const duration = Date.now() - startTime;
+
+                // Affichage du résultat
+                let resultText = `⏱️ Durée totale: ${duration}ms\n`;
+                resultText += `📊 Statut HTTP: ${response.status}\n\n`;
+                
+                if (data.success) {
+                    resultText += `✅ SUCCÈS !\n\n`;
+                } else {
+                    resultText += `❌ ÉCHEC\n\n`;
+                }
+                
+                resultText += JSON.stringify(data, null, 2);
+                
+                display.textContent = resultText;
+
+            } catch (error) {
+                display.innerHTML = `<span class="error">❌ Erreur de Connexion</span>\n\n`;
+                display.textContent += `Le serveur est inaccessible ou il y a un problème réseau.\n`;
+                display.textContent += `Détails: ${error.message}`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🚀 Lancer l\'Injection de Réponses';
+            }
+        }
+
+        // Raccourci clavier : Ctrl+Enter pour lancer
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                sendReplies();
+            }
+        });
+    </script>
+</body>
+</html>
