@@ -370,7 +370,7 @@
 
         <div class="info-box">
             <strong>⚠️ Zone Sécurisée</strong>
-            Seuls les administrateurs peuvent modifier les rôles. Cette action donnera ou retirera les privilèges administrateur à un utilisateur.
+            Cette interface est protégée par validation d'origine. Seules les requêtes depuis le domaine autorisé peuvent modifier les rôles utilisateurs.
         </div>
 
         <div id="alert" class="alert"></div>
@@ -527,16 +527,6 @@
             showAlert('🔄 Vérification des permissions et traitement en cours...', 'info');
 
             try {
-                // Récupérer le token de session Supabase
-                const token = localStorage.getItem('supabase.auth.token') || 
-                             sessionStorage.getItem('supabase.auth.token');
-
-                if (!token) {
-                    showAlert('🔐 Vous devez être connecté pour effectuer cette action', 'error');
-                    setLoading(false);
-                    return;
-                }
-
                 // Préparation du body selon l'onglet
                 const requestBody = {
                     role: role
@@ -551,8 +541,7 @@
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(requestBody)
                 });
@@ -580,10 +569,8 @@
                     // Gestion des différentes erreurs
                     let errorMessage = data.message || data.error || 'Erreur inconnue';
                     
-                    if (response.status === 401) {
-                        errorMessage = '🔐 Session expirée ou identifiants invalides. Veuillez vous reconnecter.';
-                    } else if (response.status === 403) {
-                        errorMessage = '🚫 Accès refusé. Seuls les administrateurs peuvent modifier les rôles.';
+                    if (response.status === 403) {
+                        errorMessage = '🚫 Accès refusé. Origine non autorisée ou permissions insuffisantes.';
                     } else if (response.status === 404) {
                         errorMessage = '❓ Utilisateur introuvable. Vérifiez l\'email ou l\'ID.';
                     }
