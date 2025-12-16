@@ -2329,7 +2329,7 @@
 
         async function saveSubscriptionToDatabase(subscription) {
             try {
-                
+                const { supabase, getCurrentUser } = window.supabaseClient;
                 const currentUser = await getCurrentUser();
                 
                 if (!currentUser) return;
@@ -2399,7 +2399,7 @@
         // ============================================================================
         // APPLICATION PRINCIPALE
         // ============================================================================
-        const { supabase, getCurrentUser, getUserProfile } = window.supabaseClient;
+        let supabase, getCurrentUser, getUserProfile;
         let currentUser = null;
         let userProfile = null;
         let allArticles = [];
@@ -2418,7 +2418,16 @@
             initThreeJS();
             
             await initServiceWorker();
-            
+            if (window.supabaseClient) {
+        supabase = window.supabaseClient.supabase;
+        getCurrentUser = window.supabaseClient.getCurrentUser;
+        getUserProfile = window.supabaseClient.getUserProfile;
+        console.log('✅ Supabase client initialisé depuis supabaseClient.js');
+    } else {
+        console.error('❌ ERREUR CRITIQUE: supabaseClient.js non chargé ou mal initialisé');
+        ToastManager.error('Erreur système', 'Impossible de charger le client de base de données');
+        return;
+        }
             const manualLogout = sessionStorage.getItem('manualLogout');
             if (manualLogout === 'true') {
                 sessionStorage.removeItem('manualLogout');
