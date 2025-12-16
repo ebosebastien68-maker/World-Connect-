@@ -1123,14 +1123,17 @@
             grid-template-columns: repeat(3, 1fr);
         }
 
+        /* MODIFICATION 1: Afficher l'image au complet sans rognage */
         .article-images img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
             border-radius: 16px;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: var(--shadow-sm);
+            object-fit: contain; /* Changé de 'cover' à 'contain' */
+            background-color: var(--bg-primary); /* Ajout d'un fond pour les espaces vides */
+            max-height: 500px; /* Limite la hauteur maximale */
+            height: auto; /* Hauteur automatique */
         }
 
         .article-images img:hover {
@@ -1417,6 +1420,7 @@
             transform: scale(1.2) rotate(90deg);
         }
 
+        /* MODIFICATION 2: Positionner le popup de partage au milieu de l'écran */
         .share-menu {
             display: none;
             position: fixed;
@@ -1424,29 +1428,17 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: var(--bg-secondary);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 24px;
-            min-width: 360px;
-            max-width: 90vw;
-            z-index: 10000;
-            animation: shareMenuSlide 0.3s ease;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 20px;
+            min-width: 320px;
+            z-index: 1000;
+            animation: shareMenuFadeIn 0.3s ease;
             border: 2px solid var(--border-color);
+            max-width: 90vw;
         }
 
-        .share-menu::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(6, 182, 212, 0.05));
-            border-radius: 20px;
-            z-index: -1;
-        }
-
-        @keyframes shareMenuSlide {
+        @keyframes shareMenuFadeIn {
             from {
                 opacity: 0;
                 transform: translate(-50%, -50%) scale(0.9);
@@ -1461,57 +1453,12 @@
             display: block;
         }
 
-        .share-menu-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            z-index: 9999;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .share-menu-overlay.show {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
         .share-menu h4 {
             color: var(--text-primary);
-            font-size: 18px;
-            margin-bottom: 20px;
+            font-size: 16px;
+            margin-bottom: 16px;
             text-align: center;
             font-weight: 700;
-        }
-
-        .share-menu-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: rgba(0, 0, 0, 0.05);
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            color: var(--text-secondary);
-        }
-
-        .share-menu-close:hover {
-            background: rgba(0, 0, 0, 0.1);
-            transform: rotate(90deg);
-            color: var(--accent-red);
         }
 
         .share-options {
@@ -2376,76 +2323,6 @@
         }
 
         // ============================================================================
-        // CRÉATION PROFIL OAUTH AUTOMATIQUE
-        // ============================================================================
-        async function createOAuthProfile(user) {
-            let prenom = 'Utilisateur';
-            let nom = 'Nouveau';
-
-            if (user.user_metadata) {
-                // Méthode 1 : Depuis full_name
-                if (user.user_metadata.full_name) {
-                    const nameParts = user.user_metadata.full_name.split(' ');
-                    prenom = nameParts[0] || 'Utilisateur';
-                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
-                } 
-                // Méthode 2 : Depuis name
-                else if (user.user_metadata.name) {
-                    const nameParts = user.user_metadata.name.split(' ');
-                    prenom = nameParts[0] || 'Utilisateur';
-                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
-                } 
-                // Méthode 3 : Depuis given_name et family_name
-                else if (user.user_metadata.given_name && user.user_metadata.family_name) {
-                    prenom = user.user_metadata.given_name;
-                    nom = user.user_metadata.family_name;
-                }
-                // Méthode 4 : Depuis first_name et last_name
-                else if (user.user_metadata.first_name && user.user_metadata.last_name) {
-                    prenom = user.user_metadata.first_name;
-                    nom = user.user_metadata.last_name;
-                }
-            }
-
-            // Méthode 5 : Fallback sur l'email
-            if (prenom === 'Utilisateur' && nom === 'Nouveau' && user.email) {
-                prenom = user.email.split('@')[0];
-                nom = '';
-            }
-
-            // Si nom est vide, utiliser le prénom comme nom
-            if (!nom || nom === 'Nouveau') {
-                nom = prenom;
-            }
-
-            // Si prénom est vide, utiliser le nom comme prénom
-            if (!prenom || prenom === 'Utilisateur') {
-                prenom = nom || 'Utilisateur';
-            }
-
-            console.log('✅ Création profil OAuth:', { prenom, nom, userId: user.id });
-
-            try {
-                // Insertion dans la base de données
-                const { error } = await supabase.from('users_profile').insert({
-                    user_id: user.id,
-                    prenom: prenom,
-                    nom: nom,
-                    role: 'user'
-                });
-
-                if (error && error.code !== '23505') { // Ignorer erreur "already exists"
-                    throw error;
-                }
-
-                ToastManager.success('Profil créé', `Bienvenue ${prenom} ${nom} !`);
-            } catch (error) {
-                console.error('❌ Erreur création profil:', error);
-                ToastManager.error('Erreur', 'Impossible de créer le profil');
-            }
-        }
-
-        // ============================================================================
         // INITIALISATION OPTIMISTIC SYNC
         // ============================================================================
         let optimisticReactions, optimisticComments;
@@ -2480,7 +2357,7 @@
         // ============================================================================
         // APPLICATION PRINCIPALE
         // ============================================================================
-        const { supabase, getCurrentUser, getUserProfile } = window.supabaseClient;
+        const { supabase, getCurrentUser, getUserProfile, createOAuthProfile } = window.supabaseClient;
         let currentUser = null;
         let userProfile = null;
         let allArticles = [];
@@ -2491,7 +2368,7 @@
         // ============================================================================
         // INITIALISATION
         // ============================================================================
-        window.addEventListener('load', async () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             ToastManager.init();
             LoadingManager.init();
             OfflineManager.init();
@@ -2514,23 +2391,20 @@
                     try {
                         userProfile = await getUserProfile(currentUser.id);
                         
-                        // Si profil inexistant, créer un profil OAuth
                         if (!userProfile) {
                             await createOAuthProfile(currentUser);
                             userProfile = await getUserProfile(currentUser.id);
                         }
                         
-                        if (userProfile) {
-                            updateMenu();
-                            showWelcomePopup();
-                            await loadUserReactions();
-                            setupRealTimeUpdates();
-                            loadNotificationCount();
-                            loadMessageCount();
-                            
-                            // Initialiser OptimisticSync
-                            await initOptimisticManagers();
-                        }
+                        updateMenu();
+                        showWelcomePopup();
+                        await loadUserReactions();
+                        setupRealTimeUpdates();
+                        loadNotificationCount();
+                        loadMessageCount();
+                        
+                        // Initialiser OptimisticSync
+                        await initOptimisticManagers();
                     } catch (profileError) {
                         console.warn('⚠️ Erreur profil:', profileError);
                         ToastManager.warning('Attention', 'Impossible de charger votre profil');
@@ -3153,19 +3027,8 @@
             }
             
             const author = article.users_profile || { prenom: 'Utilisateur', nom: 'Inconnu' };
-            let authorPrenom = author.prenom || 'Utilisateur';
-            let authorNom = author.nom || 'Inconnu';
-            
-            // Si nom est vide, utiliser prénom
-            if (!authorNom || authorNom.trim() === '') {
-                authorNom = authorPrenom;
-            }
-            
-            // Si prénom est vide, utiliser nom
-            if (!authorPrenom || authorPrenom.trim() === '') {
-                authorPrenom = authorNom;
-            }
-            
+            const authorPrenom = author.prenom || 'Utilisateur';
+            const authorNom = author.nom || 'Inconnu';
             const initials = `${authorPrenom[0]}${authorNom[0]}`.toUpperCase();
             
             const images = Array.isArray(article.article_images) ? article.article_images : [];
@@ -3273,10 +3136,7 @@
                         <div class="share-btn" onclick="toggleShareMenu(event, '${article.article_id}')">
                             <i class="fas fa-share-alt"></i>
                             <div class="share-menu" id="share-menu-${article.article_id}">
-                                <button class="share-menu-close" onclick="closeShareMenu('${article.article_id}')">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                <h4>Partager cet article</h4>
+                                <h4>Partager</h4>
                                 <div class="share-options">
                                     <a class="share-option facebook" onclick="shareToFacebook('${article.article_id}')">
                                         <i class="fab fa-facebook"></i>
@@ -3675,41 +3535,13 @@
         // ============================================================================
         function toggleShareMenu(event, articleId) {
             event.stopPropagation();
-            
-            // Fermer tous les autres menus
+            const menu = document.getElementById(`share-menu-${articleId}`);
             document.querySelectorAll('.share-menu.show').forEach(m => {
                 if (m.id !== `share-menu-${articleId}`) {
                     m.classList.remove('show');
                 }
             });
-            document.querySelectorAll('.share-menu-overlay.show').forEach(o => o.classList.remove('show'));
-            
-            const menu = document.getElementById(`share-menu-${articleId}`);
-            const isShowing = menu.classList.contains('show');
-            
-            if (!isShowing) {
-                // Créer l'overlay s'il n'existe pas
-                let overlay = document.getElementById(`share-overlay-${articleId}`);
-                if (!overlay) {
-                    overlay = document.createElement('div');
-                    overlay.id = `share-overlay-${articleId}`;
-                    overlay.className = 'share-menu-overlay';
-                    overlay.onclick = () => closeShareMenu(articleId);
-                    document.body.appendChild(overlay);
-                }
-                overlay.classList.add('show');
-                menu.classList.add('show');
-            } else {
-                closeShareMenu(articleId);
-            }
-        }
-
-        function closeShareMenu(articleId) {
-            const menu = document.getElementById(`share-menu-${articleId}`);
-            const overlay = document.getElementById(`share-overlay-${articleId}`);
-            
-            if (menu) menu.classList.remove('show');
-            if (overlay) overlay.classList.remove('show');
+            menu.classList.toggle('show');
         }
 
         function getArticleShareUrl(articleId) {
@@ -3936,4 +3768,4 @@
         window.toggleReplyBox = toggleReplyBox;
     </script>
 </body>
-    </html>
+        </html>
