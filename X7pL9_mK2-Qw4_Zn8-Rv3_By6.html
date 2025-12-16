@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu de Navigation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS : Design Professionnel --- */
+        :root {
+            --primary-color: #2563eb; /* Bleu professionnel */
+            --primary-hover: #1d4ed8;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--text-main);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .button-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: var(--text-main);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Effet de survol */
+        .nav-btn:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        /* Indicateur visuel (flèche ou icône) */
+        .nav-btn::after {
+            content: '→';
+            font-size: 1.2rem;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover::after {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .label {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .label span {
+            font-size: 1rem;
+        }
+
+        .label small {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        /* Animation d'entrée */
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container fade-in">
+        <h1>Gestion de Fichiers</h1>
+        <p class="subtitle">Sélectionnez une section pour continuer</p>
+
+        <div class="button-grid">
+            <a href="a9F3dQ7ZL0xM2P8R4K6T5H1CwVbSJeYyUmcAknEoiWGsDq.html" class="nav-btn" onclick="logClick('UID')">
+                <div class="label">
+                    <span>UID</span>
+                    <small>Identifiant unique</small>
+                </div>
+            </a>
+
+            <a href="7f3b9e2c4a8d0f91c6e5a1b8d3f92c4e.html" class="nav-btn" onclick="logClick('Réponse')">
+                <div class="label">
+                    <span>Réponse</span>
+                    <small>Voir les détails</small>
+                </div>
+            </a>
+
+            <a href="c1b9f3a8-7d4e-4f92-8c1a-9e6d2b5f7a3c.html" class="nav-btn" onclick="logClick('Réaction')">
+                <div class="label">
+                    <span>Réaction</span>
+                    <small>Interactions utilisateurs</small>
+                </div>
+            </a>
+
+            <a href="XQm9__F7aP0Rk2L8Z5T4HcV1JY6SWeDbN.html" class="nav-btn" onclick="logClick('Commentaire')">
+                <div class="label">
+                    <span>Commentaire</span>
+                    <small>Section discussions</small>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // --- JavaScript : Petite interaction ---
+        
+        // Animation séquentielle des boutons à l'ouverture
+        document.addEventListener("DOMContentLoaded", () => {
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach((btn, index) => {
+                btn.style.opacity = '0';
+                btn.style.animation = `fadeIn 0.5s ease-out forwards ${index * 0.1 + 0.3}s`;
+            });
+        });
+
+        // Fonction utilitaire (optionnelle) pour loguer les clics
+        function logClick(sectionName) {
+            console.log(`Navigation vers la section : ${sectionName}`);
+            // Ici, vous pourriez ajouter du code pour des analytics par exemple
+        }
+    </script>
+</body>
+</html>
