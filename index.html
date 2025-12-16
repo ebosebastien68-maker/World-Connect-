@@ -2028,6 +2028,11 @@
         </div>
     </div>
 
+    <!-- 1. Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 2. Client Supabase -->
+    <script src="supabaseClient.js"></script>
     
     <!-- 3. Optimistic Sync (après supabaseClient) -->
     <script src="optimistic-sync.js"></script>
@@ -2324,7 +2329,7 @@
 
         async function saveSubscriptionToDatabase(subscription) {
             try {
-                const { supabase, getCurrentUser } = window.supabaseClient;
+                
                 const currentUser = await getCurrentUser();
                 
                 if (!currentUser) return;
