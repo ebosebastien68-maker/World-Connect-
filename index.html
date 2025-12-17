@@ -1107,8 +1107,9 @@
 
         .article-images {
             display: grid;
-            gap: 12px;
+            gap: 0;
             margin-top: 18px;
+            overflow: hidden;
         }
 
         .article-images.single {
@@ -1125,25 +1126,37 @@
 
         .article-images img {
             width: 100%;
-            border-radius: 16px;
+            height: 100%;
+            object-fit: cover;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-sm);
-            object-fit: cover;
-            aspect-ratio: 16/9;
+            border-radius: 0;
+            box-shadow: none;
         }
 
         .article-images img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            border-radius: 20px;
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-images.single img {
+            max-height: 600px;
+            border-radius: 0;
+        }
+
+        .article-images.double img {
+            height: 300px;
+        }
+
+        .article-images.multiple img {
+            height: 200px;
         }
 
         .article-video video {
             width: 100%;
-            border-radius: 16px;
+            border-radius: 0;
             margin-top: 18px;
-            box-shadow: var(--shadow-md);
+            box-shadow: none;
         }
 
         .article-links {
@@ -2351,15 +2364,104 @@
         }
 
         // ============================================================================
+        // GESTION DES PROFILS OAUTH
+        // ============================================================================
+        
+        /**
+         * Créer un profil pour les utilisateurs OAuth (Google, Facebook, etc.)
+         */
+        async function createOAuthProfile(user) {
+            console.log('🔄 Création profil OAuth pour:', user.email);
+            
+            let prenom = 'Utilisateur';
+            let nom = 'Nouveau';
+            
+            if (user.user_metadata) {
+                console.log('📊 Métadonnées utilisateur:', user.user_metadata);
+                
+                // Méthode 1 : Depuis full_name
+                if (user.user_metadata.full_name) {
+                    const nameParts = user.user_metadata.full_name.trim().split(' ');
+                    prenom = nameParts[0] || 'Utilisateur';
+                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
+                    console.log('✅ Nom extrait depuis full_name:', { prenom, nom });
+                } 
+                // Méthode 2 : Depuis name
+                else if (user.user_metadata.name) {
+                    const nameParts = user.user_metadata.name.trim().split(' ');
+                    prenom = nameParts[0] || 'Utilisateur';
+                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
+                    console.log('✅ Nom extrait depuis name:', { prenom, nom });
+                } 
+                // Méthode 3 : Depuis given_name et family_name (Google)
+                else if (user.user_metadata.given_name && user.user_metadata.family_name) {
+                    prenom = user.user_metadata.given_name;
+                    nom = user.user_metadata.family_name;
+                    console.log('✅ Nom extrait depuis given_name/family_name:', { prenom, nom });
+                }
+                // Méthode 4 : Depuis first_name et last_name (Facebook)
+                else if (user.user_metadata.first_name && user.user_metadata.last_name) {
+                    prenom = user.user_metadata.first_name;
+                    nom = user.user_metadata.last_name;
+                    console.log('✅ Nom extrait depuis first_name/last_name:', { prenom, nom });
+                }
+            }
+            
+            // Méthode 5 : Fallback sur l'email
+            if (prenom === 'Utilisateur' && nom === 'Nouveau' && user.email) {
+                prenom = user.email.split('@')[0];
+                nom = '';
+                console.log('⚠️ Fallback sur email:', { prenom });
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('users_profile')
+                    .insert({
+                        user_id: user.id,
+                        prenom: prenom,
+                        nom: nom,
+                        role: 'user',
+                        email: user.email
+                    })
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                console.log('✅ Profil OAuth créé:', data);
+                return data;
+                
+            } catch (error) {
+                console.error('❌ Erreur création profil OAuth:', error);
+                throw error;
+            }
+        }
+        
+        /**
+         * Vérifier et créer le profil si nécessaire
+         */
+        async function ensureUserProfile(user) {
+            try {
+                let profile = await getUserProfile(user.id);
+                
+                if (!profile) {
+                    console.log('📝 Profil inexistant, création en cours...');
+                    profile = await createOAuthProfile(user);
+                }
+                
+                return profile;
+                
+            } catch (error) {
+                console.error('❌ Erreur vérification profil:', error);
+                return null;
+            }
+        }
+
+        // ============================================================================
         // APPLICATION PRINCIPALE
         // ============================================================================
         const { supabase, getCurrentUser, getUserProfile } = window.supabaseClient;
-        let currentUser = null;
-        let userProfile = null;
-        let allArticles = [];
-        let isSearching = false;
-        let currentPage = 'home';
-        let userReactions = {};
 
         // ============================================================================
         // INITIALISATION
@@ -2385,9 +2487,17 @@
                 currentUser = await getCurrentUser();
                 if (currentUser) {
                     try {
-                        userProfile = await getUserProfile(currentUser.id);
+                        // Utiliser ensureUserProfile au lieu de getUserProfile directement
+                        userProfile = await ensureUserProfile(currentUser);
                         
                         if (userProfile) {
+                            console.log('👤 Utilisateur connecté:', {
+                                id: currentUser.id,
+                                email: currentUser.email,
+                                prenom: userProfile.prenom,
+                                nom: userProfile.nom
+                            });
+                            
                             updateMenu();
                             showWelcomePopup();
                             await loadUserReactions();
@@ -2397,6 +2507,8 @@
                             
                             // Initialiser OptimisticSync
                             await initOptimisticManagers();
+                        } else {
+                            console.warn('⚠️ Impossible de créer le profil utilisateur');
                         }
                     } catch (profileError) {
                         console.warn('⚠️ Erreur profil:', profileError);
