@@ -16,15 +16,10 @@
     <meta name="description" content="World Connect - Créez votre présence digitale professionnelle. Partagez, connectez et développez votre réseau.">
     <meta name="keywords" content="réseau social, professionnel, networking, connexion">
     
-    <!-- External libs -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<!-- App logic -->
-<script src="supabaseClient.js"></script>
-<script src="optimistic-sync.js"></script>
-<script src="commentaires.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- External Resources -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         * {
@@ -2000,7 +1995,61 @@
         </div>
     </div>
 
+    <!-- 1. Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 2. Client Supabase -->
     <script>
+        // Initialisation de supabaseClient sans redéclarer la variable globale supabase
+        (function() {
+            const supabaseUrl = 'https://your-project.supabase.co';
+            const supabaseKey = 'your-anon-key';
+
+            // Ici, `supabase` est la variable globale exposée par le CDN, nous utilisons sa méthode createClient
+            const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+            async function getCurrentUser() {
+                const { data: { user } } = await client.auth.getUser();
+                return user;
+            }
+
+            async function getUserProfile(userId) {
+                if (!userId) return null;
+                const { data, error } = await client
+                    .from('users_profile')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .single();
+                if (error) {
+                    console.error('Erreur lors de la récupération du profil:', error);
+                    return null;
+                }
+                return data;
+            }
+
+            window.supabaseClient = {
+                supabase: client,
+                getCurrentUser,
+                getUserProfile
+            };
+        })();
+    </script>
+    
+    <!-- 3. Optimistic Sync (après supabaseClient) -->
+    <script src="optimistic-sync.js"></script>
+    
+    <!-- 4. Commentaires -->
+    <script src="commentaires.js"></script>
+    
+    <script>
+        // Variables globales
+        let currentUser = null;
+        let userProfile = null;
+        let allArticles = [];
+        let userReactions = {};
+        let currentPage = 'home';
+        let isSearching = false;
+
         // ============================================================================
         // TOAST NOTIFICATION SYSTEM
         // ============================================================================
