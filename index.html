@@ -1994,13 +1994,20 @@
             </div>
         </div>
     </div>
+
+    <!-- 1. Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <script src="optimistic-sync.js"></script>
+    <!-- 2. Client Supabase -->
     <script src="supabaseClient.js"></script>
+    
+    <!-- 3. Optimistic Sync (après supabaseClient) -->
+    <script src="optimistic-sync.js"></script>
+    
+    <!-- 4. Commentaires -->
     <script src="commentaires.js"></script>
     
     <script>
-        
         // ============================================================================
         // TOAST NOTIFICATION SYSTEM
         // ============================================================================
@@ -2364,6 +2371,7 @@
          * Créer un profil pour les utilisateurs OAuth (Google, Facebook, etc.)
          */
         async function createOAuthProfile(user) {
+            const { supabase } = window.supabaseClient;
             console.log('🔄 Création profil OAuth pour:', user.email);
             
             let prenom = 'Utilisateur';
@@ -2435,6 +2443,7 @@
          * Vérifier et créer le profil si nécessaire
          */
         async function ensureUserProfile(user) {
+            const { getUserProfile } = window.supabaseClient;
             try {
                 let profile = await getUserProfile(user.id);
                 
@@ -2798,6 +2807,7 @@
             });
 
             document.getElementById('logout-item').addEventListener('click', async function(e) {
+                const { supabase } = window.supabaseClient;
                 e.preventDefault();
                 try {
                     LoadingManager.show();
@@ -2863,6 +2873,7 @@
         // GESTION DES RÉACTIONS UTILISATEUR
         // ============================================================================
         async function loadUserReactions() {
+            const { supabase } = window.supabaseClient;
             if (!currentUser) return;
             try {
                 const { data } = await supabase
@@ -2888,6 +2899,7 @@
         // GESTION DES MISES À JOUR EN TEMPS RÉEL
         // ============================================================================
         function setupRealTimeUpdates() {
+            const { supabase } = window.supabaseClient;
             if (!currentUser) return;
 
             supabase.channel('articles-changes')
@@ -2943,6 +2955,7 @@
         // CHARGEMENT DES ARTICLES
         // ============================================================================
         async function loadArticles() {
+            const { supabase } = window.supabaseClient;
             try {
                 console.log('🔄 Début du chargement des articles...');
                 
@@ -3285,6 +3298,7 @@
         // GESTION DES RÉACTIONS AVEC OPTIMISTIC SYNC
         // ============================================================================
         async function handleReaction(articleId, reactionType) {
+            const { supabase } = window.supabaseClient;
             if (!currentUser || !userProfile) {
                 ToastManager.warning('Connexion requise', 'Connectez-vous pour réagir');
                 setTimeout(() => {
@@ -3372,6 +3386,7 @@
         }
 
         async function loadComments(articleId, container) {
+            const { supabase } = window.supabaseClient;
             container.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
             try {
                 // Récupérer les commentaires via la vue SQL
@@ -3518,6 +3533,7 @@
         }
 
         async function submitComment(articleId) {
+            const { supabase } = window.supabaseClient;
             if (!currentUser || !userProfile) {
                 ToastManager.warning('Connexion requise', 'Connectez-vous pour commenter');
                 return;
@@ -3553,6 +3569,7 @@
         }
 
         async function submitReply(parentId, articleId) {
+            const { supabase } = window.supabaseClient;
             if (!currentUser || !userProfile) return;
 
             const input = document.getElementById(`reply-input-${parentId}`);
@@ -3586,6 +3603,7 @@
         }
 
         async function deleteComment(commentId, articleId) {
+            const { supabase } = window.supabaseClient;
             if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
 
             try {
@@ -3731,6 +3749,7 @@
         }
 
         async function deleteArticle(articleId) {
+            const { supabase } = window.supabaseClient;
             if (!confirm("Voulez-vous vraiment supprimer cet article ?")) return;
             
             try {
@@ -3766,6 +3785,7 @@
         // COMPTEURS DE NOTIFICATIONS ET MESSAGES
         // ============================================================================
         async function loadNotificationCount() {
+            const { supabase } = window.supabaseClient;
             if (!currentUser) return;
             try {
                 const { count } = await supabase
@@ -3787,6 +3807,7 @@
         }
 
         async function loadMessageCount() {
+            const { supabase } = window.supabaseClient;
             if (!currentUser) return;
             try {
                 const { count } = await supabase
