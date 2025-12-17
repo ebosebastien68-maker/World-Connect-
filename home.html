@@ -1,0 +1,3876 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Connect - Réseau Social Professionnel</title>
+    
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6b7249">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="connect_pro.png">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="World Connect - Créez votre présence digitale professionnelle. Partagez, connectez et développez votre réseau.">
+    <meta name="keywords" content="réseau social, professionnel, networking, connexion">
+    
+    <!-- External Resources -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+            --accent-blue: #2563eb;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #7c3aed;
+            --accent-kaki: #6b7249;
+            --accent-kaki-dark: #545c3a;
+            --header-kaki: #8b9556;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --accent-orange: #f97316;
+            --accent-pink: #ec4899;
+        }
+
+        body.dark-mode {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #334155;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+            position: relative;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+
+        /* Canvas Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        body.dark-mode #canvas-container {
+            opacity: 0.3;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent-kaki), var(--header-kaki));
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast Notification System */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toast:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        }
+
+        .toast.success { border-left-color: var(--accent-green); }
+        .toast.error { border-left-color: var(--accent-red); }
+        .toast.warning { border-left-color: var(--accent-yellow); }
+        .toast.info { border-left-color: var(--accent-blue); }
+
+        .toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast.success .toast-icon {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+        }
+
+        .toast.error .toast-icon {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+        }
+
+        .toast.warning .toast-icon {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-yellow);
+        }
+
+        .toast.info .toast-icon {
+            background: rgba(37, 99, 235, 0.15);
+            color: var(--accent-blue);
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .toast-close {
+            background: rgba(0,0,0,0.05);
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .toast-close:hover {
+            background: rgba(0,0,0,0.1);
+            transform: scale(1.1);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        /* Offline Indicator */
+        .offline-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--accent-red);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .offline-indicator.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .offline-indicator i {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .welcome-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            padding: 48px 60px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(37, 99, 235, 0.4);
+            z-index: 10000;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .welcome-popup.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: all;
+        }
+
+        .welcome-popup-emoji {
+            font-size: 72px;
+            animation: floatBounce 1s ease-out;
+            display: inline-block;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+        }
+
+        @keyframes floatBounce {
+            0% {
+                transform: translateY(-100px) scale(0);
+                opacity: 0;
+            }
+            60% {
+                transform: translateY(10px) scale(1.1);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .welcome-popup-title {
+            color: white;
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .welcome-popup-name {
+            color: white;
+            font-size: 38px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+
+        .welcome-popup-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .welcome-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .welcome-popup-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--header-kaki) 0%, var(--accent-kaki) 100%);
+            box-shadow: 4px 0 30px rgba(107, 114, 73, 0.4);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            z-index: 2000;
+            backdrop-filter: blur(20px);
+            transition: left 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .navbar.show {
+            left: 0;
+        }
+
+        .navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
+            pointer-events: none;
+        }
+
+        .menu-toggle-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--header-kaki), var(--accent-kaki));
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            z-index: 2001;
+            box-shadow: 0 4px 20px rgba(107, 114, 73, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(107, 114, 73, 0.6);
+        }
+
+        .menu-toggle-btn span {
+            width: 24px;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle-btn.active span:nth-child(1) {
+            transform: rotate(45deg) translate(8px, 8px);
+        }
+
+        .menu-toggle-btn.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-toggle-btn.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(8px, -8px);
+        }
+
+        .navbar-header {
+            padding: 30px 20px 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        .theme-toggle-mini {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-mini:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1) rotate(180deg);
+        }
+
+        .theme-toggle-mini i {
+            font-size: 18px;
+            color: white;
+        }
+
+        .navbar-left {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        .navbar-left::before {
+            content: '⚡';
+            font-size: 36px;
+            animation: pulse 2s infinite;
+        }
+
+        .navbar-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px 0;
+        }
+
+        .navbar-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .navbar-content::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .navbar-content::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+
+        .navbar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.85);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            padding: 14px 20px;
+            margin: 4px 15px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 70%;
+            background: white;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .nav-item span {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .theme-toggle {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.02);
+        }
+
+        .theme-toggle i {
+            font-size: 16px;
+        }
+
+        .search-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--accent-kaki), var(--header-kaki));
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(107, 114, 73, 0.4);
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+
+        .search-toggle-btn:hover {
+            background: linear-gradient(135deg, var(--header-kaki), var(--accent-kaki-dark));
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(107, 114, 73, 0.6);
+        }
+
+        .search-toggle-btn i {
+            font-size: 22px;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .search-toggle-btn span {
+            font-size: 9px;
+            color: white;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .search-toggle-btn.active i {
+            transform: rotate(45deg);
+        }
+
+        .search-panel {
+            position: fixed;
+            bottom: -320px;
+            left: 0;
+            right: 0;
+            height: 320px;
+            background: var(--bg-secondary);
+            border-top: 3px solid var(--accent-kaki);
+            box-shadow: 0 -4px 30px rgba(107, 114, 73, 0.3);
+            z-index: 998;
+            transition: bottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            backdrop-filter: blur(20px);
+        }
+
+        .search-panel.show {
+            bottom: 0;
+        }
+
+        .search-panel h3 i {
+            color: var(--accent-kaki);
+            font-size: 24px;
+        }
+
+        .search-input-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            font-size: 16px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-kaki);
+            box-shadow: 0 0 0 4px rgba(107, 114, 73, 0.1);
+            background: var(--bg-secondary);
+        }
+
+        .search-btn {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--accent-kaki), var(--header-kaki));
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(107, 114, 73, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: inherit;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(107, 114, 73, 0.5);
+        }
+
+        .search-results-info {
+            color: var(--text-secondary);
+            font-size: 14px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .page-title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            padding: 10px 28px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            z-index: 998;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-radius: 12px;
+            padding: 3px 7px;
+            font-size: 10px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .menu-item {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 15px;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            padding-left: 24px;
+        }
+
+        .menu-item i {
+            width: 30px;
+            font-size: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .menu-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 10px 15px;
+        }
+
+        .menu-item.logout {
+            color: #ffcccc;
+        }
+
+        .menu-item.logout:hover {
+            background: rgba(255, 100, 100, 0.2);
+        }
+
+        .menu-item.logout i {
+            color: #ffcccc;
+        }
+
+        .spa-container {
+            max-width: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .spa-page {
+            display: none;
+            animation: fadeInSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 100%;
+            height: 100%;
+            padding: 80px 20px 100px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .spa-page.active {
+            display: block;
+        }
+
+        @keyframes fadeInSlide {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* SKELETON LOADER MODERNISÉ 2025 */
+        .article-skeleton {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .article-skeleton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            animation: shimmer 2s infinite;
+            z-index: 1;
+        }
+
+        body.dark-mode .article-skeleton::before {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.05),
+                transparent
+            );
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .skeleton-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .skeleton-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
+            animation: skeletonPulse 1.5s ease-in-out infinite;
+        }
+
+        body.dark-mode .skeleton-avatar {
+            background: linear-gradient(135deg, #2d3748, #1e293b);
+        }
+
+        .skeleton-author {
+            flex: 1;
+        }
+
+        .skeleton-name {
+            width: 140px;
+            height: 18px;
+            background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            animation: skeletonPulse 1.5s ease-in-out infinite;
+        }
+
+        body.dark-mode .skeleton-name {
+            background: linear-gradient(135deg, #2d3748, #1e293b);
+        }
+
+        .skeleton-date {
+            width: 100px;
+            height: 14px;
+            background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
+            border-radius: 6px;
+            animation: skeletonPulse 1.5s ease-in-out infinite 0.2s;
+        }
+
+        body.dark-mode .skeleton-date {
+            background: linear-gradient(135deg, #2d3748, #1e293b);
+        }
+
+        @keyframes skeletonPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .skeleton-content {
+            padding: 0 20px 20px;
+        }
+
+        .skeleton-text {
+            width: 100%;
+            height: 16px;
+            background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            animation: skeletonPulse 1.5s ease-in-out infinite 0.3s;
+        }
+
+        body.dark-mode .skeleton-text {
+            background: linear-gradient(135deg, #2d3748, #1e293b);
+        }
+
+        .skeleton-text:nth-child(2) {
+            width: 90%;
+            animation-delay: 0.4s;
+        }
+
+        .skeleton-text:nth-child(3) {
+            width: 75%;
+            animation-delay: 0.5s;
+        }
+
+        .skeleton-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
+            border-radius: 16px;
+            margin-top: 16px;
+            animation: skeletonPulse 1.5s ease-in-out infinite 0.6s;
+        }
+
+        body.dark-mode .skeleton-image {
+            background: linear-gradient(135deg, #2d3748, #1e293b);
+        }
+
+        .skeleton-actions {
+            padding: 20px;
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .skeleton-action-btn {
+            flex: 1;
+            height: 40px;
+            background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
+            border-radius: 12px;
+            animation: skeletonPulse 1.5s ease-in-out infinite;
+        }
+
+        body.dark-mode .skeleton-action-btn {
+            background: linear-gradient(135deg, #2d3748, #1e293b);
+        }
+
+        .skeleton-action-btn:nth-child(1) { animation-delay: 0.7s; }
+        .skeleton-action-btn:nth-child(2) { animation-delay: 0.8s; }
+        .skeleton-action-btn:nth-child(3) { animation-delay: 0.9s; }
+        .skeleton-action-btn:nth-child(4) { animation-delay: 1s; }
+
+        /* ARTICLES STYLES MODERNISÉS 2025 */
+        .article-card {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .article-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan), var(--accent-purple));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .article-card:hover::before {
+            opacity: 1;
+        }
+
+        .article-card:hover {
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-6px);
+            border-color: var(--accent-blue);
+        }
+
+        .article-header {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(180deg, var(--bg-secondary), transparent);
+        }
+
+        .avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .article-card:hover .avatar {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.6);
+        }
+
+        .author-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .author-info h3 {
+            font-size: 17px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .author-info p {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .article-content {
+            padding: 24px;
+        }
+
+        .article-text {
+            color: var(--text-primary);
+            line-height: 1.8;
+            margin-bottom: 18px;
+            font-size: 15.5px;
+            font-weight: 400;
+            letter-spacing: -0.1px;
+        }
+
+        .article-images {
+            display: grid;
+            gap: 0;
+            margin-top: 18px;
+            overflow: hidden;
+        }
+
+        .article-images.single {
+            grid-template-columns: 1fr;
+        }
+
+        .article-images.double {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .article-images.multiple {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .article-images img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .article-images img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-images.single img {
+            max-height: 600px;
+            border-radius: 0;
+        }
+
+        .article-images.double img {
+            height: 300px;
+        }
+
+        .article-images.multiple img {
+            height: 200px;
+        }
+
+        .article-video video {
+            width: 100%;
+            border-radius: 0;
+            margin-top: 18px;
+            box-shadow: none;
+        }
+
+        .article-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .link-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .link-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.5);
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+        }
+
+        .link-btn i {
+            font-size: 16px;
+        }
+
+        /* REACTIONS MODERNISÉES 2025 */
+        .reactions {
+            display: flex;
+            gap: 8px;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            backdrop-filter: blur(10px);
+        }
+
+        body.dark-mode .reactions {
+            background: var(--bg-secondary);
+        }
+
+        .reaction-btn {
+            flex: 1;
+            background: transparent;
+            border: 2px solid transparent;
+            padding: 12px 8px;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 22px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-tertiary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reaction-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.1;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .reaction-btn:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        .reaction-btn:hover {
+            transform: scale(1.1) translateY(-2px);
+            border-color: currentColor;
+        }
+
+        .reaction-btn i {
+            font-size: 26px;
+            transition: transform 0.3s ease;
+            z-index: 1;
+        }
+
+        .reaction-btn:hover i {
+            transform: scale(1.2) rotate(-10deg);
+        }
+
+        .reaction-btn span {
+            font-size: 13px;
+            font-weight: 700;
+            z-index: 1;
+            min-width: 24px;
+            text-align: center;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .reaction-btn span {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        /* Styles spécifiques par type de réaction */
+        .reaction-btn:nth-child(1) {
+            color: var(--accent-blue);
+        }
+
+        .reaction-btn:nth-child(2) {
+            color: var(--accent-red);
+        }
+
+        .reaction-btn:nth-child(3) {
+            color: var(--accent-yellow);
+        }
+
+        .reaction-btn:nth-child(4) {
+            color: var(--accent-orange);
+        }
+
+        .reaction-btn.active {
+            background: currentColor;
+            color: white;
+            border-color: currentColor;
+            box-shadow: 0 6px 20px currentColor;
+            transform: scale(1.05);
+        }
+
+        .reaction-btn.active span {
+            background: rgba(255, 255, 255, 0.25);
+            color: white !important;
+            font-weight: 800;
+            transform: scale(1.1);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .reaction-btn.active i {
+            color: white !important;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .reaction-btn.active i {
+            animation: reactionBounce 0.6s ease;
+        }
+
+        @keyframes reactionBounce {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.3) rotate(-15deg); }
+            50% { transform: scale(0.9) rotate(15deg); }
+            75% { transform: scale(1.2) rotate(-10deg); }
+        }
+
+        /* Animation au survol pour les réactions non actives */
+        .reaction-btn:not(.active):hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        body.dark-mode .reaction-btn:not(.active):hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comments-reactions-section {
+            display: flex;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .comments-toggle-large {
+            flex: 1;
+            padding: 18px;
+            cursor: pointer;
+            color: var(--accent-blue);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            border-right: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .comments-toggle-large::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-blue);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .comments-toggle-large:hover::before {
+            transform: scaleX(1);
+        }
+
+        .comments-toggle-large:hover {
+            background: linear-gradient(180deg, rgba(37, 99, 235, 0.05), transparent);
+            color: var(--accent-cyan);
+        }
+
+        .comments-toggle-large i {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .comments-toggle-large:hover i {
+            transform: rotate(360deg) scale(1.2);
+        }
+
+        .comment-count-badge {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            color: white;
+            border-radius: 16px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-left: 6px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            animation: badgePulse 2s infinite;
+        }
+
+        .share-btn {
+            width: 70px;
+            padding: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: relative;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .share-btn:hover {
+            background: linear-gradient(180deg, rgba(37, 99, 235, 0.05), transparent);
+        }
+
+        .share-btn i {
+            font-size: 20px;
+            color: var(--accent-blue);
+            transition: transform 0.3s ease;
+        }
+
+        .share-btn:hover i {
+            transform: scale(1.2) rotate(90deg);
+        }
+
+        .share-menu {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 20px;
+            margin-bottom: 12px;
+            min-width: 320px;
+            z-index: 100;
+            animation: shareMenuSlide 0.3s ease;
+            border: 2px solid var(--border-color);
+        }
+
+        @keyframes shareMenuSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .share-menu.show {
+            display: block;
+        }
+
+        .share-menu h4 {
+            color: var(--text-primary);
+            font-size: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .share-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 14px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            border: 2px solid transparent;
+        }
+
+        .share-option:hover {
+            background: var(--bg-primary);
+            transform: translateY(-4px) scale(1.05);
+            border-color: currentColor;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .share-option i {
+            font-size: 28px;
+            margin-bottom: 4px;
+            transition: transform 0.3s ease;
+        }
+
+        .share-option:hover i {
+            transform: scale(1.3) rotate(10deg);
+        }
+
+        .share-option span {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .share-option.facebook i { color: #1877f2; }
+        .share-option.twitter i { color: #1da1f2; }
+        .share-option.whatsapp i { color: #25d366; }
+        .share-option.telegram i { color: #0088cc; }
+        .share-option.instagram i { 
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .share-option.tiktok i { color: #000000; }
+        body.dark-mode .share-option.tiktok i { color: #ffffff; }
+        .share-option.more i { color: var(--accent-blue); }
+
+        .user-reactions-btn {
+            width: 70px;
+            padding: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .user-reactions-btn:hover {
+            background: linear-gradient(180deg, rgba(37, 99, 235, 0.05), transparent);
+        }
+
+        .user-reactions-btn i {
+            font-size: 20px;
+            color: var(--accent-blue);
+            transition: transform 0.3s ease;
+        }
+
+        .user-reactions-btn:hover i {
+            transform: scale(1.2);
+            animation: userReactionsPulse 0.6s ease;
+        }
+
+        @keyframes userReactionsPulse {
+            0%, 100% { transform: scale(1.2); }
+            50% { transform: scale(1.4); }
+        }
+
+        .comments-section {
+            display: none;
+            padding: 0 15px 15px;
+        }
+
+        .comments-section.show {
+            display: block;
+        }
+
+        .admin-options {
+            position: relative;
+            margin-left: auto;
+        }
+
+        .options-btn {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .options-btn:hover {
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6);
+        }
+
+        .options-menu {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background: var(--bg-secondary);
+            border-radius: 14px;
+            box-shadow: var(--shadow-lg);
+            min-width: 180px;
+            z-index: 10;
+            overflow: hidden;
+            animation: slideDown 0.2s ease;
+            border: 2px solid var(--border-color);
+        }
+
+        .options-menu.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .options-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .options-menu a:hover {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.1), transparent);
+            padding-left: 24px;
+        }
+
+        .options-menu a.delete {
+             color: #ef4444;
+        }
+
+        .options-menu a.delete:hover {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), transparent);
+        }
+
+        .options-menu a i {
+            width: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-blue);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 100px 20px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 24px;
+            opacity: 0.5;
+            color: var(--accent-blue);
+            animation: emptyStatePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes emptyStatePulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .page-iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            background: var(--bg-secondary);
+            border-radius: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .iframe-loader {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                width: 260px;
+                left: -260px;
+            }
+
+            .menu-toggle-btn {
+                width: 45px;
+                height: 45px;
+                top: 15px;
+                left: 15px;
+            }
+
+            .spa-page {
+                padding: 70px 15px 90px 15px;
+            }
+
+            .toast-container {
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
+
+            .reactions {
+                gap: 6px;
+                padding: 12px 16px;
+            }
+
+            .reaction-btn {
+                padding: 10px 6px;
+            }
+
+            .reaction-btn i {
+                font-size: 22px;
+            }
+
+            .reaction-btn span {
+                font-size: 12px;
+            }
+
+            .share-menu {
+                min-width: 280px;
+            }
+
+            .share-options {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .navbar {
+                width: 240px;
+                left: -240px;
+            }
+
+            .menu-toggle-btn {
+                width: 42px;
+                height: 42px;
+            }
+
+            .reactions {
+                gap: 4px;
+                padding: 10px 12px;
+            }
+
+            .reaction-btn {
+                padding: 8px 4px;
+            }
+
+            .reaction-btn i {
+                font-size: 20px;
+            }
+
+            .reaction-btn span {
+                font-size: 11px;
+                padding: 2px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p style="font-size: 16px; font-weight: 600;">Chargement...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Offline Indicator -->
+    <div class="offline-indicator" id="offline-indicator">
+        <i class="fas fa-wifi-slash"></i>
+        <span>Vous êtes hors ligne</span>
+    </div>
+
+    <!-- Welcome Popup -->
+    <div class="welcome-popup-overlay" id="welcome-overlay"></div>
+    <div class="welcome-popup" id="welcome-popup">
+        <div class="welcome-popup-emoji">👋</div>
+        <div class="welcome-popup-title">Bienvenue sur World Connect</div>
+        <div class="welcome-popup-name" id="welcome-name"></div>
+        <div class="welcome-popup-subtitle">Nous sommes disponibles à tous vos Services. Laissez-nous votre numéro en Messages</div>
+    </div>
+
+    <!-- Menu Toggle Button -->
+    <button class="menu-toggle-btn" id="menu-toggle-btn">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-header">
+            <button class="theme-toggle-mini" id="theme-toggle-mini">
+                <i class="fas fa-moon" id="theme-icon-mini"></i>
+            </button>
+            <div class="navbar-left">
+                World Connect 
+            </div>
+        </div>
+
+        <div class="navbar-content">
+            <div class="nav-item active" data-page="home" data-title="Accueil">
+                <i class="fas fa-home"></i>
+                <span>Accueil</span>
+            </div>
+            <div class="nav-item" data-page="messages" data-title="Messages">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+                <span class="badge" id="message-badge" style="display: none;">0</span>
+            </div>
+            <div class="nav-item" data-page="notifications" data-title="Notifications">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
+                <span class="badge" id="notif-badge" style="display: none;">0</span>
+            </div>
+            <div class="nav-item" data-page="plus" data-title="Connect Ultra">
+                <i class="fas fa-plus-circle"></i>
+                <span>World Connect</span>
+            </div>
+            
+            <div class="nav-item" data-page="game" data-title="Jeu de Course 3D">
+                <i class="fas fa-gamepad"></i>
+                <span>Jeu 3D</span>
+            </div>
+
+            <div class="menu-divider"></div>
+
+            <div class="menu-item" id="login-item" onclick="window.location.href='connexion.html'">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Connexion</span>
+            </div>
+            <div class="menu-item" id="profile-item" style="display: none;">
+                <i class="fas fa-user"></i>
+                <span id="user-name">Mon Profil</span>
+            </div>
+            <div class="menu-item" id="administration-item" style="display: none;" onclick="window.location.href='publier.html'">
+                <i class="fas fa-edit"></i>
+                <span>Administration</span>
+            </div>
+            <div class="menu-item" id="settings-item" onclick="window.location.href='parametre.html'">
+                <i class="fas fa-cog"></i>
+                <span>Paramètres</span>
+            </div>
+
+            <div class="menu-divider"></div>
+
+            <div class="menu-item logout" id="logout-item" style="display: none;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Déconnexion</span>
+            </div>
+        </div>
+
+        <div class="navbar-footer">
+            <button class="theme-toggle" id="theme-toggle">
+                <i class="fas fa-moon" id="theme-icon"></i>
+                <span id="theme-text">Mode Sombre</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Search Button -->
+    <button class="search-toggle-btn" id="search-toggle-btn">
+        <i class="fas fa-search"></i>
+        <span>Recherche</span>
+    </button>
+
+    <!-- Search Panel -->
+    <div class="search-panel" id="search-panel">
+        <h3>
+            <i class="fas fa-search"></i>
+            Rechercher des articles
+        </h3>
+        <div class="search-input-container">
+            <input type="text" class="search-input" id="search-input" placeholder="Mots-clés...">
+            <button class="search-btn" id="search-btn">
+                <i class="fas fa-search"></i>
+                Rechercher
+            </button>
+        </div>
+        <div class="search-results-info" id="search-results-info" style="display: none;">
+            Résultats: <span id="search-results-count">0</span> article(s) trouvé(s)
+        </div>
+    </div>
+
+    <!-- Page Title -->
+    <div class="page-title" id="page-title">Accueil</div>
+
+    <!-- SPA Container -->
+    <div class="spa-container">
+        <div id="home-page" class="spa-page active">
+            <div id="loader" class="loader">
+                <div class="spinner"></div>
+                <p style="margin-top: 20px; color: var(--text-tertiary);">Chargement...</p>
+            </div>
+            <div id="articles-container"></div>
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-newspaper"></i>
+                <h3>Aucun article</h3>
+                <p>Revenez plus tard</p>
+            </div>
+        </div>
+
+        <div id="messages-page" class="spa-page">
+            <div class="iframe-container">
+                <div class="iframe-loader">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="notifications-page" class="spa-page">
+            <div class="iframe-container">
+                <div class="iframe-loader">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="plus-page" class="spa-page">
+            <div class="iframe-container">
+                <div class="iframe-loader">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="game-page" class="spa-page">
+            <div class="iframe-container">
+                <div class="iframe-loader">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 2. Client Supabase -->
+    <script src="supabaseClient.js"></script>
+    
+    <!-- 3. Optimistic Sync (après supabaseClient) -->
+    <script src="optimistic-sync.js"></script>
+    
+    <!-- 4. Commentaires -->
+    <script src="commentaires.js"></script>
+    
+    <script>
+        // ============================================================================
+        // TOAST NOTIFICATION SYSTEM
+        // ============================================================================
+        const ToastManager = {
+            container: null,
+            
+            init() {
+                this.container = document.getElementById('toast-container');
+            },
+            
+            show(title, message, type = 'info', duration = 5000) {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                const icons = {
+                    success: 'fa-check-circle',
+                    error: 'fa-exclamation-circle',
+                    warning: 'fa-exclamation-triangle',
+                    info: 'fa-info-circle'
+                };
+                
+                toast.innerHTML = `
+                    <div class="toast-icon">
+                        <i class="fas ${icons[type] || icons.info}"></i>
+                    </div>
+                    <div class="toast-content">
+                        <div class="toast-title">${title}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                    <button class="toast-close">×</button>
+                `;
+                
+                this.container.appendChild(toast);
+                
+                const closeBtn = toast.querySelector('.toast-close');
+                closeBtn.addEventListener('click', () => this.remove(toast));
+                
+                toast.addEventListener('click', () => this.remove(toast));
+                
+                if (duration > 0) {
+                    setTimeout(() => this.remove(toast), duration);
+                }
+                
+                return toast;
+            },
+            
+            remove(toast) {
+                toast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            },
+            
+            success(title, message, duration) {
+                return this.show(title, message, 'success', duration);
+            },
+            
+            error(title, message, duration) {
+                return this.show(title, message, 'error', duration);
+            },
+            
+            warning(title, message, duration) {
+                return this.show(title, message, 'warning', duration);
+            },
+            
+            info(title, message, duration) {
+                return this.show(title, message, 'info', duration);
+            }
+        };
+
+        // ============================================================================
+        // LOADING OVERLAY MANAGER
+        // ============================================================================
+        const LoadingManager = {
+            overlay: null,
+            
+            init() {
+                this.overlay = document.getElementById('loading-overlay');
+            },
+            
+            show() {
+                this.overlay.classList.add('show');
+            },
+            
+            hide() {
+                this.overlay.classList.remove('show');
+            }
+        };
+
+        // ============================================================================
+        // OFFLINE DETECTION
+        // ============================================================================
+        const OfflineManager = {
+            indicator: null,
+            isOnline: navigator.onLine,
+            
+            init() {
+                this.indicator = document.getElementById('offline-indicator');
+                
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.indicator.classList.remove('show');
+                    ToastManager.success('Connexion rétablie', 'Vous êtes de nouveau en ligne');
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                    this.indicator.classList.add('show');
+                    ToastManager.warning('Hors ligne', 'Certaines fonctionnalités peuvent être limitées');
+                });
+                
+                if (!this.isOnline) {
+                    this.indicator.classList.add('show');
+                }
+            },
+            
+            checkConnection() {
+                return this.isOnline;
+            }
+        };
+
+        // ============================================================================
+        // THREE.JS ANIMATION BACKGROUND
+        // ============================================================================
+        let scene, camera, renderer, particles;
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.BufferGeometry();
+            const particleCount = 800;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            const color1 = new THREE.Color(0x2563eb);
+            const color2 = new THREE.Color(0x06b6d4);
+
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 200;
+                positions[i + 1] = (Math.random() - 0.5) * 200;
+                positions[i + 2] = (Math.random() - 0.5) * 200;
+
+                const mixedColor = color1.clone().lerp(color2, Math.random());
+                colors[i] = mixedColor.r;
+                colors[i + 1] = mixedColor.g;
+                colors[i + 2] = mixedColor.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            animate();
+            
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            particles.rotation.x += 0.0005;
+            particles.rotation.y += 0.001;
+
+            const positions = particles.geometry.attributes.position.array;
+            for (let i = 1; i < positions.length; i += 3) {
+                positions[i] += Math.sin(Date.now() * 0.001 + i) * 0.01;
+            }
+            particles.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // ============================================================================
+        // SERVICE WORKER & PUSH NOTIFICATIONS
+        // ============================================================================
+        let swRegistration = null;
+
+        async function initServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                console.warn('⚠️ Service Worker non supporté');
+                return;
+            }
+
+            try {
+                swRegistration = await navigator.serviceWorker.register('./service-worker.js');
+                console.log('✅ Service Worker enregistré');
+                
+                navigator.serviceWorker.addEventListener('message', handleSWMessage);
+                
+                await navigator.serviceWorker.ready;
+                
+                if ('Notification' in window && 'PushManager' in window) {
+                    await requestNotificationPermission();
+                }
+            } catch (error) {
+                console.error('❌ Erreur Service Worker:', error);
+                ToastManager.error('Erreur', 'Impossible d\'activer les notifications push');
+            }
+        }
+
+        function handleSWMessage(event) {
+            const { type, version, support } = event.data;
+            
+            if (type === 'SW_ACTIVATED') {
+                console.log('🚀 Service Worker activé - Version:', version);
+                console.log('📋 Support navigateur:', support);
+            } else if (type === 'RESUBSCRIBE_PUSH') {
+                ToastManager.warning('Notification', 'Veuillez réactiver les notifications');
+                requestNotificationPermission();
+            }
+        }
+
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    await subscribeToPushNotifications();
+                    ToastManager.success('Notifications activées', 'Vous recevrez désormais nos notifications pour une meilleure performance');
+                } else if (permission === 'denied') {
+                    ToastManager.warning('Notifications désactivées', 'Activez-les dans les paramètres de votre navigateur pour ne rien manquer');
+                }
+            } catch (error) {
+                console.error('❌ Erreur permission:', error);
+            }
+        }
+
+        async function subscribeToPushNotifications() {
+            if (!swRegistration) return;
+            
+            try {
+                const vapidPublicKey = 'BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA';
+                const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+                
+                const subscription = await swRegistration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedVapidKey
+                });
+                
+                console.log('✅ Abonnement push créé');
+                await saveSubscriptionToDatabase(subscription);
+                
+            } catch (error) {
+                console.error('❌ Erreur abonnement push:', error);
+                ToastManager.error('Erreur', 'Impossible de s\'abonner aux notifications');
+            }
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        async function saveSubscriptionToDatabase(subscription) {
+            try {
+                const { supabase, getCurrentUser } = window.supabaseClient;
+                const currentUser = await getCurrentUser();
+                
+                if (!currentUser) return;
+                
+                const subscriptionData = {
+                    user_id: currentUser.id,
+                    endpoint: subscription.endpoint,
+                    p256dh_key: arrayBufferToBase64(subscription.getKey('p256dh')),
+                    auth_key: arrayBufferToBase64(subscription.getKey('auth')),
+                    user_agent: navigator.userAgent,
+                    device_type: 'web',
+                    created_at: new Date().toISOString()
+                };
+                
+                await supabase.from('subscriptions').upsert(subscriptionData, {
+                    onConflict: 'user_id,endpoint'
+                });
+                
+                console.log('✅ Subscription enregistrée');
+                
+            } catch (error) {
+                console.error('❌ Erreur sauvegarde subscription:', error);
+            }
+        }
+
+        function arrayBufferToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        // ============================================================================
+        // INITIALISATION OPTIMISTIC SYNC
+        // ============================================================================
+        let optimisticReactions, optimisticComments;
+
+        async function initOptimisticManagers() {
+            if (window.OptimisticSync && currentUser && supabase) {
+                // Récupérer le token de session actuel
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    // Initialiser OptimisticSync avec les credentials corrects
+                    await window.OptimisticSync.init(
+                        supabase.supabaseUrl,
+                        supabase.supabaseKey,
+                        {
+                            ...currentUser,
+                            token: session.access_token,
+                            session: session
+                        }
+                    );
+                    
+                    const managers = window.OptimisticSync.getManagers();
+                    optimisticReactions = managers.reactions;
+                    optimisticComments = managers.comments;
+                    console.log('✅ Gestionnaires optimistes initialisés avec token:', session.access_token.substring(0, 20) + '...');
+                } else {
+                    console.warn('⚠️ Pas de session active pour OptimisticSync');
+                }
+            }
+        }
+
+        // ============================================================================
+        // GESTION DES PROFILS OAUTH
+        // ============================================================================
+        
+        /**
+         * Créer un profil pour les utilisateurs OAuth (Google, Facebook, etc.)
+         */
+        async function createOAuthProfile(user) {
+            console.log('🔄 Création profil OAuth pour:', user.email);
+            
+            let prenom = 'Utilisateur';
+            let nom = 'Nouveau';
+            
+            if (user.user_metadata) {
+                console.log('📊 Métadonnées utilisateur:', user.user_metadata);
+                
+                // Méthode 1 : Depuis full_name
+                if (user.user_metadata.full_name) {
+                    const nameParts = user.user_metadata.full_name.trim().split(' ');
+                    prenom = nameParts[0] || 'Utilisateur';
+                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
+                    console.log('✅ Nom extrait depuis full_name:', { prenom, nom });
+                } 
+                // Méthode 2 : Depuis name
+                else if (user.user_metadata.name) {
+                    const nameParts = user.user_metadata.name.trim().split(' ');
+                    prenom = nameParts[0] || 'Utilisateur';
+                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
+                    console.log('✅ Nom extrait depuis name:', { prenom, nom });
+                } 
+                // Méthode 3 : Depuis given_name et family_name (Google)
+                else if (user.user_metadata.given_name && user.user_metadata.family_name) {
+                    prenom = user.user_metadata.given_name;
+                    nom = user.user_metadata.family_name;
+                    console.log('✅ Nom extrait depuis given_name/family_name:', { prenom, nom });
+                }
+                // Méthode 4 : Depuis first_name et last_name (Facebook)
+                else if (user.user_metadata.first_name && user.user_metadata.last_name) {
+                    prenom = user.user_metadata.first_name;
+                    nom = user.user_metadata.last_name;
+                    console.log('✅ Nom extrait depuis first_name/last_name:', { prenom, nom });
+                }
+            }
+            
+            // Méthode 5 : Fallback sur l'email
+            if (prenom === 'Utilisateur' && nom === 'Nouveau' && user.email) {
+                prenom = user.email.split('@')[0];
+                nom = '';
+                console.log('⚠️ Fallback sur email:', { prenom });
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('users_profile')
+                    .insert({
+                        user_id: user.id,
+                        prenom: prenom,
+                        nom: nom,
+                        role: 'user',
+                        email: user.email
+                    })
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                console.log('✅ Profil OAuth créé:', data);
+                return data;
+                
+            } catch (error) {
+                console.error('❌ Erreur création profil OAuth:', error);
+                throw error;
+            }
+        }
+        
+        /**
+         * Vérifier et créer le profil si nécessaire
+         */
+        async function ensureUserProfile(user) {
+            try {
+                let profile = await getUserProfile(user.id);
+                
+                if (!profile) {
+                    console.log('📝 Profil inexistant, création en cours...');
+                    profile = await createOAuthProfile(user);
+                }
+                
+                return profile;
+                
+            } catch (error) {
+                console.error('❌ Erreur vérification profil:', error);
+                return null;
+            }
+        }
+
+        // ============================================================================
+        // APPLICATION PRINCIPALE
+        // ============================================================================
+        const { supabase, getCurrentUser, getUserProfile } = window.supabaseClient;
+
+        // ============================================================================
+        // INITIALISATION
+        // ============================================================================
+        window.addEventListener('load', async () => {
+            ToastManager.init();
+            LoadingManager.init();
+            OfflineManager.init();
+            
+            initThreeJS();
+            
+            await initServiceWorker();
+            
+            const manualLogout = sessionStorage.getItem('manualLogout');
+            if (manualLogout === 'true') {
+                sessionStorage.removeItem('manualLogout');
+                return;
+            }
+
+            try {
+                LoadingManager.show();
+                
+                currentUser = await getCurrentUser();
+                if (currentUser) {
+                    try {
+                        // Utiliser ensureUserProfile au lieu de getUserProfile directement
+                        userProfile = await ensureUserProfile(currentUser);
+                        
+                        if (userProfile) {
+                            console.log('👤 Utilisateur connecté:', {
+                                id: currentUser.id,
+                                email: currentUser.email,
+                                prenom: userProfile.prenom,
+                                nom: userProfile.nom
+                            });
+                            
+                            updateMenu();
+                            showWelcomePopup();
+                            await loadUserReactions();
+                            setupRealTimeUpdates();
+                            loadNotificationCount();
+                            loadMessageCount();
+                            
+                            // Initialiser OptimisticSync
+                            await initOptimisticManagers();
+                        } else {
+                            console.warn('⚠️ Impossible de créer le profil utilisateur');
+                        }
+                    } catch (profileError) {
+                        console.warn('⚠️ Erreur profil:', profileError);
+                        ToastManager.warning('Attention', 'Impossible de charger votre profil');
+                    }
+                }
+            } catch (error) {
+                console.error('⚠️ Erreur init:', error);
+            } finally {
+                LoadingManager.hide();
+            }
+            
+            await loadArticles();
+            
+            initNavigation();
+            
+            initEventListeners();
+        });
+
+        // ============================================================================
+        // GESTION DU THÈME
+        // ============================================================================
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeToggleMini = document.getElementById('theme-toggle-mini');
+        const themeIconMini = document.getElementById('theme-icon-mini');
+        const themeText = document.getElementById('theme-text');
+        const body = document.body;
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-mode');
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+            themeIconMini.classList.replace('fa-moon', 'fa-sun');
+            themeText.textContent = 'Mode Clair';
+        }
+
+        function toggleTheme() {
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+                themeIconMini.classList.replace('fa-moon', 'fa-sun');
+                themeText.textContent = 'Mode Clair';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+                themeIconMini.classList.replace('fa-sun', 'fa-moon');
+                themeText.textContent = 'Mode Sombre';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+        themeToggleMini.addEventListener('click', toggleTheme);
+
+        // ============================================================================
+        // GESTION DU MENU
+        // ============================================================================
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const navbar = document.getElementById('navbar');
+        let menuTimeout;
+
+        menuToggleBtn.addEventListener('click', () => {
+            navbar.classList.toggle('show');
+            menuToggleBtn.classList.toggle('active');
+            clearTimeout(menuTimeout);
+            if (navbar.classList.contains('show')) {
+                startMenuTimeout();
+            }
+        });
+
+        function startMenuTimeout() {
+            clearTimeout(menuTimeout);
+            menuTimeout = setTimeout(() => {
+                navbar.classList.remove('show');
+                menuToggleBtn.classList.remove('active');
+            }, 5000);
+        }
+
+        navbar.addEventListener('mouseenter', () => {
+            clearTimeout(menuTimeout);
+        });
+
+        navbar.addEventListener('mouseleave', () => {
+            if (navbar.classList.contains('show')) {
+                startMenuTimeout();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!navbar.contains(e.target) && !menuToggleBtn.contains(e.target)) {
+                navbar.classList.remove('show');
+                menuToggleBtn.classList.remove('active');
+                clearTimeout(menuTimeout);
+            }
+        });
+
+        function showWelcomePopup() {
+            if (!userProfile) return;
+
+            const welcomeShown = sessionStorage.getItem('welcomeShown');
+            if (welcomeShown === 'true') return;
+
+            sessionStorage.setItem('welcomeShown', 'true');
+
+            const welcomeName = document.getElementById('welcome-name');
+            const welcomePopup = document.getElementById('welcome-popup');
+            const welcomeOverlay = document.getElementById('welcome-overlay');
+
+            const fullName = `${userProfile.prenom} ${userProfile.nom}`.trim();
+            welcomeName.textContent = fullName;
+
+            setTimeout(() => {
+                welcomeOverlay.classList.add('show');
+                welcomePopup.classList.add('show');
+            }, 500);
+
+            setTimeout(() => {
+                welcomePopup.classList.remove('show');
+                welcomeOverlay.classList.remove('show');
+            }, 3500);
+        }
+
+        function updateMenu() {
+            if (currentUser && userProfile) {
+                document.getElementById('login-item').style.display = 'none';
+                document.getElementById('profile-item').style.display = 'flex';
+                document.getElementById('logout-item').style.display = 'flex';
+                document.getElementById('user-name').textContent = `${userProfile.prenom} ${userProfile.nom}`;
+                
+                // Afficher le menu Administration seulement si l'utilisateur est admin
+                if (userProfile.role === 'admin') {
+                    document.getElementById('administration-item').style.display = 'flex';
+                } else {
+                    document.getElementById('administration-item').style.display = 'none';
+                }
+            }
+        }
+
+        // ============================================================================
+        // GESTION DE LA RECHERCHE
+        // ============================================================================
+        const searchToggleBtn = document.getElementById('search-toggle-btn');
+        const searchPanel = document.getElementById('search-panel');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+
+        searchToggleBtn.addEventListener('click', () => {
+            searchPanel.classList.toggle('show');
+            searchToggleBtn.classList.toggle('active');
+            if (searchPanel.classList.contains('show')) {
+                searchInput.focus();
+            }
+        });
+
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        async function performSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            if (!query) {
+                displayArticles(allArticles);
+                document.getElementById('search-results-info').style.display = 'none';
+                isSearching = false;
+                return;
+            }
+            isSearching = true;
+            const filteredArticles = allArticles.filter(article => {
+                const text = article.texte.toLowerCase();
+                const authorName = `${article.users_profile.prenom} ${article.users_profile.nom}`.toLowerCase();
+                return text.includes(query) || authorName.includes(query);
+            });
+            document.getElementById('search-results-count').textContent = filteredArticles.length;
+            document.getElementById('search-results-info').style.display = 'block';
+            displayArticles(filteredArticles);
+            
+            ToastManager.info('Recherche', `${filteredArticles.length} résultat(s) trouvé(s)`);
+            
+            setTimeout(() => {
+                searchPanel.classList.remove('show');
+                searchToggleBtn.classList.remove('active');
+            }, 500);
+        }
+
+        // ============================================================================
+        // SKELETON LOADER
+        // ============================================================================
+        function showSkeletonLoaders(count = 3) {
+            const container = document.getElementById('articles-container');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'article-skeleton';
+                skeleton.innerHTML = `
+                    <div class="skeleton-header">
+                        <div class="skeleton-avatar"></div>
+                        <div class="skeleton-author">
+                            <div class="skeleton-name"></div>
+                            <div class="skeleton-date"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-image"></div>
+                    </div>
+                    <div class="skeleton-actions">
+                        <div class="skeleton-action-btn"></div>
+                        <div class="skeleton-action-btn"></div>
+                        <div class="skeleton-action-btn"></div>
+                        <div class="skeleton-action-btn"></div>
+                    </div>
+                `;
+                container.appendChild(skeleton);
+            }
+        }
+
+        // ============================================================================
+        // GESTION DES PAGES
+        // ============================================================================
+        const pageManager = {
+            loadedPages: new Set(['home']),
+            iframes: {},
+            
+            async loadPage(pageName) {
+                if (this.loadedPages.has(pageName)) return;
+                
+                const pageContainer = document.getElementById(`${pageName}-page`);
+                const iframeContainer = pageContainer.querySelector('.iframe-container');
+                if (!iframeContainer) return;
+                
+                const loader = iframeContainer.querySelector('.iframe-loader');
+                if (loader) loader.style.display = 'block';
+                
+                const iframe = document.createElement('iframe');
+                iframe.className = 'page-iframe';
+                
+                // Déterminer le fichier source selon la page
+                if (pageName === 'game') {
+                    iframe.src = 'offline.html';
+                } else {
+                    iframe.src = `${pageName}.html`;
+                }
+                
+                iframe.style.opacity = '0';
+                iframe.style.transition = 'opacity 0.3s';
+                
+                iframe.onload = () => {
+                    if (loader) loader.style.display = 'none';
+                    iframe.style.opacity = '1';
+                    this.loadedPages.add(pageName);
+                };
+                
+                iframe.onerror = () => {
+                    if (loader) loader.innerHTML = '<p style="color: #ef4444;">Erreur de chargement</p>';
+                    ToastManager.error('Erreur', `Impossible de charger la page ${pageName}`);
+                };
+                
+                iframeContainer.appendChild(iframe);
+                this.iframes[pageName] = iframe;
+            },
+            
+            preloadPage(pageName) {
+                if (!this.loadedPages.has(pageName)) {
+                    this.loadPage(pageName);
+                }
+            }
+        };
+
+        function initNavigation() {
+            document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    const title = this.getAttribute('data-title');
+                    navigateToPage(page, title);
+                    navbar.classList.remove('show');
+                    menuToggleBtn.classList.remove('active');
+                    clearTimeout(menuTimeout);
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.share-menu') && !e.target.closest('.share-btn')) {
+                    document.querySelectorAll('.share-menu.show').forEach(m => m.classList.remove('show'));
+                }
+                if (!e.target.closest('.admin-options')) {
+                    document.querySelectorAll('.options-menu.show').forEach(menu => menu.classList.remove('show'));
+                }
+            });
+
+            document.getElementById('logout-item').addEventListener('click', async function(e) {
+                e.preventDefault();
+                try {
+                    LoadingManager.show();
+                    sessionStorage.removeItem('welcomeShown');
+                    await supabase.auth.signOut();
+                    sessionStorage.setItem('manualLogout', 'true');
+                    ToastManager.success('Déconnexion', 'À bientôt !');
+                    setTimeout(() => {
+                        window.location.href = 'connexion.html';
+                    }, 1000);
+                } catch (error) {
+                    LoadingManager.hide();
+                    ToastManager.error('Erreur', 'Impossible de se déconnecter');
+                }
+            });
+        }
+
+        function navigateToPage(page, title) {
+            if (page === currentPage) return;
+
+            // Vérifier que la page existe
+            const targetPage = document.getElementById(`${page}-page`);
+            if (!targetPage) {
+                console.error(`❌ Page ${page}-page introuvable`);
+                ToastManager.error('Erreur', `Page ${page} non disponible`);
+                return;
+            }
+
+            document.querySelectorAll('.spa-page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active'));
+            
+            targetPage.classList.add('active');
+            
+            const navItem = document.querySelector(`[data-page="${page}"]`);
+            if (navItem) {
+                navItem.classList.add('active');
+            }
+            
+            document.getElementById('page-title').textContent = title;
+            
+            currentPage = page;
+
+            if (page === 'home') {
+                searchToggleBtn.style.display = 'flex';
+            } else {
+                searchToggleBtn.style.display = 'none';
+                searchPanel.classList.remove('show');
+                searchToggleBtn.classList.remove('active');
+            }
+
+            if (page !== 'home') {
+                pageManager.loadPage(page);
+            }
+            
+            if (page === 'messages') {
+                setTimeout(() => pageManager.preloadPage('notifications'), 1000);
+            } else if (page === 'notifications') {
+                setTimeout(() => pageManager.preloadPage('messages'), 1000);
+            }
+        }
+
+        // ============================================================================
+        // GESTION DES RÉACTIONS UTILISATEUR
+        // ============================================================================
+        async function loadUserReactions() {
+            if (!currentUser) return;
+            try {
+                const { data } = await supabase
+                    .from('article_reactions')
+                    .select('article_id, reaction_type')
+                    .eq('user_id', currentUser.id);
+                
+                if (!data) return;
+                
+                userReactions = {};
+                data.forEach(reaction => {
+                    if (!userReactions[reaction.article_id]) {
+                        userReactions[reaction.article_id] = [];
+                    }
+                    userReactions[reaction.article_id].push(reaction.reaction_type);
+                });
+            } catch (error) {
+                console.warn('⚠️ Erreur chargement réactions:', error);
+            }
+        }
+
+        // ============================================================================
+        // GESTION DES MISES À JOUR EN TEMPS RÉEL
+        // ============================================================================
+        function setupRealTimeUpdates() {
+            if (!currentUser) return;
+
+            supabase.channel('articles-changes')
+                .on('postgres_changes', { 
+                    event: '*', schema: 'public', table: 'articles' 
+                }, async (payload) => {
+                    console.log('📰 Article modifié:', payload);
+                    await loadArticles();
+                })
+                .subscribe();
+
+            supabase.channel('reactions-changes')
+                .on('postgres_changes', { 
+                    event: '*', schema: 'public', table: 'article_reactions' 
+                }, async () => {
+                    await loadUserReactions();
+                    await loadArticles();
+                })
+                .subscribe();
+
+            supabase.channel('comments-changes')
+                .on('postgres_changes', { 
+                    event: '*', schema: 'public', table: 'sessions_commentaires' 
+                }, async () => {
+                    await loadArticles();
+                })
+                .subscribe();
+
+            supabase.channel('notifications-changes')
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'notifications',
+                    filter: `user_id=eq.${currentUser.id}`
+                }, () => {
+                    loadNotificationCount();
+                })
+                .subscribe();
+
+            supabase.channel('messages-changes')
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'messages',
+                    filter: `receiver_id=eq.${currentUser.id}`
+                }, () => {
+                    loadMessageCount();
+                })
+                .subscribe();
+        }
+
+        // ============================================================================
+        // CHARGEMENT DES ARTICLES
+        // ============================================================================
+        async function loadArticles() {
+            try {
+                console.log('🔄 Début du chargement des articles...');
+                
+                if (allArticles.length === 0) {
+                    showSkeletonLoaders(3);
+                    document.getElementById('empty-state').style.display = 'none';
+                }
+                
+                if (!OfflineManager.checkConnection()) {
+                    console.warn('⚠️ Mode hors ligne détecté');
+                    throw new Error('Pas de connexion Internet');
+                }
+                
+                if (!supabase) {
+                    console.error('❌ Supabase client non initialisé');
+                    throw new Error('Client Supabase non disponible');
+                }
+                
+                console.log('📡 Requête Supabase en cours...');
+                
+                const { data: articles, error, status, statusText } = await supabase
+                    .from('articles')
+                    .select(`
+                        *,
+                        users_profile!articles_user_id_fkey (
+                            prenom,
+                            nom
+                        ),
+                        article_images (
+                            image_url
+                        ),
+                        article_videos (
+                            video_url
+                        )
+                    `)
+                    .order('date_created', { ascending: false });
+                
+                console.log('📊 Réponse Supabase:', {
+                    status,
+                    statusText,
+                    hasError: !!error,
+                    articleCount: articles?.length || 0
+                });
+                
+                if (error) {
+                    console.error('❌ Erreur Supabase détaillée:', {
+                        message: error.message,
+                        details: error.details,
+                        hint: error.hint,
+                        code: error.code
+                    });
+                    throw new Error(`Erreur Supabase: ${error.message} (Code: ${error.code})`);
+                }
+                
+                document.getElementById('loader').style.display = 'none';
+                
+                if (!articles || articles.length === 0) {
+                    console.warn('⚠️ Aucun article trouvé dans la base de données');
+                    document.getElementById('empty-state').style.display = 'block';
+                    document.getElementById('articles-container').innerHTML = '';
+                    allArticles = [];
+                    return;
+                }
+                
+                console.log(`✅ ${articles.length} article(s) chargé(s) avec succès`);
+                
+                articles.forEach((article, index) => {
+                    if (!article.users_profile) {
+                        console.warn(`⚠️ Article ${index} (ID: ${article.article_id}) sans profil utilisateur`);
+                    }
+                });
+                
+                allArticles = articles;
+                document.getElementById('empty-state').style.display = 'none';
+                displayArticles(articles);
+                
+                console.log('✅ Articles affichés avec succès');
+                
+            } catch (error) {
+                console.error('❌ Erreur critique lors du chargement des articles:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack,
+                    timestamp: new Date().toISOString()
+                });
+                
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('articles-container').innerHTML = '';
+                
+                if (!OfflineManager.checkConnection()) {
+                    document.getElementById('empty-state').innerHTML = `
+                        <i class="fas fa-wifi-slash"></i>
+                        <h3>Mode hors ligne</h3>
+                        <p>Impossible de charger les articles sans connexion</p>
+                    `;
+                    document.getElementById('empty-state').style.display = 'block';
+                    ToastManager.error('Hors ligne', 'Vérifiez votre connexion Internet');
+                } else if (error.message.includes('Supabase')) {
+                    document.getElementById('empty-state').innerHTML = `
+                        <i class="fas fa-wifi-slash" style="color: var(--accent-red);"></i>
+                        <h3>Problème de connexion</h3>
+                        <p>Veuillez vérifier votre connexion Internet et réessayer</p>
+                        <button onclick="loadArticles()" style="margin-top: 20px; padding: 12px 24px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(107, 114, 73, 0.3); transition: all 0.3s ease;">
+                            <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>Réessayer
+                        </button>
+                    `;
+                    document.getElementById('empty-state').style.display = 'block';
+                    ToastManager.error('Erreur de connexion', 'Veuillez vérifier votre connexion Internet');
+                } else {
+                    document.getElementById('empty-state').innerHTML = `
+                        <i class="fas fa-exclamation-triangle" style="color: var(--accent-yellow);"></i>
+                        <h3>Erreur de chargement</h3>
+                        <p>Impossible de charger les articles pour le moment</p>
+                        <button onclick="loadArticles()" style="margin-top: 20px; padding: 12px 24px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(107, 114, 73, 0.3); transition: all 0.3s ease;">
+                            <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>Réessayer
+                        </button>
+                    `;
+                    document.getElementById('empty-state').style.display = 'block';
+                    ToastManager.error('Erreur', 'Une erreur est survenue');
+                }
+            }
+        }
+
+        function displayArticles(articles) {
+            console.log('🎨 Affichage de', articles.length, 'article(s)');
+            
+            const container = document.getElementById('articles-container');
+            
+            if (!container) {
+                console.error('❌ Container articles-container introuvable dans le DOM');
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            if (!articles || articles.length === 0) {
+                console.warn('⚠️ Aucun article à afficher');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>Aucun article</h3>
+                        <p>Aucun résultat trouvé</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            articles.forEach((article, index) => {
+                try {
+                    const card = createArticleCard(article);
+                    container.appendChild(card);
+                    successCount++;
+                } catch (error) {
+                    console.error(`❌ Erreur création carte article ${index}:`, {
+                        articleId: article?.article_id,
+                        error: error.message,
+                        article: article
+                    });
+                    errorCount++;
+                }
+            });
+            
+            console.log(`✅ Affichage terminé: ${successCount} réussis, ${errorCount} erreurs`);
+            
+            if (errorCount > 0) {
+                ToastManager.warning('Attention', `${errorCount} article(s) n'ont pas pu être affichés`);
+            }
+        }
+
+        function createArticleCard(article) {
+            if (!article) {
+                throw new Error('Article undefined ou null');
+            }
+            
+            if (!article.article_id) {
+                throw new Error('Article sans article_id');
+            }
+            
+            const author = article.users_profile || { prenom: 'Utilisateur', nom: 'Inconnu' };
+            const authorPrenom = author.prenom || 'Utilisateur';
+            const authorNom = author.nom || 'Inconnu';
+            const initials = `${authorPrenom[0]}${authorNom[0]}`.toUpperCase();
+            
+            const images = Array.isArray(article.article_images) ? article.article_images : [];
+            const videos = Array.isArray(article.article_videos) ? article.article_videos : [];
+            
+            const texte = article.texte || '[Pas de contenu]';
+            const dateCreated = article.date_created || new Date().toISOString();
+            
+            const card = document.createElement('div');
+            card.className = 'article-card';
+            card.setAttribute('data-article-id', article.article_id);
+            
+            let imageClass = images.length === 1 ? 'single' : (images.length === 2 ? 'double' : 'multiple');
+            
+            const imagesHTML = images.length > 0 ? `
+                <div class="article-images ${imageClass}">
+                    ${images.map(img => `<img src="${img.image_url || ''}" alt="Image" loading="lazy" onerror="this.style.display='none'">`).join('')}
+                </div>` : '';
+            
+            const videoHTML = videos.length > 0 && videos[0].video_url ? `
+                <div class="article-video">
+                    <video controls playsinline preload="metadata" src="${videos[0].video_url}"></video>
+                </div>` : '';
+
+            const linksHTML = (article.texte_url || article.vente_url || article.whatsapp_url) ? `
+                <div class="article-links">
+                    ${article.texte_url ? `<button class="link-btn" onclick="window.open('${article.texte_url}', '_blank')"><i class="fas fa-link"></i> Lien</button>` : ''}
+                    ${article.vente_url ? `<button class="link-btn" onclick="window.open('${article.vente_url}', '_blank')"><i class="fas fa-shopping-cart"></i> Acheter</button>` : ''}
+                    ${article.whatsapp_url ? `<button class="link-btn" onclick="window.open('${article.whatsapp_url}', '_blank')"><i class="fab fa-whatsapp"></i> WhatsApp</button>` : ''}
+                </div>` : '';
+
+            const adminOptionsHTML = (userProfile && userProfile.role === 'admin') ? `
+                <div class="admin-options">
+                    <button class="options-btn" onclick="toggleAdminMenu('options-menu-${article.article_id}')">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="options-menu" id="options-menu-${article.article_id}">
+                        <a onclick="editArticle('${article.article_id}')">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <a class="delete" onclick="deleteArticle('${article.article_id}')">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </a>
+                    </div>
+                </div>` : '';
+
+            const commentCount = article.comment_count || 0;
+            const commentCountBadge = commentCount > 0 ? `<span class="comment-count-badge">${commentCount}</span>` : '';
+
+            const userArticleReactions = userReactions[article.article_id] || [];
+            const likeActive = userArticleReactions.includes('like') ? 'active' : '';
+            const loveActive = userArticleReactions.includes('love') ? 'active' : '';
+            const rireActive = userArticleReactions.includes('rire') ? 'active' : '';
+            const colereActive = userArticleReactions.includes('colere') ? 'active' : '';
+            
+            const reactionLike = article.reaction_like || 0;
+            const reactionLove = article.reaction_love || 0;
+            const reactionRire = article.reaction_rire || 0;
+            const reactionColere = article.reaction_colere || 0;
+
+            try {
+                const formattedDate = new Date(dateCreated).toLocaleDateString('fr-FR', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                card.innerHTML = `
+                    <div class="article-header">
+                        <div class="avatar">${initials}</div>
+                        <div class="author-info">
+                            <h3>${authorPrenom} ${authorNom}</h3>
+                            <p>${formattedDate}</p>
+                        </div>
+                        ${adminOptionsHTML}
+                    </div>
+                    <div class="article-content">
+                        <div class="article-text">${texte}</div>
+                        ${imagesHTML}
+                        ${videoHTML}
+                        ${linksHTML}
+                    </div>
+                    <div class="reactions">
+                        <button class="reaction-btn ${likeActive}" onclick="handleReaction('${article.article_id}', 'like')">
+                            <i class="fas fa-thumbs-up"></i><span>${reactionLike}</span>
+                        </button>
+                        <button class="reaction-btn ${loveActive}" onclick="handleReaction('${article.article_id}', 'love')">
+                            <i class="fas fa-heart"></i><span>${reactionLove}</span>
+                        </button>
+                        <button class="reaction-btn ${rireActive}" onclick="handleReaction('${article.article_id}', 'rire')">
+                            <i class="fas fa-laugh"></i><span>${reactionRire}</span>
+                        </button>
+                        <button class="reaction-btn ${colereActive}" onclick="handleReaction('${article.article_id}', 'colere')">
+                            <i class="fas fa-angry"></i><span>${reactionColere}</span>
+                        </button>
+                    </div>
+                    <div class="comments-reactions-section">
+                        <div class="comments-toggle-large" onclick="toggleComments('${article.article_id}')">
+                            <i class="fas fa-comment"></i>
+                            <span>Commentaires</span>
+                            ${commentCountBadge}
+                        </div>
+                        <div class="share-btn" onclick="toggleShareMenu(event, '${article.article_id}')">
+                            <i class="fas fa-share-alt"></i>
+                            <div class="share-menu" id="share-menu-${article.article_id}">
+                                <h4>Partager</h4>
+                                <div class="share-options">
+                                    <a class="share-option facebook" onclick="shareToFacebook('${article.article_id}')">
+                                        <i class="fab fa-facebook"></i>
+                                        <span>Facebook</span>
+                                    </a>
+                                    <a class="share-option twitter" onclick="shareToTwitter('${article.article_id}')">
+                                        <i class="fab fa-twitter"></i>
+                                        <span>Twitter</span>
+                                    </a>
+                                    <a class="share-option whatsapp" onclick="shareToWhatsApp('${article.article_id}')">
+                                        <i class="fab fa-whatsapp"></i>
+                                        <span>WhatsApp</span>
+                                    </a>
+                                    <a class="share-option telegram" onclick="shareToTelegram('${article.article_id}')">
+                                        <i class="fab fa-telegram"></i>
+                                        <span>Telegram</span>
+                                    </a>
+                                    <a class="share-option instagram" onclick="shareToInstagram('${article.article_id}')">
+                                        <i class="fab fa-instagram"></i>
+                                        <span>Instagram</span>
+                                    </a>
+                                    <a class="share-option tiktok" onclick="shareToTikTok('${article.article_id}')">
+                                        <i class="fab fa-tiktok"></i>
+                                        <span>TikTok</span>
+                                    </a>
+                                    <a class="share-option more" onclick="shareToMore('${article.article_id}')">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                        <span>Plus</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="user-reactions-btn" onclick="viewUserReactions('${article.article_id}')">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="comments-section" id="comments-${article.article_id}"></div>`;
+                
+                return card;
+                
+            } catch (error) {
+                console.error('❌ Erreur construction HTML article:', error);
+                throw new Error(`Erreur construction carte: ${error.message}`);
+            }
+        }
+
+        // ============================================================================
+        // GESTION DES RÉACTIONS AVEC OPTIMISTIC SYNC
+        // ============================================================================
+        async function handleReaction(articleId, reactionType) {
+            if (!currentUser || !userProfile) {
+                ToastManager.warning('Connexion requise', 'Connectez-vous pour réagir');
+                setTimeout(() => {
+                    window.location.href = 'connexion.html';
+                }, 2000);
+                return;
+            }
+            
+            if (!OfflineManager.checkConnection()) {
+                ToastManager.error('Hors ligne', 'Impossible de réagir en mode hors ligne');
+                return;
+            }
+            
+            try {
+                console.log('🔄 handleReaction appelée:', { articleId, reactionType, userId: currentUser.id });
+                
+                const reactionBtn = document.querySelector(`[data-article-id="${articleId}"] .reaction-btn[onclick*="${reactionType}"]`);
+                const wasActive = reactionBtn.classList.contains('active');
+                
+                const { data: existing, error: selectError } = await supabase
+                    .from('article_reactions')
+                    .select('*')
+                    .eq('article_id', articleId)
+                    .eq('user_id', currentUser.id)
+                    .eq('reaction_type', reactionType)
+                    .single();
+                
+                if (selectError && selectError.code !== 'PGRST116') {
+                    throw selectError;
+                }
+                
+                console.log('📊 État réaction:', { existing, wasActive });
+                
+                // Utiliser OptimisticSync si disponible
+                if (optimisticReactions) {
+                    console.log('✅ Utilisation OptimisticSync');
+                    if (existing) {
+                        console.log('➖ Retrait réaction via OptimisticSync');
+                        await optimisticReactions.removeReaction(articleId, existing.reaction_id, reactionType, currentUser.id);
+                    } else {
+                        console.log('➕ Ajout réaction via OptimisticSync');
+                        await optimisticReactions.addReaction(articleId, reactionType, currentUser.id);
+                    }
+                } else {
+                    console.warn('⚠️ OptimisticSync non disponible, utilisation méthode classique');
+                    // Fallback classique
+                    if (existing) {
+                        await supabase.from('article_reactions').delete().eq('reaction_id', existing.reaction_id);
+                        if (userReactions[articleId]) {
+                            userReactions[articleId] = userReactions[articleId].filter(r => r !== reactionType);
+                        }
+                        ToastManager.info('Réaction retirée', '');
+                    } else {
+                        await supabase.from('article_reactions').insert({ 
+                            article_id: articleId, 
+                            user_id: currentUser.id, 
+                            reaction_type: reactionType 
+                        });
+                        if (!userReactions[articleId]) {
+                            userReactions[articleId] = [];
+                        }
+                        userReactions[articleId].push(reactionType);
+                        ToastManager.success('Réaction ajoutée', '');
+                    }
+                }
+                
+                // Recharger les articles après un court délai
+                setTimeout(() => loadArticles(), 500);
+                
+            } catch (error) {
+                console.error('❌ Erreur réaction:', error);
+                ToastManager.error('Erreur', 'Impossible d\'enregistrer votre réaction');
+            }
+        }
+
+        // ============================================================================
+        // GESTION DES COMMENTAIRES
+        // ============================================================================
+        function toggleComments(articleId) {
+            const section = document.getElementById(`comments-${articleId}`);
+            section.classList.toggle('show');
+            if (section.classList.contains('show') && section.innerHTML === '') {
+                loadComments(articleId, section);
+            }
+        }
+
+        async function loadComments(articleId, container) {
+            container.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+            try {
+                // Récupérer les commentaires via la vue SQL
+                const { data: comments, error: commentError } = await supabase
+                    .from('comments_with_actor_info')
+                    .select('*')
+                    .eq('article_id', articleId)
+                    .order('date_created', { ascending: false });
+                
+                if (commentError) throw commentError;
+                
+                // Récupérer TOUTES les réponses (pas de filtre article_id)
+                const { data: allReplies, error: replyError } = await supabase
+                    .from('replies_with_actor_info')
+                    .select('*')
+                    .order('date_created', { ascending: true });
+                
+                if (replyError) throw replyError;
+                
+                // Filtrer les réponses qui appartiennent aux commentaires de cet article
+                const commentIds = comments.map(c => c.session_id);
+                const replies = allReplies.filter(r => commentIds.includes(r.session_id));
+                
+                // Rendu des commentaires
+                renderCommentsInline(container, articleId, comments || [], replies || []);
+                
+            } catch (error) {
+                console.error('❌ Erreur commentaires:', error);
+                container.innerHTML = '<p style="color: #ef4444; padding: 20px;">Erreur de chargement des commentaires</p>';
+                ToastManager.error('Erreur', 'Impossible de charger les commentaires');
+            }
+        }
+
+        function renderCommentsInline(container, articleId, comments, allReplies) {
+            // Grouper les réponses par session_id (commentaire parent)
+            const repliesByComment = {};
+            allReplies.forEach(r => {
+                const parentId = r.session_id; // La réponse est liée au session_id du commentaire
+                if (!repliesByComment[parentId]) repliesByComment[parentId] = [];
+                repliesByComment[parentId].push(r);
+            });
+
+            let html = `
+                <div style="padding: 20px; border-top: 1px solid var(--border-color);">
+                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 700;">Commentaires (${comments.length})</h4>
+            `;
+
+            if (!currentUser || !userProfile) {
+                html += `
+                    <div style="text-align: center; padding: 30px; background: var(--bg-primary); border-radius: 12px;">
+                        <i class="fas fa-lock" style="font-size: 32px; color: var(--text-tertiary); margin-bottom: 12px;"></i>
+                        <p style="color: var(--text-secondary); margin-bottom: 16px;">Connectez-vous pour commenter</p>
+                        <button onclick="window.location.href='connexion.html'" style="padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            Se connecter
+                        </button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                        <textarea id="comment-input-${articleId}" placeholder="Écrivez votre commentaire..." 
+                            style="flex: 1; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; font-family: inherit; min-height: 60px; resize: vertical; background: var(--bg-primary); color: var(--text-primary);"></textarea>
+                        <button onclick="submitComment('${articleId}')" 
+                            style="padding: 12px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                            <i class="fas fa-paper-plane"></i> Envoyer
+                        </button>
+                    </div>
+                `;
+            }
+
+            if (comments.length === 0) {
+                html += `<p style="text-align: center; color: var(--text-tertiary); padding: 20px;">Soyez le premier à commenter !</p>`;
+            } else {
+                comments.forEach(comment => {
+                    const commentId = comment.session_id;
+                    const prenom = comment.prenom_acteur || 'Utilisateur';
+                    const nom = comment.nom_acteur || '';
+                    const texte = comment.texte; // Colonne 'texte' dans la vue
+                    const date = comment.date_created;
+                    const initials = `${prenom[0]}${nom ? nom[0] : ''}`.toUpperCase();
+                    const isMyComment = currentUser && currentUser.id === comment.user_id;
+                    const commentReplies = repliesByComment[commentId] || [];
+
+                    html += `
+                        <div style="margin-bottom: 16px; padding: 16px; background: var(--bg-primary); border-radius: 12px; border-left: 3px solid var(--accent-blue);">
+                            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0;">
+                                    ${initials}
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                        <span style="font-weight: 700; font-size: 14px;">${escapeHtml(prenom)} ${escapeHtml(nom)}</span>
+                                        <span style="font-size: 12px; color: var(--text-tertiary);">${formatDate(date)}</span>
+                                    </div>
+                                    <p style="color: var(--text-primary); line-height: 1.5; font-size: 14px;">${escapeHtml(texte)}</p>
+                                    <div style="display: flex; gap: 12px; margin-top: 8px;">
+                                        ${currentUser ? `<button onclick="toggleReplyBox('${commentId}')" style="background: none; border: none; color: var(--accent-blue); cursor: pointer; font-size: 13px; font-weight: 600;"><i class="fas fa-reply"></i> Répondre</button>` : ''}
+                                        ${isMyComment ? `<button onclick="deleteComment('${commentId}', '${articleId}')" style="background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 13px; font-weight: 600;"><i class="fas fa-trash"></i> Supprimer</button>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="reply-box-${commentId}" style="display: none; margin-top: 12px; padding-left: 52px;">
+                                <div style="display: flex; gap: 8px;">
+                                    <textarea id="reply-input-${commentId}" placeholder="Votre réponse..." 
+                                        style="flex: 1; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px; font-family: inherit; min-height: 50px; background: var(--bg-secondary); color: var(--text-primary);"></textarea>
+                                    <button onclick="submitReply('${commentId}', '${articleId}')" 
+                                        style="padding: 10px 16px; background: var(--accent-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            ${commentReplies.length > 0 ? `
+                                <div style="margin-top: 12px; padding-left: 52px; border-left: 2px solid var(--border-color);">
+                                    ${commentReplies.map(reply => {
+                                        const rPrenom = reply.prenom_acteur || 'Utilisateur';
+                                        const rNom = reply.nom_acteur || '';
+                                        const rInitials = `${rPrenom[0]}${rNom ? rNom[0] : ''}`.toUpperCase();
+                                        return `
+                                            <div style="display: flex; gap: 8px; margin-bottom: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                                                <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 12px; flex-shrink: 0;">
+                                                    ${rInitials}
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                                        <span style="font-weight: 600; font-size: 13px;">${escapeHtml(rPrenom)} ${escapeHtml(rNom)}</span>
+                                                        <span style="font-size: 11px; color: var(--text-tertiary);">${formatDate(reply.date_created)}</span>
+                                                    </div>
+                                                    <p style="color: var(--text-primary); font-size: 13px; line-height: 1.4;">${escapeHtml(reply.texte)}</p>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function submitComment(articleId) {
+            if (!currentUser || !userProfile) {
+                ToastManager.warning('Connexion requise', 'Connectez-vous pour commenter');
+                return;
+            }
+
+            const input = document.getElementById(`comment-input-${articleId}`);
+            const texte = input.value.trim();
+
+            if (!texte) return;
+
+            try {
+                const { error } = await supabase
+                    .from('sessions_commentaires')
+                    .insert([{
+                        article_id: articleId,
+                        user_id: currentUser.id,
+                        texte: texte
+                    }]);
+
+                if (error) throw error;
+
+                input.value = '';
+                ToastManager.success('Commentaire publié', 'Votre commentaire a été ajouté');
+                
+                // Recharger les commentaires
+                const container = document.getElementById(`comments-${articleId}`);
+                loadComments(articleId, container);
+
+            } catch (error) {
+                console.error('❌ Erreur envoi commentaire:', error);
+                ToastManager.error('Erreur', 'Impossible d\'envoyer le commentaire');
+            }
+        }
+
+        async function submitReply(parentId, articleId) {
+            if (!currentUser || !userProfile) return;
+
+            const input = document.getElementById(`reply-input-${parentId}`);
+            const texte = input.value.trim();
+
+            if (!texte) return;
+
+            try {
+                const { error } = await supabase
+                    .from('session_reponses')
+                    .insert([{
+                        session_id: parentId,
+                        user_id: currentUser.id,
+                        texte: texte
+                    }]);
+
+                if (error) throw error;
+
+                input.value = '';
+                toggleReplyBox(parentId);
+                ToastManager.success('Réponse publiée', 'Votre réponse a été ajoutée');
+                
+                // Recharger les commentaires
+                const container = document.getElementById(`comments-${articleId}`);
+                loadComments(articleId, container);
+
+            } catch (error) {
+                console.error('❌ Erreur envoi réponse:', error);
+                ToastManager.error('Erreur', 'Impossible d\'envoyer la réponse');
+            }
+        }
+
+        async function deleteComment(commentId, articleId) {
+            if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
+
+            try {
+                const { error } = await supabase
+                    .from('sessions_commentaires')
+                    .delete()
+                    .eq('session_id', commentId)
+                    .eq('user_id', currentUser.id);
+
+                if (error) throw error;
+
+                ToastManager.success('Commentaire supprimé', 'Le commentaire a été supprimé');
+                
+                // Recharger les commentaires
+                const container = document.getElementById(`comments-${articleId}`);
+                loadComments(articleId, container);
+
+            } catch (error) {
+                console.error('❌ Erreur suppression:', error);
+                ToastManager.error('Erreur', 'Impossible de supprimer');
+            }
+        }
+
+        function toggleReplyBox(commentId) {
+            const box = document.getElementById(`reply-box-${commentId}`);
+            if (box) {
+                box.style.display = box.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function formatDate(dateString) {
+            const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+            return new Date(dateString).toLocaleDateString('fr-FR', options);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================================
+        // PARTAGE SOCIAL
+        // ============================================================================
+        function toggleShareMenu(event, articleId) {
+            event.stopPropagation();
+            const menu = document.getElementById(`share-menu-${articleId}`);
+            document.querySelectorAll('.share-menu.show').forEach(m => {
+                if (m.id !== `share-menu-${articleId}`) {
+                    m.classList.remove('show');
+                }
+            });
+            menu.classList.toggle('show');
+        }
+
+        function getArticleShareUrl(articleId) {
+            return `${window.location.origin}${window.location.pathname}?article=${articleId}`;
+        }
+
+        function getArticleShareText(articleId) {
+            const article = allArticles.find(a => a.article_id === articleId);
+            if (!article) return 'Découvrez World Connect';
+            const preview = article.texte.substring(0, 100) + (article.texte.length > 100 ? '...' : '');
+            return `${preview} - World Connect`;
+        }
+
+        function shareToFacebook(articleId) {
+            const url = encodeURIComponent(getArticleShareUrl(articleId));
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+        }
+
+        function shareToTwitter(articleId) {
+            const url = encodeURIComponent(getArticleShareUrl(articleId));
+            const text = encodeURIComponent(getArticleShareText(articleId));
+            window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+        }
+
+        function shareToWhatsApp(articleId) {
+            const text = encodeURIComponent(`${getArticleShareText(articleId)} ${getArticleShareUrl(articleId)}`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+
+        function shareToTelegram(articleId) {
+            const url = encodeURIComponent(getArticleShareUrl(articleId));
+            const text = encodeURIComponent(getArticleShareText(articleId));
+            window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+        }
+
+        function shareToInstagram(articleId) {
+            ToastManager.info('Partage Instagram', 'Lien copié dans le presse-papier');
+            copyArticleLink(articleId);
+        }
+
+        function shareToTikTok(articleId) {
+            ToastManager.info('Partage TikTok', 'Lien copié dans le presse-papier');
+            copyArticleLink(articleId);
+        }
+
+        function shareToMore(articleId) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'World Connect',
+                    text: getArticleShareText(articleId),
+                    url: getArticleShareUrl(articleId)
+                }).then(() => {
+                    ToastManager.success('Partage réussi', 'Article partagé avec succès');
+                }).catch(err => {
+                    if (err.name !== 'AbortError') {
+                        copyArticleLink(articleId);
+                        ToastManager.info('Lien copié', 'Collez-le où vous voulez');
+                    }
+                });
+            } else {
+                copyArticleLink(articleId);
+                ToastManager.success('Lien copié', 'Partagez-le où vous voulez');
+            }
+        }
+
+        function copyArticleLink(articleId) {
+            const url = getArticleShareUrl(articleId);
+            navigator.clipboard.writeText(url).then(() => {
+                console.log('✅ Lien copié');
+            }).catch(err => {
+                console.error('❌ Erreur copie:', err);
+            });
+        }
+
+        // ============================================================================
+        // GESTION ADMIN
+        // ============================================================================
+        function toggleAdminMenu(menuId) {
+            document.querySelectorAll('.options-menu.show').forEach(menu => {
+                if (menu.id !== menuId) {
+                    menu.classList.remove('show');
+                }
+            });
+            document.getElementById(menuId)?.classList.toggle('show');
+        }
+
+        function editArticle(articleId) {
+            window.location.href = `edit-article.html?id=${articleId}`;
+        }
+
+        async function deleteArticle(articleId) {
+            if (!confirm("Voulez-vous vraiment supprimer cet article ?")) return;
+            
+            try {
+                LoadingManager.show();
+                
+                const { error } = await supabase.from('articles').delete().eq('article_id', articleId);
+                
+                if (error) throw error;
+                
+                ToastManager.success('Suppression réussie', 'Article supprimé avec succès');
+                await loadArticles();
+                
+            } catch (error) {
+                console.error('❌ Erreur suppression:', error);
+                ToastManager.error('Erreur', 'Impossible de supprimer l\'article');
+            } finally {
+                LoadingManager.hide();
+            }
+        }
+
+        function viewUserReactions(articleId) {
+            if (!currentUser || !userProfile) {
+                ToastManager.warning('Connexion requise', 'Connectez-vous pour voir les réactions');
+                setTimeout(() => {
+                    window.location.href = 'connexion.html';
+                }, 2000);
+                return;
+            }
+            window.location.href = `usereact.html?article_id=${articleId}`;
+        }
+
+        // ============================================================================
+        // COMPTEURS DE NOTIFICATIONS ET MESSAGES
+        // ============================================================================
+        async function loadNotificationCount() {
+            if (!currentUser) return;
+            try {
+                const { count } = await supabase
+                    .from('notifications')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', currentUser.id)
+                    .eq('read_status', false);
+                
+                const badge = document.getElementById('notif-badge');
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('❌ Erreur compteur notifications:', error);
+            }
+        }
+
+        async function loadMessageCount() {
+            if (!currentUser) return;
+            try {
+                const { count } = await supabase
+                    .from('messages')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('receiver_id', currentUser.id)
+                    .eq('read_status', false);
+                
+                const badge = document.getElementById('message-badge');
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('❌ Erreur compteur messages:', error);
+            }
+        }
+
+        // ============================================================================
+        // INITIALISATION DES ÉVÉNEMENTS
+        // ============================================================================
+        function initEventListeners() {
+            setInterval(() => {
+                if (currentUser) {
+                    loadNotificationCount();
+                    loadMessageCount();
+                }
+            }, 30000);
+            
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && currentUser) {
+                    loadNotificationCount();
+                    loadMessageCount();
+                    loadArticles();
+                }
+            });
+            
+            // Écouter les événements OptimisticSync
+            window.addEventListener('optimistic-sync-success', (event) => {
+                console.log('✅ Sync optimiste réussie:', event.detail.action);
+                // Recharger les articles pour avoir les données à jour
+                loadArticles();
+            });
+            
+            window.addEventListener('optimistic-sync-failed', (event) => {
+                console.error('❌ Sync optimiste échouée:', event.detail.action);
+                ToastManager.error('Synchronisation échouée', event.detail.error || 'Vérifiez votre connexion');
+            });
+        }
+
+        // ============================================================================
+        // EXPORTS GLOBAUX
+        // ============================================================================
+        window.viewUserReactions = viewUserReactions;
+        window.toggleAdminMenu = toggleAdminMenu;
+        window.editArticle = editArticle;
+        window.deleteArticle = deleteArticle;
+        window.handleReaction = handleReaction;
+        window.toggleComments = toggleComments;
+        window.toggleShareMenu = toggleShareMenu;
+        window.shareToFacebook = shareToFacebook;
+        window.shareToTwitter = shareToTwitter;
+        window.shareToWhatsApp = shareToWhatsApp;
+        window.shareToTelegram = shareToTelegram;
+        window.shareToInstagram = shareToInstagram;
+        window.shareToTikTok = shareToTikTok;
+        window.shareToMore = shareToMore;
+        window.loadArticles = loadArticles;
+        window.ToastManager = ToastManager;
+        window.LoadingManager = LoadingManager;
+        window.OfflineManager = OfflineManager;
+        window.submitComment = submitComment;
+        window.submitReply = submitReply;
+        window.deleteComment = deleteComment;
+        window.toggleReplyBox = toggleReplyBox;
+    </script>
+</body>
+  </html>
