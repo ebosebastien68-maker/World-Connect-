@@ -1107,9 +1107,8 @@
 
         .article-images {
             display: grid;
-            gap: 0;
+            gap: 12px;
             margin-top: 18px;
-            overflow: hidden;
         }
 
         .article-images.single {
@@ -1128,35 +1127,24 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 0;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 0;
             box-shadow: none;
+            aspect-ratio: auto;
+            display: block;
         }
 
         .article-images img:hover {
             transform: scale(1.02);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .article-images.single img {
-            max-height: 600px;
-            border-radius: 0;
-        }
-
-        .article-images.double img {
-            height: 300px;
-        }
-
-        .article-images.multiple img {
-            height: 200px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
         .article-video video {
             width: 100%;
-            border-radius: 0;
+            border-radius: 16px;
             margin-top: 18px;
-            box-shadow: none;
+            box-shadow: var(--shadow-md);
         }
 
         .article-links {
@@ -2364,104 +2352,9 @@
         }
 
         // ============================================================================
-        // GESTION DES PROFILS OAUTH
-        // ============================================================================
-        
-        /**
-         * Créer un profil pour les utilisateurs OAuth (Google, Facebook, etc.)
-         */
-        async function createOAuthProfile(user) {
-            console.log('🔄 Création profil OAuth pour:', user.email);
-            
-            let prenom = 'Utilisateur';
-            let nom = 'Nouveau';
-            
-            if (user.user_metadata) {
-                console.log('📊 Métadonnées utilisateur:', user.user_metadata);
-                
-                // Méthode 1 : Depuis full_name
-                if (user.user_metadata.full_name) {
-                    const nameParts = user.user_metadata.full_name.trim().split(' ');
-                    prenom = nameParts[0] || 'Utilisateur';
-                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
-                    console.log('✅ Nom extrait depuis full_name:', { prenom, nom });
-                } 
-                // Méthode 2 : Depuis name
-                else if (user.user_metadata.name) {
-                    const nameParts = user.user_metadata.name.trim().split(' ');
-                    prenom = nameParts[0] || 'Utilisateur';
-                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
-                    console.log('✅ Nom extrait depuis name:', { prenom, nom });
-                } 
-                // Méthode 3 : Depuis given_name et family_name (Google)
-                else if (user.user_metadata.given_name && user.user_metadata.family_name) {
-                    prenom = user.user_metadata.given_name;
-                    nom = user.user_metadata.family_name;
-                    console.log('✅ Nom extrait depuis given_name/family_name:', { prenom, nom });
-                }
-                // Méthode 4 : Depuis first_name et last_name (Facebook)
-                else if (user.user_metadata.first_name && user.user_metadata.last_name) {
-                    prenom = user.user_metadata.first_name;
-                    nom = user.user_metadata.last_name;
-                    console.log('✅ Nom extrait depuis first_name/last_name:', { prenom, nom });
-                }
-            }
-            
-            // Méthode 5 : Fallback sur l'email
-            if (prenom === 'Utilisateur' && nom === 'Nouveau' && user.email) {
-                prenom = user.email.split('@')[0];
-                nom = '';
-                console.log('⚠️ Fallback sur email:', { prenom });
-            }
-            
-            try {
-                const { data, error } = await supabase
-                    .from('users_profile')
-                    .insert({
-                        user_id: user.id,
-                        prenom: prenom,
-                        nom: nom,
-                        role: 'user',
-                        email: user.email
-                    })
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                console.log('✅ Profil OAuth créé:', data);
-                return data;
-                
-            } catch (error) {
-                console.error('❌ Erreur création profil OAuth:', error);
-                throw error;
-            }
-        }
-        
-        /**
-         * Vérifier et créer le profil si nécessaire
-         */
-        async function ensureUserProfile(user) {
-            try {
-                let profile = await getUserProfile(user.id);
-                
-                if (!profile) {
-                    console.log('📝 Profil inexistant, création en cours...');
-                    profile = await createOAuthProfile(user);
-                }
-                
-                return profile;
-                
-            } catch (error) {
-                console.error('❌ Erreur vérification profil:', error);
-                return null;
-            }
-        }
-
-        // ============================================================================
         // APPLICATION PRINCIPALE
         // ============================================================================
-        const { supabase, getCurrentUser, getUserProfile } = window.supabaseClient;
+        // Variables globales - Déclaration unique
         let currentUser = null;
         let userProfile = null;
         let allArticles = [];
@@ -2493,17 +2386,9 @@
                 currentUser = await getCurrentUser();
                 if (currentUser) {
                     try {
-                        // Utiliser ensureUserProfile au lieu de getUserProfile directement
-                        userProfile = await ensureUserProfile(currentUser);
+                        userProfile = await getUserProfile(currentUser.id);
                         
                         if (userProfile) {
-                            console.log('👤 Utilisateur connecté:', {
-                                id: currentUser.id,
-                                email: currentUser.email,
-                                prenom: userProfile.prenom,
-                                nom: userProfile.nom
-                            });
-                            
                             updateMenu();
                             showWelcomePopup();
                             await loadUserReactions();
@@ -2513,8 +2398,6 @@
                             
                             // Initialiser OptimisticSync
                             await initOptimisticManagers();
-                        } else {
-                            console.warn('⚠️ Impossible de créer le profil utilisateur');
                         }
                     } catch (profileError) {
                         console.warn('⚠️ Erreur profil:', profileError);
@@ -2815,7 +2698,7 @@
                 try {
                     LoadingManager.show();
                     sessionStorage.removeItem('welcomeShown');
-                    await supabase.auth.signOut();
+                    await window.supabase.auth.signOut();
                     sessionStorage.setItem('manualLogout', 'true');
                     ToastManager.success('Déconnexion', 'À bientôt !');
                     setTimeout(() => {
@@ -2878,7 +2761,7 @@
         async function loadUserReactions() {
             if (!currentUser) return;
             try {
-                const { data } = await supabase
+                const { data } = await window.supabase
                     .from('article_reactions')
                     .select('article_id, reaction_type')
                     .eq('user_id', currentUser.id);
@@ -2903,7 +2786,7 @@
         function setupRealTimeUpdates() {
             if (!currentUser) return;
 
-            supabase.channel('articles-changes')
+            window.supabase.channel('articles-changes')
                 .on('postgres_changes', { 
                     event: '*', schema: 'public', table: 'articles' 
                 }, async (payload) => {
@@ -2912,7 +2795,7 @@
                 })
                 .subscribe();
 
-            supabase.channel('reactions-changes')
+            window.supabase.channel('reactions-changes')
                 .on('postgres_changes', { 
                     event: '*', schema: 'public', table: 'article_reactions' 
                 }, async () => {
@@ -2921,7 +2804,7 @@
                 })
                 .subscribe();
 
-            supabase.channel('comments-changes')
+            window.supabase.channel('comments-changes')
                 .on('postgres_changes', { 
                     event: '*', schema: 'public', table: 'sessions_commentaires' 
                 }, async () => {
@@ -2929,7 +2812,7 @@
                 })
                 .subscribe();
 
-            supabase.channel('notifications-changes')
+            window.supabase.channel('notifications-changes')
                 .on('postgres_changes', { 
                     event: 'INSERT', 
                     schema: 'public', 
@@ -2940,7 +2823,7 @@
                 })
                 .subscribe();
 
-            supabase.channel('messages-changes')
+            window.supabase.channel('messages-changes')
                 .on('postgres_changes', { 
                     event: 'INSERT', 
                     schema: 'public', 
@@ -2969,14 +2852,14 @@
                     throw new Error('Pas de connexion Internet');
                 }
                 
-                if (!supabase) {
+                if (!window.supabase) {
                     console.error('❌ Supabase client non initialisé');
                     throw new Error('Client Supabase non disponible');
                 }
                 
                 console.log('📡 Requête Supabase en cours...');
                 
-                const { data: articles, error, status, statusText } = await supabase
+                const { data: articles, error, status, statusText } = await window.supabase
                     .from('articles')
                     .select(`
                         *,
@@ -3317,7 +3200,7 @@
                 const reactionBtn = document.querySelector(`[data-article-id="${articleId}"] .reaction-btn[onclick*="${reactionType}"]`);
                 const wasActive = reactionBtn.classList.contains('active');
                 
-                const { data: existing, error: selectError } = await supabase
+                const { data: existing, error: selectError } = await window.supabase
                     .from('article_reactions')
                     .select('*')
                     .eq('article_id', articleId)
@@ -3345,13 +3228,13 @@
                     console.warn('⚠️ OptimisticSync non disponible, utilisation méthode classique');
                     // Fallback classique
                     if (existing) {
-                        await supabase.from('article_reactions').delete().eq('reaction_id', existing.reaction_id);
+                        await window.supabase.from('article_reactions').delete().eq('reaction_id', existing.reaction_id);
                         if (userReactions[articleId]) {
                             userReactions[articleId] = userReactions[articleId].filter(r => r !== reactionType);
                         }
                         ToastManager.info('Réaction retirée', '');
                     } else {
-                        await supabase.from('article_reactions').insert({ 
+                        await window.supabase.from('article_reactions').insert({ 
                             article_id: articleId, 
                             user_id: currentUser.id, 
                             reaction_type: reactionType 
@@ -3388,7 +3271,7 @@
             container.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
             try {
                 // Récupérer les commentaires via la vue SQL
-                const { data: comments, error: commentError } = await supabase
+                const { data: comments, error: commentError } = await window.supabase
                     .from('comments_with_actor_info')
                     .select('*')
                     .eq('article_id', articleId)
@@ -3397,7 +3280,7 @@
                 if (commentError) throw commentError;
                 
                 // Récupérer TOUTES les réponses (pas de filtre article_id)
-                const { data: allReplies, error: replyError } = await supabase
+                const { data: allReplies, error: replyError } = await window.supabase
                     .from('replies_with_actor_info')
                     .select('*')
                     .order('date_created', { ascending: true });
@@ -3542,7 +3425,7 @@
             if (!texte) return;
 
             try {
-                const { error } = await supabase
+                const { error } = await window.supabase
                     .from('sessions_commentaires')
                     .insert([{
                         article_id: articleId,
@@ -3574,7 +3457,7 @@
             if (!texte) return;
 
             try {
-                const { error } = await supabase
+                const { error } = await window.supabase
                     .from('session_reponses')
                     .insert([{
                         session_id: parentId,
@@ -3602,7 +3485,7 @@
             if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
 
             try {
-                const { error } = await supabase
+                const { error } = await window.supabase
                     .from('sessions_commentaires')
                     .delete()
                     .eq('session_id', commentId)
@@ -3749,7 +3632,7 @@
             try {
                 LoadingManager.show();
                 
-                const { error } = await supabase.from('articles').delete().eq('article_id', articleId);
+                const { error } = await window.supabase.from('articles').delete().eq('article_id', articleId);
                 
                 if (error) throw error;
                 
@@ -3781,7 +3664,7 @@
         async function loadNotificationCount() {
             if (!currentUser) return;
             try {
-                const { count } = await supabase
+                const { count } = await window.supabase
                     .from('notifications')
                     .select('*', { count: 'exact', head: true })
                     .eq('user_id', currentUser.id)
@@ -3802,7 +3685,7 @@
         async function loadMessageCount() {
             if (!currentUser) return;
             try {
-                const { count } = await supabase
+                const { count } = await window.supabase
                     .from('messages')
                     .select('*', { count: 'exact', head: true })
                     .eq('receiver_id', currentUser.id)
@@ -3879,4 +3762,4 @@
         window.toggleReplyBox = toggleReplyBox;
     </script>
 </body>
-    </html>
+        </html>
