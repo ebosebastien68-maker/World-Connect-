@@ -2004,16 +2004,46 @@
     <!-- 1. Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- 2. Client Supabase -->
-    <script src="supabaseClient.js"></script>
-    
-    <!-- 3. Optimistic Sync (après supabaseClient) -->
-    <script src="optimistic-sync.js"></script>
-    
-    <!-- 4. Commentaires -->
-    <script src="commentaires.js"></script>
-    
     <script>
+        // ============================================================================
+        // 🎯 CONFIGURATION SUPABASE DIRECTE
+        // ============================================================================
+        const SUPABASE_URL = 'https://odkbkloukpzvwxaomkfe.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ka2JrbG91a3B6dnd4YW9ta2ZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzNTQ1MzIsImV4cCI6MjA4MDkzMDUzMn0.sFT09tJkGHdXgWt9oxoE_Rz_USBlRHxx-vb4HLveOyM';
+        
+        // Initialiser Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Fonctions utilitaires Supabase
+        async function getCurrentUser() {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error) throw error;
+                return user;
+            } catch (error) {
+                console.error('Erreur getCurrentUser:', error);
+                return null;
+            }
+        }
+        
+        async function getUserProfile(userId) {
+            try {
+                const { data, error } = await supabase
+                    .from('users_profile')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .single();
+                
+                if (error) throw error;
+                return data;
+            } catch (error) {
+                console.error('Erreur getUserProfile:', error);
+                return null;
+            }
+        }
+        
+        console.log('✅ Supabase initialisé:', SUPABASE_URL);
+        
         // ============================================================================
         // TOAST NOTIFICATION SYSTEM
         // ============================================================================
@@ -2302,11 +2332,6 @@
 
         async function saveSubscriptionToDatabase(subscription) {
             try {
-                if (!supabase || !getCurrentUser) {
-                    console.warn('⚠️ Supabase non initialisé');
-                    return;
-                }
-                
                 const user = await getCurrentUser();
                 
                 if (!user) return;
@@ -2347,28 +2372,8 @@
         let optimisticReactions, optimisticComments;
 
         async function initOptimisticManagers() {
-            if (window.OptimisticSync && currentUser && supabase) {
-                const { data: { session } } = await supabase.auth.getSession();
-                
-                if (session) {
-                    await window.OptimisticSync.init(
-                        supabase.supabaseUrl,
-                        supabase.supabaseKey,
-                        {
-                            ...currentUser,
-                            token: session.access_token,
-                            session: session
-                        }
-                    );
-                    
-                    const managers = window.OptimisticSync.getManagers();
-                    optimisticReactions = managers.reactions;
-                    optimisticComments = managers.comments;
-                    console.log('✅ Gestionnaires optimistes initialisés');
-                } else {
-                    console.warn('⚠️ Pas de session active pour OptimisticSync');
-                }
-            }
+            // Désactivé temporairement - à implémenter si nécessaire
+            console.log('⚠️ OptimisticSync désactivé pour cette version');
         }
 
         // ============================================================================
@@ -2430,7 +2435,6 @@
         // ============================================================================
         // APPLICATION PRINCIPALE
         // ============================================================================
-        let supabase, getCurrentUser, getUserProfile;
         let currentUser = null;
         let userProfile = null;
         let allArticles = [];
@@ -2442,17 +2446,8 @@
         // INITIALISATION
         // ============================================================================
         window.addEventListener('load', async () => {
-            // 🎯 Initialiser les références Supabase depuis window.supabaseClient
-            if (window.supabaseClient) {
-                supabase = window.supabaseClient.supabase;
-                getCurrentUser = window.supabaseClient.getCurrentUser;
-                getUserProfile = window.supabaseClient.getUserProfile;
-            } else {
-                console.error('❌ supabaseClient non disponible');
-                ToastManager.error('Erreur', 'Impossible de charger les données');
-                return;
-            }
-
+            console.log('🚀 Démarrage de l\'application...');
+            
             ToastManager.init();
             LoadingManager.init();
             OfflineManager.init();
@@ -2471,12 +2466,16 @@
                 LoadingManager.show();
                 
                 currentUser = await getCurrentUser();
+                console.log('👤 Utilisateur:', currentUser ? 'Connecté' : 'Non connecté');
+                
                 if (currentUser) {
                     try {
                         userProfile = await getUserProfile(currentUser.id);
+                        console.log('📋 Profil:', userProfile);
                         
                         // 🎯 Si pas de profil, le créer avec OAuth
                         if (!userProfile) {
+                            console.log('⚠️ Pas de profil trouvé, création...');
                             await createOAuthProfile(currentUser);
                             userProfile = await getUserProfile(currentUser.id);
                         }
@@ -2497,16 +2496,20 @@
                     }
                 }
             } catch (error) {
-                console.error('⚠️ Erreur init:', error);
+                console.error('❌ Erreur init:', error);
+                ToastManager.error('Erreur', 'Erreur d\'initialisation');
             } finally {
                 LoadingManager.hide();
             }
             
+            console.log('📰 Chargement des articles...');
             await loadArticles();
             
             initNavigation();
             
             initEventListeners();
+            
+            console.log('✅ Application prête !');
         });
 
         // ============================================================================
@@ -3311,9 +3314,6 @@
             try {
                 console.log('🔄 handleReaction appelée:', { articleId, reactionType, userId: currentUser.id });
                 
-                const reactionBtn = document.querySelector(`[data-article-id="${articleId}"] .reaction-btn[onclick*="${reactionType}"]`);
-                const wasActive = reactionBtn.classList.contains('active');
-                
                 const { data: existing, error: selectError } = await supabase
                     .from('article_reactions')
                     .select('*')
@@ -3326,37 +3326,28 @@
                     throw selectError;
                 }
                 
-                console.log('📊 État réaction:', { existing, wasActive });
+                console.log('📊 État réaction:', { existing });
                 
-                if (optimisticReactions) {
-                    console.log('✅ Utilisation OptimisticSync');
-                    if (existing) {
-                        console.log('➖ Retrait réaction via OptimisticSync');
-                        await optimisticReactions.removeReaction(articleId, existing.reaction_id, reactionType, currentUser.id);
-                    } else {
-                        console.log('➕ Ajout réaction via OptimisticSync');
-                        await optimisticReactions.addReaction(articleId, reactionType, currentUser.id);
+                // Méthode classique sans OptimisticSync
+                if (existing) {
+                    console.log('➖ Retrait réaction');
+                    await supabase.from('article_reactions').delete().eq('reaction_id', existing.reaction_id);
+                    if (userReactions[articleId]) {
+                        userReactions[articleId] = userReactions[articleId].filter(r => r !== reactionType);
                     }
+                    ToastManager.info('Réaction retirée', '');
                 } else {
-                    console.warn('⚠️ OptimisticSync non disponible, utilisation méthode classique');
-                    if (existing) {
-                        await supabase.from('article_reactions').delete().eq('reaction_id', existing.reaction_id);
-                        if (userReactions[articleId]) {
-                            userReactions[articleId] = userReactions[articleId].filter(r => r !== reactionType);
-                        }
-                        ToastManager.info('Réaction retirée', '');
-                    } else {
-                        await supabase.from('article_reactions').insert({ 
-                            article_id: articleId, 
-                            user_id: currentUser.id, 
-                            reaction_type: reactionType 
-                        });
-                        if (!userReactions[articleId]) {
-                            userReactions[articleId] = [];
-                        }
-                        userReactions[articleId].push(reactionType);
-                        ToastManager.success('Réaction ajoutée', '');
+                    console.log('➕ Ajout réaction');
+                    await supabase.from('article_reactions').insert({ 
+                        article_id: articleId, 
+                        user_id: currentUser.id, 
+                        reaction_type: reactionType 
+                    });
+                    if (!userReactions[articleId]) {
+                        userReactions[articleId] = [];
                     }
+                    userReactions[articleId].push(reactionType);
+                    ToastManager.success('Réaction ajoutée', '');
                 }
                 
                 setTimeout(() => loadArticles(), 500);
@@ -3841,16 +3832,6 @@
                     loadMessageCount();
                     loadArticles();
                 }
-            });
-            
-            window.addEventListener('optimistic-sync-success', (event) => {
-                console.log('✅ Sync optimiste réussie:', event.detail.action);
-                loadArticles();
-            });
-            
-            window.addEventListener('optimistic-sync-failed', (event) => {
-                console.error('❌ Sync optimiste échouée:', event.detail.action);
-                ToastManager.error('Synchronisation échouée', event.detail.error || 'Vérifiez votre connexion');
             });
         }
 
