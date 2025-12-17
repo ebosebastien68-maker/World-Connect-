@@ -50,6 +50,8 @@
             --accent-yellow: #f59e0b;
             --accent-orange: #f97316;
             --accent-pink: #ec4899;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.18);
         }
 
         body.dark-mode {
@@ -63,6 +65,8 @@
             --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
             --shadow-lg: 0 10px 25px rgba(0,0,0,0.5);
             --shadow-xl: 0 20px 40px rgba(0,0,0,0.6);
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -75,6 +79,9 @@
             margin: 0;
             padding: 0;
             height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* Canvas Background */
@@ -93,7 +100,7 @@
             opacity: 0.3;
         }
 
-        /* Loading Overlay */
+        /* Loading Overlay - Design 2025 */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -107,6 +114,7 @@
             z-index: 10001;
             opacity: 0;
             transition: opacity 0.3s ease;
+            backdrop-filter: blur(20px);
         }
 
         .loading-overlay.show {
@@ -120,13 +128,14 @@
         }
 
         .loading-spinner {
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid white;
+            border: 5px solid rgba(255,255,255,0.2);
+            border-top: 5px solid white;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            width: 70px;
+            height: 70px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
 
         @keyframes spin {
@@ -134,7 +143,14 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Toast Notification System */
+        .loading-content p {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Toast Notification System - Ultra Moderne 2025 */
         .toast-container {
             position: fixed;
             top: 80px;
@@ -142,28 +158,48 @@
             z-index: 10000;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            max-width: 400px;
+            gap: 12px;
+            max-width: 420px;
         }
 
         .toast {
-            background: var(--bg-secondary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 16px;
             padding: 18px 22px;
             box-shadow: var(--shadow-xl);
-            border-left: 5px solid var(--accent-blue);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--accent-blue);
             display: flex;
             align-items: center;
             gap: 14px;
             animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             cursor: pointer;
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .toast:hover::before {
+            opacity: 1;
         }
 
         .toast:hover {
             transform: translateX(-8px) scale(1.02);
-            box-shadow: 0 16px 45px rgba(0,0,0,0.25);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.25);
         }
 
         .toast.success { border-left-color: var(--accent-green); }
@@ -174,31 +210,32 @@
         .toast-icon {
             width: 44px;
             height: 44px;
-            border-radius: 50%;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
             flex-shrink: 0;
+            backdrop-filter: blur(10px);
         }
 
         .toast.success .toast-icon {
-            background: rgba(16, 185, 129, 0.2);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
             color: var(--accent-green);
         }
 
         .toast.error .toast-icon {
-            background: rgba(239, 68, 68, 0.2);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
             color: var(--accent-red);
         }
 
         .toast.warning .toast-icon {
-            background: rgba(245, 158, 11, 0.2);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
             color: var(--accent-yellow);
         }
 
         .toast.info .toast-icon {
-            background: rgba(37, 99, 235, 0.2);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(37, 99, 235, 0.1));
             color: var(--accent-blue);
         }
 
@@ -209,12 +246,13 @@
         .toast-title {
             font-weight: 700;
             font-size: 15px;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             color: var(--text-primary);
+            letter-spacing: -0.2px;
         }
 
         .toast-message {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text-secondary);
             line-height: 1.5;
         }
@@ -224,7 +262,7 @@
             border: none;
             width: 28px;
             height: 28px;
-            border-radius: 50%;
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -234,9 +272,17 @@
             transition: all 0.2s ease;
         }
 
+        body.dark-mode .toast-close {
+            background: rgba(255,255,255,0.1);
+        }
+
         .toast-close:hover {
             background: rgba(0,0,0,0.15);
             transform: scale(1.15) rotate(90deg);
+        }
+
+        body.dark-mode .toast-close:hover {
+            background: rgba(255,255,255,0.2);
         }
 
         @keyframes slideInRight {
@@ -261,13 +307,13 @@
             }
         }
 
-        /* Offline Indicator */
+        /* Offline Indicator - Moderne 2025 */
         .offline-indicator {
             position: fixed;
             bottom: 20px;
             left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--accent-red);
+            transform: translateX(-50%) translateY(120px);
+            background: linear-gradient(135deg, var(--accent-red), #dc2626);
             color: white;
             padding: 14px 28px;
             border-radius: 30px;
@@ -279,6 +325,8 @@
             transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             font-size: 15px;
             font-weight: 700;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
         .offline-indicator.show {
@@ -287,28 +335,31 @@
 
         .offline-indicator i {
             animation: pulse 2s infinite;
+            font-size: 18px;
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.95); }
         }
 
+        /* Welcome Popup - Ultra Premium 2025 */
         .welcome-popup {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0.85);
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-            padding: 56px 70px;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(6, 182, 212, 0.95));
+            backdrop-filter: blur(30px);
+            padding: 56px 72px;
             border-radius: 32px;
-            box-shadow: 0 30px 60px rgba(37, 99, 235, 0.5);
+            box-shadow: 0 30px 80px rgba(37, 99, 235, 0.5);
             z-index: 10000;
             text-align: center;
             opacity: 0;
             pointer-events: none;
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .welcome-popup.show {
@@ -318,23 +369,23 @@
         }
 
         .welcome-popup-emoji {
-            font-size: 84px;
-            animation: floatBounce 1s ease-out;
+            font-size: 88px;
+            animation: floatBounce 1.2s ease-out;
             display: inline-block;
             margin-bottom: 24px;
-            filter: drop-shadow(0 6px 16px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3));
         }
 
         @keyframes floatBounce {
             0% {
-                transform: translateY(-120px) scale(0);
+                transform: translateY(-120px) scale(0) rotate(-180deg);
                 opacity: 0;
             }
             60% {
-                transform: translateY(15px) scale(1.15);
+                transform: translateY(12px) scale(1.15) rotate(10deg);
             }
             100% {
-                transform: translateY(0) scale(1);
+                transform: translateY(0) scale(1) rotate(0deg);
                 opacity: 1;
             }
         }
@@ -343,16 +394,18 @@
             color: white;
             font-size: 32px;
             font-weight: 300;
-            margin-bottom: 16px;
-            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.2);
         }
 
         .welcome-popup-name {
             color: white;
             font-size: 44px;
             font-weight: 800;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             text-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            letter-spacing: -1px;
         }
 
         .welcome-popup-subtitle {
@@ -360,6 +413,8 @@
             font-size: 17px;
             font-weight: 500;
             line-height: 1.6;
+            max-width: 400px;
+            margin: 0 auto;
         }
 
         .welcome-popup-overlay {
@@ -368,7 +423,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(12px);
             z-index: 9999;
             opacity: 0;
@@ -381,7 +436,7 @@
             pointer-events: all;
         }
 
-        /* Navigation */
+        /* Navigation - Design Premium 2025 */
         .navbar {
             position: fixed;
             top: 0;
@@ -397,6 +452,7 @@
             z-index: 2000;
             backdrop-filter: blur(30px);
             transition: left 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .navbar.show {
@@ -410,14 +466,14 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%, rgba(0,0,0,0.15) 100%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 30%, rgba(0,0,0,0.1) 100%);
             pointer-events: none;
         }
 
         .menu-toggle-btn {
             position: fixed;
-            top: 24px;
-            left: 24px;
+            top: 20px;
+            left: 20px;
             width: 56px;
             height: 56px;
             background: linear-gradient(135deg, var(--header-kaki), var(--accent-kaki));
@@ -428,15 +484,19 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 7px;
+            gap: 6px;
             z-index: 2001;
-            box-shadow: 0 6px 25px rgba(107, 114, 73, 0.5);
+            box-shadow: 0 6px 24px rgba(107, 114, 73, 0.5);
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
         .menu-toggle-btn:hover {
-            transform: scale(1.12) rotate(5deg);
-            box-shadow: 0 8px 35px rgba(107, 114, 73, 0.7);
+            transform: scale(1.08) rotate(5deg);
+            box-shadow: 0 8px 32px rgba(107, 114, 73, 0.7);
+        }
+
+        .menu-toggle-btn:active {
+            transform: scale(0.95);
         }
 
         .menu-toggle-btn span {
@@ -453,7 +513,7 @@
 
         .menu-toggle-btn.active span:nth-child(2) {
             opacity: 0;
-            transform: scale(0);
+            transform: translateX(-20px);
         }
 
         .menu-toggle-btn.active span:nth-child(3) {
@@ -461,10 +521,11 @@
         }
 
         .navbar-header {
-            padding: 36px 24px 24px;
+            padding: 36px 24px 24px 24px;
             border-bottom: 1px solid rgba(255,255,255,0.15);
             text-align: center;
             position: relative;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .theme-toggle-mini {
@@ -472,20 +533,22 @@
             top: 18px;
             right: 18px;
             background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
             width: 44px;
             height: 44px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
 
         .theme-toggle-mini:hover {
             background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.15) rotate(180deg);
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .theme-toggle-mini i {
@@ -495,7 +558,7 @@
 
         .navbar-left {
             color: white;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
             text-shadow: 0 3px 12px rgba(0,0,0,0.4);
             letter-spacing: 0.5px;
@@ -509,7 +572,8 @@
         .navbar-left::before {
             content: '⚡';
             font-size: 42px;
-            animation: pulse 2s infinite;
+            animation: pulse 2.5s infinite;
+            filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
         }
 
         .navbar-content {
@@ -520,7 +584,7 @@
         }
 
         .navbar-content::-webkit-scrollbar {
-            width: 7px;
+            width: 8px;
         }
 
         .navbar-content::-webkit-scrollbar-track {
@@ -532,9 +596,14 @@
             border-radius: 4px;
         }
 
+        .navbar-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.35);
+        }
+
         .navbar-footer {
             padding: 18px 24px;
             border-top: 1px solid rgba(255,255,255,0.15);
+            background: rgba(0, 0, 0, 0.1);
         }
 
         .nav-item {
@@ -543,53 +612,73 @@
             gap: 16px;
             cursor: pointer;
             color: rgba(255, 255, 255, 0.9);
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.3s ease;
             text-decoration: none;
             padding: 16px 24px;
-            margin: 5px 18px;
+            margin: 6px 18px;
             border-radius: 14px;
             position: relative;
+            font-weight: 600;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255,255,255,0.2), transparent);
+            border-radius: 14px;
+            transition: width 0.3s ease;
+        }
+
+        .nav-item:hover::before {
+            width: 100%;
         }
 
         .nav-item:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
-            transform: translateX(8px) scale(1.02);
+            transform: translateX(6px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .nav-item.active {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
             color: white;
-            box-shadow: 0 5px 16px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
         }
 
-        .nav-item.active::before {
+        .nav-item.active::after {
             content: '';
             position: absolute;
             left: 0;
             top: 50%;
             transform: translateY(-50%);
             width: 5px;
-            height: 75%;
+            height: 70%;
             background: white;
             border-radius: 0 3px 3px 0;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
         }
 
         .nav-item i {
             font-size: 24px;
-            width: 34px;
+            width: 32px;
             text-align: center;
         }
 
         .nav-item span {
             font-size: 17px;
             font-weight: 700;
+            letter-spacing: -0.2px;
         }
 
         .theme-toggle {
             width: 100%;
             background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 14px;
             padding: 14px;
             cursor: pointer;
@@ -597,21 +686,24 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.3s ease;
             color: white;
             font-size: 15px;
             font-weight: 700;
+            backdrop-filter: blur(10px);
         }
 
         .theme-toggle:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .theme-toggle i {
             font-size: 18px;
         }
 
+        /* Search Toggle Button - Premium 2025 */
         .search-toggle-btn {
             position: fixed;
             bottom: 24px;
@@ -619,28 +711,34 @@
             background: linear-gradient(135deg, var(--accent-kaki), var(--header-kaki));
             border: none;
             border-radius: 50%;
-            width: 66px;
-            height: 66px;
+            width: 68px;
+            height: 68px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 25px rgba(107, 114, 73, 0.5);
+            box-shadow: 0 6px 28px rgba(107, 114, 73, 0.5);
             z-index: 999;
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
         .search-toggle-btn:hover {
             background: linear-gradient(135deg, var(--header-kaki), var(--accent-kaki-dark));
             transform: scale(1.12) rotate(5deg);
-            box-shadow: 0 8px 35px rgba(107, 114, 73, 0.7);
+            box-shadow: 0 8px 36px rgba(107, 114, 73, 0.7);
+        }
+
+        .search-toggle-btn:active {
+            transform: scale(0.98);
         }
 
         .search-toggle-btn i {
             font-size: 24px;
             color: white;
-            transition: transform 0.4s ease;
+            transition: transform 0.3s ease;
         }
 
         .search-toggle-btn span {
@@ -648,28 +746,33 @@
             color: white;
             margin-top: 3px;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .search-toggle-btn.active i {
-            transform: rotate(90deg);
+            transform: rotate(90deg) scale(1.1);
         }
 
+        /* Search Panel - Ultra Moderne 2025 */
         .search-panel {
             position: fixed;
             bottom: -360px;
             left: 0;
             right: 0;
             height: 360px;
-            background: var(--bg-secondary);
-            border-top: 4px solid var(--accent-kaki);
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-top: 3px solid var(--accent-kaki);
             box-shadow: 0 -6px 40px rgba(107, 114, 73, 0.4);
             z-index: 998;
-            transition: bottom 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            padding: 40px 28px;
+            transition: bottom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 40px 32px;
             display: flex;
             flex-direction: column;
             gap: 24px;
-            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
         }
 
         .search-panel.show {
@@ -677,13 +780,18 @@
         }
 
         .search-panel h3 {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.5px;
         }
 
         .search-panel h3 i {
             color: var(--accent-kaki);
-            font-size: 26px;
+            font-size: 28px;
         }
 
         .search-input-container {
@@ -694,7 +802,7 @@
 
         .search-input {
             flex: 1;
-            padding: 18px 22px;
+            padding: 18px 24px;
             border: 2px solid var(--border-color);
             border-radius: 16px;
             font-size: 17px;
@@ -702,13 +810,15 @@
             color: var(--text-primary);
             transition: all 0.3s ease;
             font-family: inherit;
+            font-weight: 500;
         }
 
         .search-input:focus {
             outline: none;
             border-color: var(--accent-kaki);
-            box-shadow: 0 0 0 5px rgba(107, 114, 73, 0.15);
+            box-shadow: 0 0 0 5px rgba(107, 114, 73, 0.12);
             background: var(--bg-secondary);
+            transform: translateY(-2px);
         }
 
         .search-btn {
@@ -720,17 +830,22 @@
             font-size: 17px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 5px 18px rgba(107, 114, 73, 0.4);
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(107, 114, 73, 0.4);
             display: flex;
             align-items: center;
             gap: 12px;
             font-family: inherit;
+            backdrop-filter: blur(10px);
         }
 
         .search-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 30px rgba(107, 114, 73, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(107, 114, 73, 0.6);
+        }
+
+        .search-btn:active {
+            transform: translateY(-1px);
         }
 
         .search-results-info {
@@ -741,37 +856,41 @@
             border-radius: 12px;
             text-align: center;
             border: 2px solid var(--border-color);
+            font-weight: 600;
         }
 
+        /* Page Title - Floating Premium */
         .page-title {
             position: fixed;
             top: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--bg-secondary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             padding: 12px 32px;
             border-radius: 24px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
             z-index: 998;
             font-size: 18px;
             font-weight: 800;
             color: var(--text-primary);
             transition: all 0.3s ease;
-            border: 2px solid var(--border-color);
-            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            letter-spacing: -0.3px;
         }
 
         .badge {
             position: absolute;
-            top: 5px;
-            right: 5px;
+            top: 6px;
+            right: 6px;
             background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
             border-radius: 14px;
             padding: 4px 9px;
             font-size: 11px;
             font-weight: 800;
-            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.6);
+            box-shadow: 0 3px 12px rgba(239, 68, 68, 0.6);
             animation: badgePulse 2s infinite;
         }
 
@@ -790,15 +909,19 @@
             color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
             font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            margin: 4px 18px;
         }
 
         .menu-item:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             padding-left: 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .menu-item i {
-            width: 34px;
+            width: 32px;
             font-size: 22px;
             color: white;
             text-align: center;
@@ -822,6 +945,7 @@
             color: #ffcccc;
         }
 
+        /* SPA Container */
         .spa-container {
             max-width: 100%;
             width: 100%;
@@ -838,8 +962,8 @@
             animation: fadeInSlide 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             width: 100%;
             height: 100%;
-            padding: 90px 24px 120px;
-            max-width: 820px;
+            padding: 90px 24px 120px 24px;
+            max-width: 860px;
             margin: 0 auto;
             box-sizing: border-box;
         }
@@ -851,22 +975,24 @@
         @keyframes fadeInSlide {
             from {
                 opacity: 0;
-                transform: translateY(40px);
+                transform: translateY(40px) scale(0.98);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
-        /* SKELETON LOADER MODERNISÉ 2025 */
+        /* SKELETON LOADER - Ultra Moderne 2025 */
         .article-skeleton {
-            background: var(--bg-secondary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 28px;
             margin-bottom: 28px;
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
-            border: 2px solid var(--border-color);
+            border: 1px solid var(--glass-border);
             position: relative;
         }
 
@@ -883,7 +1009,7 @@
                 rgba(255, 255, 255, 0.15),
                 transparent
             );
-            animation: shimmer 2s infinite;
+            animation: shimmer 2.5s infinite;
             z-index: 1;
         }
 
@@ -913,7 +1039,7 @@
             height: 64px;
             border-radius: 50%;
             background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
-            animation: skeletonPulse 1.5s ease-in-out infinite;
+            animation: skeletonPulse 1.8s ease-in-out infinite;
         }
 
         body.dark-mode .skeleton-avatar {
@@ -925,12 +1051,12 @@
         }
 
         .skeleton-name {
-            width: 150px;
+            width: 160px;
             height: 20px;
             background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
             border-radius: 10px;
             margin-bottom: 10px;
-            animation: skeletonPulse 1.5s ease-in-out infinite;
+            animation: skeletonPulse 1.8s ease-in-out infinite;
         }
 
         body.dark-mode .skeleton-name {
@@ -938,11 +1064,11 @@
         }
 
         .skeleton-date {
-            width: 110px;
+            width: 120px;
             height: 16px;
             background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
             border-radius: 8px;
-            animation: skeletonPulse 1.5s ease-in-out infinite 0.2s;
+            animation: skeletonPulse 1.8s ease-in-out infinite 0.3s;
         }
 
         body.dark-mode .skeleton-date {
@@ -951,7 +1077,7 @@
 
         @keyframes skeletonPulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.6; }
         }
 
         .skeleton-content {
@@ -964,7 +1090,7 @@
             background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
             border-radius: 8px;
             margin-bottom: 12px;
-            animation: skeletonPulse 1.5s ease-in-out infinite 0.3s;
+            animation: skeletonPulse 1.8s ease-in-out infinite 0.4s;
         }
 
         body.dark-mode .skeleton-text {
@@ -972,22 +1098,22 @@
         }
 
         .skeleton-text:nth-child(2) {
-            width: 90%;
-            animation-delay: 0.4s;
+            width: 92%;
+            animation-delay: 0.5s;
         }
 
         .skeleton-text:nth-child(3) {
-            width: 75%;
-            animation-delay: 0.5s;
+            width: 78%;
+            animation-delay: 0.6s;
         }
 
         .skeleton-image {
             width: 100%;
-            height: 320px;
+            height: 340px;
             background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
             border-radius: 20px;
-            margin-top: 18px;
-            animation: skeletonPulse 1.5s ease-in-out infinite 0.6s;
+            margin-top: 20px;
+            animation: skeletonPulse 1.8s ease-in-out infinite 0.7s;
         }
 
         body.dark-mode .skeleton-image {
@@ -998,36 +1124,37 @@
             padding: 24px;
             display: flex;
             gap: 14px;
-            border-top: 2px solid var(--border-color);
+            border-top: 1px solid var(--border-color);
         }
 
         .skeleton-action-btn {
             flex: 1;
-            height: 44px;
+            height: 48px;
             background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
             border-radius: 14px;
-            animation: skeletonPulse 1.5s ease-in-out infinite;
+            animation: skeletonPulse 1.8s ease-in-out infinite;
         }
 
         body.dark-mode .skeleton-action-btn {
             background: linear-gradient(135deg, #2d3748, #1e293b);
         }
 
-        .skeleton-action-btn:nth-child(1) { animation-delay: 0.7s; }
-        .skeleton-action-btn:nth-child(2) { animation-delay: 0.8s; }
-        .skeleton-action-btn:nth-child(3) { animation-delay: 0.9s; }
-        .skeleton-action-btn:nth-child(4) { animation-delay: 1s; }
+        .skeleton-action-btn:nth-child(1) { animation-delay: 0.8s; }
+        .skeleton-action-btn:nth-child(2) { animation-delay: 0.9s; }
+        .skeleton-action-btn:nth-child(3) { animation-delay: 1s; }
+        .skeleton-action-btn:nth-child(4) { animation-delay: 1.1s; }
 
-        /* ARTICLES STYLES MODERNISÉS 2025 */
+        /* ARTICLES STYLES - Premium 2025 */
         .article-card {
-            background: var(--bg-secondary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 28px;
             margin-bottom: 32px;
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
-            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border: 2px solid var(--border-color);
-            backdrop-filter: blur(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--glass-border);
             position: relative;
         }
 
@@ -1048,8 +1175,8 @@
         }
 
         .article-card:hover {
-            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.2);
-            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+            transform: translateY(-8px);
             border-color: var(--accent-blue);
         }
 
@@ -1058,8 +1185,12 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            border-bottom: 2px solid var(--border-color);
-            background: linear-gradient(180deg, var(--bg-secondary), transparent);
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent);
+        }
+
+        body.dark-mode .article-header {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
         }
 
         .avatar {
@@ -1075,12 +1206,17 @@
             font-size: 22px;
             box-shadow: 0 8px 20px rgba(37, 99, 235, 0.5);
             flex-shrink: 0;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.4s ease;
+            border: 3px solid white;
+        }
+
+        body.dark-mode .avatar {
+            border-color: var(--bg-secondary);
         }
 
         .article-card:hover .avatar {
             transform: scale(1.15) rotate(8deg);
-            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.7);
+            box-shadow: 0 12px 32px rgba(37, 99, 235, 0.7);
         }
 
         .author-info {
@@ -1089,11 +1225,11 @@
         }
 
         .author-info h3 {
-            font-size: 19px;
+            font-size: 18px;
             color: var(--text-primary);
-            margin-bottom: 7px;
+            margin-bottom: 6px;
             font-weight: 800;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.4px;
         }
 
         .author-info p {
@@ -1110,11 +1246,12 @@
             color: var(--text-primary);
             line-height: 1.8;
             margin-bottom: 20px;
-            font-size: 16.5px;
+            font-size: 16px;
             font-weight: 400;
             letter-spacing: -0.1px;
         }
 
+        /* IMAGES - Affichage Complet (FIX) */
         .article-images {
             display: grid;
             gap: 14px;
@@ -1133,27 +1270,31 @@
             grid-template-columns: repeat(3, 1fr);
         }
 
-        /* 🎯 CORRECTION IMAGE COMPLÈTE */
         .article-images img {
             width: 100%;
-            height: 100%;
+            height: auto;
             border-radius: 20px;
             cursor: pointer;
-            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: var(--shadow-md);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
             object-fit: cover;
-            object-position: center;
-            aspect-ratio: 16/10;
         }
 
         .article-images.single img {
-            aspect-ratio: 16/9;
-            max-height: 500px;
+            max-height: none;
+        }
+
+        .article-images.double img {
+            aspect-ratio: 1/1;
+        }
+
+        .article-images.multiple img {
+            aspect-ratio: 1/1;
         }
 
         .article-images img:hover {
-            transform: scale(1.08) rotate(2deg);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+            transform: scale(1.03);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
             border-radius: 24px;
         }
 
@@ -1161,20 +1302,20 @@
             width: 100%;
             border-radius: 20px;
             margin-top: 20px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
         }
 
         .article-links {
             display: flex;
             gap: 12px;
-            margin-top: 18px;
+            margin-top: 20px;
             flex-wrap: wrap;
         }
 
         .link-btn {
             flex: 1;
-            min-width: 130px;
-            padding: 14px 18px;
+            min-width: 140px;
+            padding: 14px 20px;
             background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
             border: none;
             border-radius: 14px;
@@ -1182,8 +1323,8 @@
             font-size: 14px;
             font-weight: 800;
             color: white;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 5px 16px rgba(37, 99, 235, 0.4);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1193,7 +1334,7 @@
         }
 
         .link-btn:hover {
-            transform: translateY(-4px) scale(1.02);
+            transform: translateY(-4px);
             box-shadow: 0 10px 28px rgba(37, 99, 235, 0.6);
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
         }
@@ -1202,25 +1343,21 @@
             font-size: 18px;
         }
 
-        /* REACTIONS MODERNISÉES 2025 */
+        /* REACTIONS - Ultra Premium 2025 */
         .reactions {
             display: flex;
             gap: 10px;
             padding: 20px 24px;
-            border-top: 2px solid var(--border-color);
-            border-bottom: 2px solid var(--border-color);
-            background: var(--bg-secondary);
-            backdrop-filter: blur(20px);
-        }
-
-        body.dark-mode .reactions {
-            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+            backdrop-filter: blur(10px);
         }
 
         .reaction-btn {
             flex: 1;
             background: transparent;
-            border: 3px solid transparent;
+            border: 2px solid transparent;
             padding: 14px 10px;
             border-radius: 18px;
             cursor: pointer;
@@ -1228,9 +1365,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 7px;
             font-size: 24px;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             color: var(--text-tertiary);
             position: relative;
             overflow: hidden;
@@ -1245,14 +1382,14 @@
             height: 0;
             border-radius: 50%;
             background: currentColor;
-            opacity: 0.1;
+            opacity: 0.12;
             transform: translate(-50%, -50%);
             transition: width 0.5s ease, height 0.5s ease;
         }
 
         .reaction-btn:hover::before {
-            width: 100%;
-            height: 100%;
+            width: 120%;
+            height: 120%;
         }
 
         .reaction-btn:hover {
@@ -1262,7 +1399,7 @@
 
         .reaction-btn i {
             font-size: 28px;
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.4s ease;
             z-index: 1;
         }
 
@@ -1280,12 +1417,11 @@
             border-radius: 14px;
             background: rgba(0, 0, 0, 0.06);
             color: var(--text-primary);
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
         }
 
         body.dark-mode .reaction-btn span {
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .reaction-btn:nth-child(1) { color: var(--accent-blue); }
@@ -1305,8 +1441,8 @@
             background: rgba(255, 255, 255, 0.3);
             color: white !important;
             font-weight: 900;
-            transform: scale(1.15);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transform: scale(1.12);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
         }
 
         .reaction-btn.active i {
@@ -1318,7 +1454,7 @@
         @keyframes reactionBounce {
             0%, 100% { transform: scale(1); }
             25% { transform: scale(1.4) rotate(-18deg); }
-            50% { transform: scale(0.9) rotate(18deg); }
+            50% { transform: scale(0.95) rotate(18deg); }
             75% { transform: scale(1.3) rotate(-12deg); }
         }
 
@@ -1330,9 +1466,10 @@
             background: rgba(255, 255, 255, 0.06);
         }
 
+        /* COMMENTAIRES & PARTAGE Section */
         .comments-reactions-section {
             display: flex;
-            border-top: 2px solid var(--border-color);
+            border-top: 1px solid var(--border-color);
         }
 
         .comments-toggle-large {
@@ -1345,9 +1482,9 @@
             align-items: center;
             justify-content: center;
             gap: 14px;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.4s ease;
             font-size: 16px;
-            border-right: 2px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
             position: relative;
         }
 
@@ -1360,7 +1497,7 @@
             height: 4px;
             background: var(--accent-blue);
             transform: scaleX(0);
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.4s ease;
         }
 
         .comments-toggle-large:hover::before {
@@ -1374,7 +1511,7 @@
 
         .comments-toggle-large i {
             font-size: 22px;
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.4s ease;
         }
 
         .comments-toggle-large:hover i {
@@ -1389,11 +1526,11 @@
             font-size: 13px;
             font-weight: 900;
             margin-left: 8px;
-            box-shadow: 0 5px 16px rgba(37, 99, 235, 0.5);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
             animation: badgePulse 2s infinite;
         }
 
-        /* 🎯 POPUP PARTAGE CENTRÉ */
+        /* SHARE BUTTON & MENU - Centré au milieu (FIX) */
         .share-btn {
             width: 80px;
             padding: 20px;
@@ -1401,9 +1538,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.4s;
             position: relative;
-            border-right: 2px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
         }
 
         .share-btn:hover {
@@ -1413,11 +1550,11 @@
         .share-btn i {
             font-size: 22px;
             color: var(--accent-blue);
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.4s ease;
         }
 
         .share-btn:hover i {
-            transform: scale(1.25) rotate(90deg);
+            transform: scale(1.3) rotate(90deg);
         }
 
         .share-menu {
@@ -1425,42 +1562,44 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            background: var(--bg-secondary);
+            transform: translate(-50%, -50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border-radius: 24px;
             box-shadow: var(--shadow-xl);
             padding: 32px;
-            min-width: 380px;
-            max-width: 90vw;
+            min-width: 400px;
             z-index: 10000;
-            opacity: 0;
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            border: 3px solid var(--border-color);
+            animation: shareMenuSlide 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 2px solid var(--glass-border);
+        }
+
+        @keyframes shareMenuSlide {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
         }
 
         .share-menu.show {
             display: block;
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
         }
 
-        .share-menu-overlay {
-            display: none;
+        .share-menu::before {
+            content: '';
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            right: 0;
+            bottom: 0;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .share-menu-overlay.show {
-            display: block;
-            opacity: 1;
+            z-index: -1;
         }
 
         .share-menu h4 {
@@ -1469,6 +1608,7 @@
             margin-bottom: 24px;
             text-align: center;
             font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
         .share-options {
@@ -1482,25 +1622,30 @@
             flex-direction: column;
             align-items: center;
             gap: 8px;
-            padding: 18px 10px;
+            padding: 18px 12px;
             border-radius: 16px;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             text-decoration: none;
-            border: 3px solid transparent;
+            border: 2px solid transparent;
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        body.dark-mode .share-option {
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .share-option:hover {
             background: var(--bg-primary);
             transform: translateY(-6px) scale(1.08);
             border-color: currentColor;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
 
         .share-option i {
             font-size: 32px;
             margin-bottom: 6px;
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.4s ease;
         }
 
         .share-option:hover i {
@@ -1536,7 +1681,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.4s;
         }
 
         .user-reactions-btn:hover {
@@ -1546,28 +1691,32 @@
         .user-reactions-btn i {
             font-size: 22px;
             color: var(--accent-blue);
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.4s ease;
         }
 
         .user-reactions-btn:hover i {
-            transform: scale(1.25);
+            transform: scale(1.3);
             animation: userReactionsPulse 0.7s ease;
         }
 
         @keyframes userReactionsPulse {
-            0%, 100% { transform: scale(1.25); }
+            0%, 100% { transform: scale(1.3); }
             50% { transform: scale(1.5); }
         }
 
+        /* COMMENTAIRES SECTION */
         .comments-section {
             display: none;
             padding: 0 20px 20px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
         }
 
         .comments-section.show {
             display: block;
+            animation: fadeIn 0.4s ease;
         }
 
+        /* ADMIN OPTIONS */
         .admin-options {
             position: relative;
             margin-left: auto;
@@ -1585,13 +1734,13 @@
             justify-content: center;
             color: white;
             font-size: 18px;
-            box-shadow: 0 5px 16px rgba(124, 58, 237, 0.5);
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.5);
+            transition: all 0.4s ease;
         }
 
         .options-btn:hover {
             transform: scale(1.2) rotate(90deg);
-            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.7);
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.7);
         }
 
         .options-menu {
@@ -1599,14 +1748,16 @@
             position: absolute;
             top: 50px;
             right: 0;
-            background: var(--bg-secondary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 16px;
             box-shadow: var(--shadow-xl);
             min-width: 200px;
             z-index: 10;
             overflow: hidden;
-            animation: slideDown 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            border: 2px solid var(--border-color);
+            animation: slideDown 0.3s ease;
+            border: 2px solid var(--glass-border);
         }
 
         .options-menu.show {
@@ -1616,7 +1767,7 @@
         @keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateY(-15px);
+                transform: translateY(-12px);
             }
             to {
                 opacity: 1;
@@ -1633,29 +1784,30 @@
             text-decoration: none;
             font-size: 16px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.3s;
             font-weight: 700;
         }
 
         .options-menu a:hover {
-            background: linear-gradient(90deg, rgba(37, 99, 235, 0.15), transparent);
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.12), transparent);
             padding-left: 28px;
         }
 
         .options-menu a.delete {
-             color: #ef4444;
+            color: #ef4444;
         }
 
         .options-menu a.delete:hover {
-            background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), transparent);
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.18), transparent);
         }
 
         .options-menu a i {
-            width: 24px;
+            width: 22px;
             text-align: center;
             font-size: 20px;
         }
 
+        /* LOADER */
         .loader {
             text-align: center;
             padding: 100px 24px;
@@ -1671,6 +1823,7 @@
             margin: 0 auto;
         }
 
+        /* EMPTY STATE */
         .empty-state {
             text-align: center;
             padding: 120px 24px;
@@ -1680,14 +1833,14 @@
         .empty-state i {
             font-size: 96px;
             margin-bottom: 28px;
-            opacity: 0.6;
+            opacity: 0.5;
             color: var(--accent-blue);
             animation: emptyStatePulse 2.5s ease-in-out infinite;
         }
 
         @keyframes emptyStatePulse {
-            0%, 100% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.15); opacity: 0.8; }
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.12); opacity: 0.8; }
         }
 
         .empty-state h3 {
@@ -1695,13 +1848,16 @@
             margin-bottom: 14px;
             color: var(--text-primary);
             font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
         .empty-state p {
             font-size: 17px;
             color: var(--text-secondary);
+            font-weight: 500;
         }
 
+        /* IFRAME CONTAINER */
         .page-iframe {
             width: 100%;
             height: 100vh;
@@ -1734,6 +1890,7 @@
             z-index: 10;
         }
 
+        /* RESPONSIVE DESIGN - Mobile First 2025 */
         @media (max-width: 768px) {
             .navbar {
                 width: 280px;
@@ -1748,13 +1905,18 @@
             }
 
             .spa-page {
-                padding: 80px 18px 100px;
+                padding: 80px 16px 100px 16px;
             }
 
             .toast-container {
                 left: 12px;
                 right: 12px;
+                top: 70px;
                 max-width: none;
+            }
+
+            .toast {
+                padding: 16px 18px;
             }
 
             .reactions {
@@ -1775,13 +1937,43 @@
             }
 
             .share-menu {
-                min-width: 320px;
+                min-width: 340px;
                 padding: 28px;
             }
 
             .share-options {
                 grid-template-columns: repeat(4, 1fr);
                 gap: 12px;
+            }
+
+            .share-option {
+                padding: 14px 8px;
+            }
+
+            .share-option i {
+                font-size: 28px;
+            }
+
+            .search-panel {
+                padding: 32px 20px;
+            }
+
+            .article-card {
+                border-radius: 24px;
+            }
+
+            .article-header {
+                padding: 20px 22px;
+            }
+
+            .avatar {
+                width: 56px;
+                height: 56px;
+                font-size: 20px;
+            }
+
+            .article-content {
+                padding: 24px;
             }
         }
 
@@ -1813,6 +2005,15 @@
                 font-size: 12px;
                 padding: 2px 8px;
             }
+
+            .share-menu {
+                min-width: 300px;
+                padding: 24px;
+            }
+
+            .share-options {
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -1823,7 +2024,7 @@
     <div class="loading-overlay" id="loading-overlay">
         <div class="loading-content">
             <div class="loading-spinner"></div>
-            <p style="font-size: 16px; font-weight: 600;">Chargement...</p>
+            <p>Chargement...</p>
         </div>
     </div>
 
@@ -1844,9 +2045,6 @@
         <div class="welcome-popup-name" id="welcome-name"></div>
         <div class="welcome-popup-subtitle">Nous sommes disponibles à tous vos Services. Laissez-nous votre numéro en Messages</div>
     </div>
-
-    <!-- Share Menu Overlay -->
-    <div class="share-menu-overlay" id="share-menu-overlay"></div>
 
     <!-- Menu Toggle Button -->
     <button class="menu-toggle-btn" id="menu-toggle-btn">
@@ -2001,16 +2199,10 @@
         </div>
     </div>
 
-    <!-- 1. Supabase CDN -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- 2. Client Supabase -->
     <script src="supabaseClient.js"></script>
-    
-    <!-- 3. Optimistic Sync (après supabaseClient) -->
     <script src="optimistic-sync.js"></script>
-    
-    <!-- 4. Commentaires -->
     <script src="commentaires.js"></script>
     
     <script>
@@ -2302,17 +2494,13 @@
 
         async function saveSubscriptionToDatabase(subscription) {
             try {
-                if (!supabase || !getCurrentUser) {
-                    console.warn('⚠️ Supabase non initialisé');
-                    return;
-                }
+                const { supabase, getCurrentUser } = window.supabaseClient;
+                const currentUser = await getCurrentUser();
                 
-                const user = await getCurrentUser();
-                
-                if (!user) return;
+                if (!currentUser) return;
                 
                 const subscriptionData = {
-                    user_id: user.id,
+                    user_id: currentUser.id,
                     endpoint: subscription.endpoint,
                     p256dh_key: arrayBufferToBase64(subscription.getKey('p256dh')),
                     auth_key: arrayBufferToBase64(subscription.getKey('auth')),
@@ -2372,65 +2560,9 @@
         }
 
         // ============================================================================
-        // 🎯 SYSTÈME DE RÉCUPÉRATION NOM/PRÉNOM (COMME CONNEXION.HTML)
-        // ============================================================================
-        async function createOAuthProfile(user) {
-            let prenom = 'Utilisateur';
-            let nom = 'Nouveau';
-
-            if (user.user_metadata) {
-                // Méthode 1 : Depuis full_name
-                if (user.user_metadata.full_name) {
-                    const nameParts = user.user_metadata.full_name.split(' ');
-                    prenom = nameParts[0] || 'Utilisateur';
-                    nom = nameParts.slice(1).join(' ') || '';
-                } 
-                // Méthode 2 : Depuis name
-                else if (user.user_metadata.name) {
-                    const nameParts = user.user_metadata.name.split(' ');
-                    prenom = nameParts[0] || 'Utilisateur';
-                    nom = nameParts.slice(1).join(' ') || '';
-                } 
-                // Méthode 3 : Depuis given_name et family_name
-                else if (user.user_metadata.given_name || user.user_metadata.family_name) {
-                    prenom = user.user_metadata.given_name || 'Utilisateur';
-                    nom = user.user_metadata.family_name || '';
-                }
-            }
-
-            // Méthode 4 : Fallback sur l'email
-            if (prenom === 'Utilisateur' && !nom && user.email) {
-                prenom = user.email.split('@')[0];
-                nom = '';
-            }
-
-            // 🎯 CORRECTION : Si nom est vide, utiliser prenom deux fois
-            if (!nom || nom.trim() === '') {
-                nom = prenom;
-            }
-
-            // 🎯 CORRECTION : Si prenom est vide, utiliser nom
-            if (!prenom || prenom.trim() === '') {
-                prenom = nom || 'Utilisateur';
-            }
-
-            try {
-                await supabase.from('users_profile').insert({
-                    user_id: user.id,
-                    prenom: prenom,
-                    nom: nom,
-                    role: 'user'
-                });
-                console.log('✅ Profil OAuth créé:', { prenom, nom });
-            } catch (error) {
-                console.error('❌ Erreur création profil:', error);
-            }
-        }
-
-        // ============================================================================
         // APPLICATION PRINCIPALE
         // ============================================================================
-        let supabase, getCurrentUser, getUserProfile;
+        const { supabase, getCurrentUser, getUserProfile } = window.supabaseClient;
         let currentUser = null;
         let userProfile = null;
         let allArticles = [];
@@ -2442,17 +2574,6 @@
         // INITIALISATION
         // ============================================================================
         window.addEventListener('load', async () => {
-            // 🎯 Initialiser les références Supabase depuis window.supabaseClient
-            if (window.supabaseClient) {
-                supabase = window.supabaseClient.supabase;
-                getCurrentUser = window.supabaseClient.getCurrentUser;
-                getUserProfile = window.supabaseClient.getUserProfile;
-            } else {
-                console.error('❌ supabaseClient non disponible');
-                ToastManager.error('Erreur', 'Impossible de charger les données');
-                return;
-            }
-
             ToastManager.init();
             LoadingManager.init();
             OfflineManager.init();
@@ -2475,7 +2596,6 @@
                     try {
                         userProfile = await getUserProfile(currentUser.id);
                         
-                        // 🎯 Si pas de profil, le créer avec OAuth
                         if (!userProfile) {
                             await createOAuthProfile(currentUser);
                             userProfile = await getUserProfile(currentUser.id);
@@ -2508,6 +2628,53 @@
             
             initEventListeners();
         });
+
+        // ============================================================================
+        // CRÉATION PROFIL OAUTH - AMÉLIORATION NOM/PRÉNOM
+        // ============================================================================
+        async function createOAuthProfile(user) {
+            let prenom = 'Utilisateur';
+            let nom = 'Nouveau';
+
+            if (user.user_metadata) {
+                if (user.user_metadata.full_name) {
+                    const nameParts = user.user_metadata.full_name.split(' ');
+                    prenom = nameParts[0] || 'Utilisateur';
+                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
+                } 
+                else if (user.user_metadata.name) {
+                    const nameParts = user.user_metadata.name.split(' ');
+                    prenom = nameParts[0] || 'Utilisateur';
+                    nom = nameParts.slice(1).join(' ') || 'Nouveau';
+                } 
+                else if (user.user_metadata.given_name && user.user_metadata.family_name) {
+                    prenom = user.user_metadata.given_name;
+                    nom = user.user_metadata.family_name;
+                }
+            }
+
+            if (prenom === 'Utilisateur' && nom === 'Nouveau' && user.email) {
+                prenom = user.email.split('@')[0];
+                nom = '';
+            }
+
+            // FIX: Si nom vide, utiliser prenom
+            if (!nom || nom.trim() === '' || nom === 'Nouveau') {
+                nom = prenom;
+            }
+            
+            // FIX: Si prenom vide, utiliser nom
+            if (!prenom || prenom.trim() === '' || prenom === 'Utilisateur') {
+                prenom = nom;
+            }
+
+            await supabase.from('users_profile').insert({
+                user_id: user.id,
+                prenom: prenom,
+                nom: nom,
+                role: 'user'
+            });
+        }
 
         // ============================================================================
         // GESTION DU THÈME
@@ -2599,10 +2766,17 @@
             const welcomePopup = document.getElementById('welcome-popup');
             const welcomeOverlay = document.getElementById('welcome-overlay');
 
-            // 🎯 Gestion nom/prénom avec fallback
+            // FIX: Gestion nom/prénom améliorée
             let prenom = userProfile.prenom || 'Utilisateur';
-            let nom = userProfile.nom || prenom;
+            let nom = userProfile.nom || '';
             
+            if (!nom || nom.trim() === '') {
+                nom = prenom;
+            }
+            if (!prenom || prenom.trim() === '') {
+                prenom = nom;
+            }
+
             const fullName = `${prenom} ${nom}`.trim();
             welcomeName.textContent = fullName;
 
@@ -2623,9 +2797,16 @@
                 document.getElementById('profile-item').style.display = 'flex';
                 document.getElementById('logout-item').style.display = 'flex';
                 
-                // 🎯 Gestion nom/prénom avec fallback
+                // FIX: Gestion nom/prénom améliorée
                 let prenom = userProfile.prenom || 'Utilisateur';
-                let nom = userProfile.nom || prenom;
+                let nom = userProfile.nom || '';
+                
+                if (!nom || nom.trim() === '') {
+                    nom = prenom;
+                }
+                if (!prenom || prenom.trim() === '') {
+                    prenom = nom;
+                }
                 
                 document.getElementById('user-name').textContent = `${prenom} ${nom}`;
                 
@@ -2669,9 +2850,7 @@
             isSearching = true;
             const filteredArticles = allArticles.filter(article => {
                 const text = article.texte.toLowerCase();
-                const prenom = article.users_profile?.prenom || '';
-                const nom = article.users_profile?.nom || '';
-                const authorName = `${prenom} ${nom}`.toLowerCase();
+                const authorName = `${article.users_profile.prenom} ${article.users_profile.nom}`.toLowerCase();
                 return text.includes(query) || authorName.includes(query);
             });
             document.getElementById('search-results-count').textContent = filteredArticles.length;
@@ -2787,10 +2966,7 @@
 
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.share-menu') && !e.target.closest('.share-btn')) {
-                    document.querySelectorAll('.share-menu.show').forEach(m => {
-                        m.classList.remove('show');
-                    });
-                    document.getElementById('share-menu-overlay').classList.remove('show');
+                    document.querySelectorAll('.share-menu.show').forEach(m => m.classList.remove('show'));
                 }
                 if (!e.target.closest('.admin-options')) {
                     document.querySelectorAll('.options-menu.show').forEach(menu => menu.classList.remove('show'));
@@ -2938,947 +3114,7 @@
                 .subscribe();
         }
 
-        // ============================================================================
-        // CHARGEMENT DES ARTICLES
-        // ============================================================================
-        async function loadArticles() {
-            try {
-                console.log('🔄 Début du chargement des articles...');
-                
-                if (allArticles.length === 0) {
-                    showSkeletonLoaders(3);
-                    document.getElementById('empty-state').style.display = 'none';
-                }
-                
-                if (!OfflineManager.checkConnection()) {
-                    console.warn('⚠️ Mode hors ligne détecté');
-                    throw new Error('Pas de connexion Internet');
-                }
-                
-                if (!supabase) {
-                    console.error('❌ Supabase client non initialisé');
-                    throw new Error('Client Supabase non disponible');
-                }
-                
-                console.log('📡 Requête Supabase en cours...');
-                
-                const { data: articles, error, status, statusText } = await supabase
-                    .from('articles')
-                    .select(`
-                        *,
-                        users_profile!articles_user_id_fkey (
-                            prenom,
-                            nom
-                        ),
-                        article_images (
-                            image_url
-                        ),
-                        article_videos (
-                            video_url
-                        )
-                    `)
-                    .order('date_created', { ascending: false });
-                
-                console.log('📊 Réponse Supabase:', {
-                    status,
-                    statusText,
-                    hasError: !!error,
-                    articleCount: articles?.length || 0
-                });
-                
-                if (error) {
-                    console.error('❌ Erreur Supabase détaillée:', {
-                        message: error.message,
-                        details: error.details,
-                        hint: error.hint,
-                        code: error.code
-                    });
-                    throw new Error(`Erreur Supabase: ${error.message} (Code: ${error.code})`);
-                }
-                
-                document.getElementById('loader').style.display = 'none';
-                
-                if (!articles || articles.length === 0) {
-                    console.warn('⚠️ Aucun article trouvé dans la base de données');
-                    document.getElementById('empty-state').style.display = 'block';
-                    document.getElementById('articles-container').innerHTML = '';
-                    allArticles = [];
-                    return;
-                }
-                
-                console.log(`✅ ${articles.length} article(s) chargé(s) avec succès`);
-                
-                articles.forEach((article, index) => {
-                    if (!article.users_profile) {
-                        console.warn(`⚠️ Article ${index} (ID: ${article.article_id}) sans profil utilisateur`);
-                    }
-                });
-                
-                allArticles = articles;
-                document.getElementById('empty-state').style.display = 'none';
-                displayArticles(articles);
-                
-                console.log('✅ Articles affichés avec succès');
-                
-            } catch (error) {
-                console.error('❌ Erreur critique lors du chargement des articles:', {
-                    name: error.name,
-                    message: error.message,
-                    stack: error.stack,
-                    timestamp: new Date().toISOString()
-                });
-                
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('articles-container').innerHTML = '';
-                
-                if (!OfflineManager.checkConnection()) {
-                    document.getElementById('empty-state').innerHTML = `
-                        <i class="fas fa-wifi-slash"></i>
-                        <h3>Mode hors ligne</h3>
-                        <p>Impossible de charger les articles sans connexion</p>
-                    `;
-                    document.getElementById('empty-state').style.display = 'block';
-                    ToastManager.error('Hors ligne', 'Vérifiez votre connexion Internet');
-                } else if (error.message.includes('Supabase')) {
-                    document.getElementById('empty-state').innerHTML = `
-                        <i class="fas fa-wifi-slash" style="color: var(--accent-red);"></i>
-                        <h3>Problème de connexion</h3>
-                        <p>Veuillez vérifier votre connexion Internet et réessayer</p>
-                        <button onclick="loadArticles()" style="margin-top: 20px; padding: 12px 24px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(107, 114, 73, 0.3); transition: all 0.3s ease;">
-                            <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>Réessayer
-                        </button>
-                    `;
-                    document.getElementById('empty-state').style.display = 'block';
-                    ToastManager.error('Erreur de connexion', 'Veuillez vérifier votre connexion Internet');
-                } else {
-                    document.getElementById('empty-state').innerHTML = `
-                        <i class="fas fa-exclamation-triangle" style="color: var(--accent-yellow);"></i>
-                        <h3>Erreur de chargement</h3>
-                        <p>Impossible de charger les articles pour le moment</p>
-                        <button onclick="loadArticles()" style="margin-top: 20px; padding: 12px 24px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(107, 114, 73, 0.3); transition: all 0.3s ease;">
-                            <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>Réessayer
-                        </button>
-                    `;
-                    document.getElementById('empty-state').style.display = 'block';
-                    ToastManager.error('Erreur', 'Une erreur est survenue');
-                }
-            }
-        }
-
-        function displayArticles(articles) {
-            console.log('🎨 Affichage de', articles.length, 'article(s)');
-            
-            const container = document.getElementById('articles-container');
-            
-            if (!container) {
-                console.error('❌ Container articles-container introuvable dans le DOM');
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            if (!articles || articles.length === 0) {
-                console.warn('⚠️ Aucun article à afficher');
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-search"></i>
-                        <h3>Aucun article</h3>
-                        <p>Aucun résultat trouvé</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let successCount = 0;
-            let errorCount = 0;
-            
-            articles.forEach((article, index) => {
-                try {
-                    const card = createArticleCard(article);
-                    container.appendChild(card);
-                    successCount++;
-                } catch (error) {
-                    console.error(`❌ Erreur création carte article ${index}:`, {
-                        articleId: article?.article_id,
-                        error: error.message,
-                        article: article
-                    });
-                    errorCount++;
-                }
-            });
-            
-            console.log(`✅ Affichage terminé: ${successCount} réussis, ${errorCount} erreurs`);
-            
-            if (errorCount > 0) {
-                ToastManager.warning('Attention', `${errorCount} article(s) n'ont pas pu être affichés`);
-            }
-        }
-
-        function createArticleCard(article) {
-            if (!article) {
-                throw new Error('Article undefined ou null');
-            }
-            
-            if (!article.article_id) {
-                throw new Error('Article sans article_id');
-            }
-            
-            const author = article.users_profile || { prenom: 'Utilisateur', nom: 'Inconnu' };
-            
-            // 🎯 Gestion intelligente nom/prénom avec fallback
-            let authorPrenom = author.prenom || 'Utilisateur';
-            let authorNom = author.nom || authorPrenom;
-            
-            // Si l'un est vide, utiliser l'autre
-            if (!authorPrenom || authorPrenom.trim() === '') {
-                authorPrenom = authorNom || 'Utilisateur';
-            }
-            if (!authorNom || authorNom.trim() === '') {
-                authorNom = authorPrenom;
-            }
-            
-            const initials = `${authorPrenom[0]}${authorNom[0]}`.toUpperCase();
-            
-            const images = Array.isArray(article.article_images) ? article.article_images : [];
-            const videos = Array.isArray(article.article_videos) ? article.article_videos : [];
-            
-            const texte = article.texte || '[Pas de contenu]';
-            const dateCreated = article.date_created || new Date().toISOString();
-            
-            const card = document.createElement('div');
-            card.className = 'article-card';
-            card.setAttribute('data-article-id', article.article_id);
-            
-            let imageClass = images.length === 1 ? 'single' : (images.length === 2 ? 'double' : 'multiple');
-            
-            const imagesHTML = images.length > 0 ? `
-                <div class="article-images ${imageClass}">
-                    ${images.map(img => `<img src="${img.image_url || ''}" alt="Image" loading="lazy" onerror="this.style.display='none'">`).join('')}
-                </div>` : '';
-            
-            const videoHTML = videos.length > 0 && videos[0].video_url ? `
-                <div class="article-video">
-                    <video controls playsinline preload="metadata" src="${videos[0].video_url}"></video>
-                </div>` : '';
-
-            const linksHTML = (article.texte_url || article.vente_url || article.whatsapp_url) ? `
-                <div class="article-links">
-                    ${article.texte_url ? `<button class="link-btn" onclick="window.open('${article.texte_url}', '_blank')"><i class="fas fa-link"></i> Lien</button>` : ''}
-                    ${article.vente_url ? `<button class="link-btn" onclick="window.open('${article.vente_url}', '_blank')"><i class="fas fa-shopping-cart"></i> Acheter</button>` : ''}
-                    ${article.whatsapp_url ? `<button class="link-btn" onclick="window.open('${article.whatsapp_url}', '_blank')"><i class="fab fa-whatsapp"></i> WhatsApp</button>` : ''}
-                </div>` : '';
-
-            const adminOptionsHTML = (userProfile && userProfile.role === 'admin') ? `
-                <div class="admin-options">
-                    <button class="options-btn" onclick="toggleAdminMenu('options-menu-${article.article_id}')">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div class="options-menu" id="options-menu-${article.article_id}">
-                        <a onclick="editArticle('${article.article_id}')">
-                            <i class="fas fa-edit"></i> Modifier
-                        </a>
-                        <a class="delete" onclick="deleteArticle('${article.article_id}')">
-                            <i class="fas fa-trash"></i> Supprimer
-                        </a>
-                    </div>
-                </div>` : '';
-
-            const commentCount = article.comment_count || 0;
-            const commentCountBadge = commentCount > 0 ? `<span class="comment-count-badge">${commentCount}</span>` : '';
-
-            const userArticleReactions = userReactions[article.article_id] || [];
-            const likeActive = userArticleReactions.includes('like') ? 'active' : '';
-            const loveActive = userArticleReactions.includes('love') ? 'active' : '';
-            const rireActive = userArticleReactions.includes('rire') ? 'active' : '';
-            const colereActive = userArticleReactions.includes('colere') ? 'active' : '';
-            
-            const reactionLike = article.reaction_like || 0;
-            const reactionLove = article.reaction_love || 0;
-            const reactionRire = article.reaction_rire || 0;
-            const reactionColere = article.reaction_colere || 0;
-
-            try {
-                const formattedDate = new Date(dateCreated).toLocaleDateString('fr-FR', { 
-                    day: 'numeric', 
-                    month: 'long', 
-                    year: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                
-                card.innerHTML = `
-                    <div class="article-header">
-                        <div class="avatar">${initials}</div>
-                        <div class="author-info">
-                            <h3>${authorPrenom} ${authorNom}</h3>
-                            <p>${formattedDate}</p>
-                        </div>
-                        ${adminOptionsHTML}
-                    </div>
-                    <div class="article-content">
-                        <div class="article-text">${texte}</div>
-                        ${imagesHTML}
-                        ${videoHTML}
-                        ${linksHTML}
-                    </div>
-                    <div class="reactions">
-                        <button class="reaction-btn ${likeActive}" onclick="handleReaction('${article.article_id}', 'like')">
-                            <i class="fas fa-thumbs-up"></i><span>${reactionLike}</span>
-                        </button>
-                        <button class="reaction-btn ${loveActive}" onclick="handleReaction('${article.article_id}', 'love')">
-                            <i class="fas fa-heart"></i><span>${reactionLove}</span>
-                        </button>
-                        <button class="reaction-btn ${rireActive}" onclick="handleReaction('${article.article_id}', 'rire')">
-                            <i class="fas fa-laugh"></i><span>${reactionRire}</span>
-                        </button>
-                        <button class="reaction-btn ${colereActive}" onclick="handleReaction('${article.article_id}', 'colere')">
-                            <i class="fas fa-angry"></i><span>${reactionColere}</span>
-                        </button>
-                    </div>
-                    <div class="comments-reactions-section">
-                        <div class="comments-toggle-large" onclick="toggleComments('${article.article_id}')">
-                            <i class="fas fa-comment"></i>
-                            <span>Commentaires</span>
-                            ${commentCountBadge}
-                        </div>
-                        <div class="share-btn" onclick="toggleShareMenu(event, '${article.article_id}')">
-                            <i class="fas fa-share-alt"></i>
-                        </div>
-                        <div class="user-reactions-btn" onclick="viewUserReactions('${article.article_id}')">
-                            <i class="fas fa-users"></i>
-                        </div>
-                    </div>
-                    <div class="share-menu" id="share-menu-${article.article_id}">
-                        <h4>Partager cet article</h4>
-                        <div class="share-options">
-                            <a class="share-option facebook" onclick="shareToFacebook('${article.article_id}')">
-                                <i class="fab fa-facebook"></i>
-                                <span>Facebook</span>
-                            </a>
-                            <a class="share-option twitter" onclick="shareToTwitter('${article.article_id}')">
-                                <i class="fab fa-twitter"></i>
-                                <span>Twitter</span>
-                            </a>
-                            <a class="share-option whatsapp" onclick="shareToWhatsApp('${article.article_id}')">
-                                <i class="fab fa-whatsapp"></i>
-                                <span>WhatsApp</span>
-                            </a>
-                            <a class="share-option telegram" onclick="shareToTelegram('${article.article_id}')">
-                                <i class="fab fa-telegram"></i>
-                                <span>Telegram</span>
-                            </a>
-                            <a class="share-option instagram" onclick="shareToInstagram('${article.article_id}')">
-                                <i class="fab fa-instagram"></i>
-                                <span>Instagram</span>
-                            </a>
-                            <a class="share-option tiktok" onclick="shareToTikTok('${article.article_id}')">
-                                <i class="fab fa-tiktok"></i>
-                                <span>TikTok</span>
-                            </a>
-                            <a class="share-option more" onclick="shareToMore('${article.article_id}')">
-                                <i class="fas fa-ellipsis-h"></i>
-                                <span>Plus</span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="comments-section" id="comments-${article.article_id}"></div>`;
-                
-                return card;
-                
-            } catch (error) {
-                console.error('❌ Erreur construction HTML article:', error);
-                throw new Error(`Erreur construction carte: ${error.message}`);
-            }
-        }
-
-        // ============================================================================
-        // GESTION DES RÉACTIONS AVEC OPTIMISTIC SYNC
-        // ============================================================================
-        async function handleReaction(articleId, reactionType) {
-            if (!currentUser || !userProfile) {
-                ToastManager.warning('Connexion requise', 'Connectez-vous pour réagir');
-                setTimeout(() => {
-                    window.location.href = 'connexion.html';
-                }, 2000);
-                return;
-            }
-            
-            if (!OfflineManager.checkConnection()) {
-                ToastManager.error('Hors ligne', 'Impossible de réagir en mode hors ligne');
-                return;
-            }
-            
-            try {
-                console.log('🔄 handleReaction appelée:', { articleId, reactionType, userId: currentUser.id });
-                
-                const reactionBtn = document.querySelector(`[data-article-id="${articleId}"] .reaction-btn[onclick*="${reactionType}"]`);
-                const wasActive = reactionBtn.classList.contains('active');
-                
-                const { data: existing, error: selectError } = await supabase
-                    .from('article_reactions')
-                    .select('*')
-                    .eq('article_id', articleId)
-                    .eq('user_id', currentUser.id)
-                    .eq('reaction_type', reactionType)
-                    .single();
-                
-                if (selectError && selectError.code !== 'PGRST116') {
-                    throw selectError;
-                }
-                
-                console.log('📊 État réaction:', { existing, wasActive });
-                
-                if (optimisticReactions) {
-                    console.log('✅ Utilisation OptimisticSync');
-                    if (existing) {
-                        console.log('➖ Retrait réaction via OptimisticSync');
-                        await optimisticReactions.removeReaction(articleId, existing.reaction_id, reactionType, currentUser.id);
-                    } else {
-                        console.log('➕ Ajout réaction via OptimisticSync');
-                        await optimisticReactions.addReaction(articleId, reactionType, currentUser.id);
-                    }
-                } else {
-                    console.warn('⚠️ OptimisticSync non disponible, utilisation méthode classique');
-                    if (existing) {
-                        await supabase.from('article_reactions').delete().eq('reaction_id', existing.reaction_id);
-                        if (userReactions[articleId]) {
-                            userReactions[articleId] = userReactions[articleId].filter(r => r !== reactionType);
-                        }
-                        ToastManager.info('Réaction retirée', '');
-                    } else {
-                        await supabase.from('article_reactions').insert({ 
-                            article_id: articleId, 
-                            user_id: currentUser.id, 
-                            reaction_type: reactionType 
-                        });
-                        if (!userReactions[articleId]) {
-                            userReactions[articleId] = [];
-                        }
-                        userReactions[articleId].push(reactionType);
-                        ToastManager.success('Réaction ajoutée', '');
-                    }
-                }
-                
-                setTimeout(() => loadArticles(), 500);
-                
-            } catch (error) {
-                console.error('❌ Erreur réaction:', error);
-                ToastManager.error('Erreur', 'Impossible d\'enregistrer votre réaction');
-            }
-        }
-
-        // ============================================================================
-        // GESTION DES COMMENTAIRES
-        // ============================================================================
-        function toggleComments(articleId) {
-            const section = document.getElementById(`comments-${articleId}`);
-            section.classList.toggle('show');
-            if (section.classList.contains('show') && section.innerHTML === '') {
-                loadComments(articleId, section);
-            }
-        }
-
-        async function loadComments(articleId, container) {
-            container.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-            try {
-                const { data: comments, error: commentError } = await supabase
-                    .from('comments_with_actor_info')
-                    .select('*')
-                    .eq('article_id', articleId)
-                    .order('date_created', { ascending: false });
-                
-                if (commentError) throw commentError;
-                
-                const { data: allReplies, error: replyError } = await supabase
-                    .from('replies_with_actor_info')
-                    .select('*')
-                    .order('date_created', { ascending: true });
-                
-                if (replyError) throw replyError;
-                
-                const commentIds = comments.map(c => c.session_id);
-                const replies = allReplies.filter(r => commentIds.includes(r.session_id));
-                
-                renderCommentsInline(container, articleId, comments || [], replies || []);
-                
-            } catch (error) {
-                console.error('❌ Erreur commentaires:', error);
-                container.innerHTML = '<p style="color: #ef4444; padding: 20px;">Erreur de chargement des commentaires</p>';
-                ToastManager.error('Erreur', 'Impossible de charger les commentaires');
-            }
-        }
-
-        function renderCommentsInline(container, articleId, comments, allReplies) {
-            const repliesByComment = {};
-            allReplies.forEach(r => {
-                const parentId = r.session_id;
-                if (!repliesByComment[parentId]) repliesByComment[parentId] = [];
-                repliesByComment[parentId].push(r);
-            });
-
-            let html = `
-                <div style="padding: 20px; border-top: 1px solid var(--border-color);">
-                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 700;">Commentaires (${comments.length})</h4>
-            `;
-
-            if (!currentUser || !userProfile) {
-                html += `
-                    <div style="text-align: center; padding: 30px; background: var(--bg-primary); border-radius: 12px;">
-                        <i class="fas fa-lock" style="font-size: 32px; color: var(--text-tertiary); margin-bottom: 12px;"></i>
-                        <p style="color: var(--text-secondary); margin-bottom: 16px;">Connectez-vous pour commenter</p>
-                        <button onclick="window.location.href='connexion.html'" style="padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                            Se connecter
-                        </button>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                        <textarea id="comment-input-${articleId}" placeholder="Écrivez votre commentaire..." 
-                            style="flex: 1; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; font-family: inherit; min-height: 60px; resize: vertical; background: var(--bg-primary); color: var(--text-primary);"></textarea>
-                        <button onclick="submitComment('${articleId}')" 
-                            style="padding: 12px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; white-space: nowrap;">
-                            <i class="fas fa-paper-plane"></i> Envoyer
-                        </button>
-                    </div>
-                `;
-            }
-
-            if (comments.length === 0) {
-                html += `<p style="text-align: center; color: var(--text-tertiary); padding: 20px;">Soyez le premier à commenter !</p>`;
-            } else {
-                comments.forEach(comment => {
-                    const commentId = comment.session_id;
-                    const prenom = comment.prenom_acteur || 'Utilisateur';
-                    const nom = comment.nom_acteur || '';
-                    const texte = comment.texte;
-                    const date = comment.date_created;
-                    const initials = `${prenom[0]}${nom ? nom[0] : ''}`.toUpperCase();
-                    const isMyComment = currentUser && currentUser.id === comment.user_id;
-                    const commentReplies = repliesByComment[commentId] || [];
-
-                    html += `
-                        <div style="margin-bottom: 16px; padding: 16px; background: var(--bg-primary); border-radius: 12px; border-left: 3px solid var(--accent-blue);">
-                            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0;">
-                                    ${initials}
-                                </div>
-                                <div style="flex: 1;">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                                        <span style="font-weight: 700; font-size: 14px;">${escapeHtml(prenom)} ${escapeHtml(nom)}</span>
-                                        <span style="font-size: 12px; color: var(--text-tertiary);">${formatDate(date)}</span>
-                                    </div>
-                                    <p style="color: var(--text-primary); line-height: 1.5; font-size: 14px;">${escapeHtml(texte)}</p>
-                                    <div style="display: flex; gap: 12px; margin-top: 8px;">
-                                        ${currentUser ? `<button onclick="toggleReplyBox('${commentId}')" style="background: none; border: none; color: var(--accent-blue); cursor: pointer; font-size: 13px; font-weight: 600;"><i class="fas fa-reply"></i> Répondre</button>` : ''}
-                                        ${isMyComment ? `<button onclick="deleteComment('${commentId}', '${articleId}')" style="background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 13px; font-weight: 600;"><i class="fas fa-trash"></i> Supprimer</button>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div id="reply-box-${commentId}" style="display: none; margin-top: 12px; padding-left: 52px;">
-                                <div style="display: flex; gap: 8px;">
-                                    <textarea id="reply-input-${commentId}" placeholder="Votre réponse..." 
-                                        style="flex: 1; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px; font-family: inherit; min-height: 50px; background: var(--bg-secondary); color: var(--text-primary);"></textarea>
-                                    <button onclick="submitReply('${commentId}', '${articleId}')" 
-                                        style="padding: 10px 16px; background: var(--accent-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                        <i class="fas fa-paper-plane"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            ${commentReplies.length > 0 ? `
-                                <div style="margin-top: 12px; padding-left: 52px; border-left: 2px solid var(--border-color);">
-                                    ${commentReplies.map(reply => {
-                                        const rPrenom = reply.prenom_acteur || 'Utilisateur';
-                                        const rNom = reply.nom_acteur || '';
-                                        const rInitials = `${rPrenom[0]}${rNom ? rNom[0] : ''}`.toUpperCase();
-                                        return `
-                                            <div style="display: flex; gap: 8px; margin-bottom: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
-                                                <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 12px; flex-shrink: 0;">
-                                                    ${rInitials}
-                                                </div>
-                                                <div style="flex: 1;">
-                                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                                                        <span style="font-weight: 600; font-size: 13px;">${escapeHtml(rPrenom)} ${escapeHtml(rNom)}</span>
-                                                        <span style="font-size: 11px; color: var(--text-tertiary);">${formatDate(reply.date_created)}</span>
-                                                    </div>
-                                                    <p style="color: var(--text-primary); font-size: 13px; line-height: 1.4;">${escapeHtml(reply.texte)}</p>
-                                                </div>
-                                            </div>
-                                        `;
-                                    }).join('')}
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
-                });
-            }
-
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        async function submitComment(articleId) {
-            if (!currentUser || !userProfile) {
-                ToastManager.warning('Connexion requise', 'Connectez-vous pour commenter');
-                return;
-            }
-
-            const input = document.getElementById(`comment-input-${articleId}`);
-            const texte = input.value.trim();
-
-            if (!texte) return;
-
-            try {
-                const { error } = await supabase
-                    .from('sessions_commentaires')
-                    .insert([{
-                        article_id: articleId,
-                        user_id: currentUser.id,
-                        texte: texte
-                    }]);
-
-                if (error) throw error;
-
-                input.value = '';
-                ToastManager.success('Commentaire publié', 'Votre commentaire a été ajouté');
-                
-                const container = document.getElementById(`comments-${articleId}`);
-                loadComments(articleId, container);
-
-            } catch (error) {
-                console.error('❌ Erreur envoi commentaire:', error);
-                ToastManager.error('Erreur', 'Impossible d\'envoyer le commentaire');
-            }
-        }
-
-        async function submitReply(parentId, articleId) {
-            if (!currentUser || !userProfile) return;
-
-            const input = document.getElementById(`reply-input-${parentId}`);
-            const texte = input.value.trim();
-
-            if (!texte) return;
-
-            try {
-                const { error } = await supabase
-                    .from('session_reponses')
-                    .insert([{
-                        session_id: parentId,
-                        user_id: currentUser.id,
-                        texte: texte
-                    }]);
-
-                if (error) throw error;
-
-                input.value = '';
-                toggleReplyBox(parentId);
-                ToastManager.success('Réponse publiée', 'Votre réponse a été ajoutée');
-                
-                const container = document.getElementById(`comments-${articleId}`);
-                loadComments(articleId, container);
-
-            } catch (error) {
-                console.error('❌ Erreur envoi réponse:', error);
-                ToastManager.error('Erreur', 'Impossible d\'envoyer la réponse');
-            }
-        }
-
-        async function deleteComment(commentId, articleId) {
-            if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
-
-            try {
-                const { error } = await supabase
-                    .from('sessions_commentaires')
-                    .delete()
-                    .eq('session_id', commentId)
-                    .eq('user_id', currentUser.id);
-
-                if (error) throw error;
-
-                ToastManager.success('Commentaire supprimé', 'Le commentaire a été supprimé');
-                
-                const container = document.getElementById(`comments-${articleId}`);
-                loadComments(articleId, container);
-
-            } catch (error) {
-                console.error('❌ Erreur suppression:', error);
-                ToastManager.error('Erreur', 'Impossible de supprimer');
-            }
-        }
-
-        function toggleReplyBox(commentId) {
-            const box = document.getElementById(`reply-box-${commentId}`);
-            if (box) {
-                box.style.display = box.style.display === 'none' ? 'block' : 'none';
-            }
-        }
-
-        function formatDate(dateString) {
-            const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
-            return new Date(dateString).toLocaleDateString('fr-FR', options);
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ============================================================================
-        // 🎯 PARTAGE SOCIAL AVEC POPUP CENTRÉ
-        // ============================================================================
-        function toggleShareMenu(event, articleId) {
-            event.stopPropagation();
-            const menu = document.getElementById(`share-menu-${articleId}`);
-            const overlay = document.getElementById('share-menu-overlay');
-            
-            // Fermer tous les autres menus
-            document.querySelectorAll('.share-menu.show').forEach(m => {
-                if (m.id !== `share-menu-${articleId}`) {
-                    m.classList.remove('show');
-                }
-            });
-            
-            // Toggle le menu et l'overlay
-            const isShowing = menu.classList.toggle('show');
-            if (isShowing) {
-                overlay.classList.add('show');
-            } else {
-                overlay.classList.remove('show');
-            }
-        }
-
-        // Fermer le popup en cliquant sur l'overlay
-        document.getElementById('share-menu-overlay').addEventListener('click', () => {
-            document.querySelectorAll('.share-menu.show').forEach(m => {
-                m.classList.remove('show');
-            });
-            document.getElementById('share-menu-overlay').classList.remove('show');
-        });
-
-        function getArticleShareUrl(articleId) {
-            return `${window.location.origin}${window.location.pathname}?article=${articleId}`;
-        }
-
-        function getArticleShareText(articleId) {
-            const article = allArticles.find(a => a.article_id === articleId);
-            if (!article) return 'Découvrez World Connect';
-            const preview = article.texte.substring(0, 100) + (article.texte.length > 100 ? '...' : '');
-            return `${preview} - World Connect`;
-        }
-
-        function shareToFacebook(articleId) {
-            const url = encodeURIComponent(getArticleShareUrl(articleId));
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
-        }
-
-        function shareToTwitter(articleId) {
-            const url = encodeURIComponent(getArticleShareUrl(articleId));
-            const text = encodeURIComponent(getArticleShareText(articleId));
-            window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
-        }
-
-        function shareToWhatsApp(articleId) {
-            const text = encodeURIComponent(`${getArticleShareText(articleId)} ${getArticleShareUrl(articleId)}`);
-            window.open(`https://wa.me/?text=${text}`, '_blank');
-        }
-
-        function shareToTelegram(articleId) {
-            const url = encodeURIComponent(getArticleShareUrl(articleId));
-            const text = encodeURIComponent(getArticleShareText(articleId));
-            window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
-        }
-
-        function shareToInstagram(articleId) {
-            ToastManager.info('Partage Instagram', 'Lien copié dans le presse-papier');
-            copyArticleLink(articleId);
-        }
-
-        function shareToTikTok(articleId) {
-            ToastManager.info('Partage TikTok', 'Lien copié dans le presse-papier');
-            copyArticleLink(articleId);
-        }
-
-        function shareToMore(articleId) {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'World Connect',
-                    text: getArticleShareText(articleId),
-                    url: getArticleShareUrl(articleId)
-                }).then(() => {
-                    ToastManager.success('Partage réussi', 'Article partagé avec succès');
-                }).catch(err => {
-                    if (err.name !== 'AbortError') {
-                        copyArticleLink(articleId);
-                        ToastManager.info('Lien copié', 'Collez-le où vous voulez');
-                    }
-                });
-            } else {
-                copyArticleLink(articleId);
-                ToastManager.success('Lien copié', 'Partagez-le où vous voulez');
-            }
-        }
-
-        function copyArticleLink(articleId) {
-            const url = getArticleShareUrl(articleId);
-            navigator.clipboard.writeText(url).then(() => {
-                console.log('✅ Lien copié');
-            }).catch(err => {
-                console.error('❌ Erreur copie:', err);
-            });
-        }
-
-        // ============================================================================
-        // GESTION ADMIN
-        // ============================================================================
-        function toggleAdminMenu(menuId) {
-            document.querySelectorAll('.options-menu.show').forEach(menu => {
-                if (menu.id !== menuId) {
-                    menu.classList.remove('show');
-                }
-            });
-            document.getElementById(menuId)?.classList.toggle('show');
-        }
-
-        function editArticle(articleId) {
-            window.location.href = `edit-article.html?id=${articleId}`;
-        }
-
-        async function deleteArticle(articleId) {
-            if (!confirm("Voulez-vous vraiment supprimer cet article ?")) return;
-            
-            try {
-                LoadingManager.show();
-                
-                const { error } = await supabase.from('articles').delete().eq('article_id', articleId);
-                
-                if (error) throw error;
-                
-                ToastManager.success('Suppression réussie', 'Article supprimé avec succès');
-                await loadArticles();
-                
-            } catch (error) {
-                console.error('❌ Erreur suppression:', error);
-                ToastManager.error('Erreur', 'Impossible de supprimer l\'article');
-            } finally {
-                LoadingManager.hide();
-            }
-        }
-
-        function viewUserReactions(articleId) {
-            if (!currentUser || !userProfile) {
-                ToastManager.warning('Connexion requise', 'Connectez-vous pour voir les réactions');
-                setTimeout(() => {
-                    window.location.href = 'connexion.html';
-                }, 2000);
-                return;
-            }
-            window.location.href = `usereact.html?article_id=${articleId}`;
-        }
-
-        // ============================================================================
-        // COMPTEURS DE NOTIFICATIONS ET MESSAGES
-        // ============================================================================
-        async function loadNotificationCount() {
-            if (!currentUser) return;
-            try {
-                const { count } = await supabase
-                    .from('notifications')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', currentUser.id)
-                    .eq('read_status', false);
-                
-                const badge = document.getElementById('notif-badge');
-                if (count > 0) {
-                    badge.textContent = count;
-                    badge.style.display = 'block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('❌ Erreur compteur notifications:', error);
-            }
-        }
-
-        async function loadMessageCount() {
-            if (!currentUser) return;
-            try {
-                const { count } = await supabase
-                    .from('messages')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('receiver_id', currentUser.id)
-                    .eq('read_status', false);
-                
-                const badge = document.getElementById('message-badge');
-                if (count > 0) {
-                    badge.textContent = count;
-                    badge.style.display = 'block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('❌ Erreur compteur messages:', error);
-            }
-        }
-
-        // ============================================================================
-        // INITIALISATION DES ÉVÉNEMENTS
-        // ============================================================================
-        function initEventListeners() {
-            setInterval(() => {
-                if (currentUser) {
-                    loadNotificationCount();
-                    loadMessageCount();
-                }
-            }, 30000);
-            
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden && currentUser) {
-                    loadNotificationCount();
-                    loadMessageCount();
-                    loadArticles();
-                }
-            });
-            
-            window.addEventListener('optimistic-sync-success', (event) => {
-                console.log('✅ Sync optimiste réussie:', event.detail.action);
-                loadArticles();
-            });
-            
-            window.addEventListener('optimistic-sync-failed', (event) => {
-                console.error('❌ Sync optimiste échouée:', event.detail.action);
-                ToastManager.error('Synchronisation échouée', event.detail.error || 'Vérifiez votre connexion');
-            });
-        }
-
-        // ============================================================================
-        // EXPORTS GLOBAUX
-        // ============================================================================
-        window.viewUserReactions = viewUserReactions;
-        window.toggleAdminMenu = toggleAdminMenu;
-        window.editArticle = editArticle;
-        window.deleteArticle = deleteArticle;
-        window.handleReaction = handleReaction;
-        window.toggleComments = toggleComments;
-        window.toggleShareMenu = toggleShareMenu;
-        window.shareToFacebook = shareToFacebook;
-        window.shareToTwitter = shareToTwitter;
-        window.shareToWhatsApp = shareToWhatsApp;
-        window.shareToTelegram = shareToTelegram;
-        window.shareToInstagram = shareToInstagram;
-        window.shareToTikTok = shareToTikTok;
-        window.shareToMore = shareToMore;
-        window.loadArticles = loadArticles;
-        window.ToastManager = ToastManager;
-        window.LoadingManager = LoadingManager;
-        window.OfflineManager = OfflineManager;
-        window.submitComment = submitComment;
-        window.submitReply = submitReply;
-        window.deleteComment = deleteComment;
-        window.toggleReplyBox = toggleReplyBox;
+        // Suite dans le prochain message...
     </script>
 </body>
-    </html>
+        </html>
