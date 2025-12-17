@@ -1125,12 +1125,12 @@
 
         .article-images img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
             border-radius: 16px;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: var(--shadow-sm);
+            object-fit: cover;
+            aspect-ratio: 16/9;
         }
 
         .article-images img:hover {
@@ -1419,16 +1419,17 @@
 
         .share-menu {
             display: none;
-            position: fixed;
-            top: 50%;
+            position: absolute;
+            bottom: 100%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             background: var(--bg-secondary);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 24px;
-            min-width: 360px;
-            z-index: 10000;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 20px;
+            margin-bottom: 12px;
+            min-width: 320px;
+            z-index: 100;
             animation: shareMenuSlide 0.3s ease;
             border: 2px solid var(--border-color);
         }
@@ -1436,11 +1437,11 @@
         @keyframes shareMenuSlide {
             from {
                 opacity: 0;
-                transform: translate(-50%, -50%) scale(0.9);
+                transform: translateX(-50%) translateY(10px);
             }
             to {
                 opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
+                transform: translateX(-50%) translateY(0);
             }
         }
 
@@ -1448,59 +1449,12 @@
             display: block;
         }
 
-        .share-menu-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            z-index: 9999;
-        }
-
-        .share-menu-overlay.show {
-            display: block;
-        }
-
         .share-menu h4 {
             color: var(--text-primary);
-            font-size: 18px;
-            margin-bottom: 20px;
+            font-size: 16px;
+            margin-bottom: 16px;
             text-align: center;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .share-menu h4 i {
-            color: var(--accent-blue);
-        }
-
-        .share-menu-close {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(0, 0, 0, 0.05);
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-
-        .share-menu-close:hover {
-            background: rgba(0, 0, 0, 0.1);
-            transform: rotate(90deg);
         }
 
         .share-options {
@@ -2552,21 +2506,7 @@
             const welcomePopup = document.getElementById('welcome-popup');
             const welcomeOverlay = document.getElementById('welcome-overlay');
 
-            // 🔥 NOUVELLE LOGIQUE : Gestion des noms vides
-            let prenom = userProfile.prenom || 'Utilisateur';
-            let nom = userProfile.nom || '';
-            
-            // Si nom est vide, utiliser prénom deux fois
-            if (!nom || nom.trim() === '') {
-                nom = prenom;
-            }
-            
-            // Si prénom est vide, utiliser nom deux fois
-            if (!prenom || prenom.trim() === '') {
-                prenom = nom || 'Utilisateur';
-            }
-            
-            const fullName = `${prenom} ${nom}`.trim();
+            const fullName = `${userProfile.prenom} ${userProfile.nom}`.trim();
             welcomeName.textContent = fullName;
 
             setTimeout(() => {
@@ -2585,22 +2525,7 @@
                 document.getElementById('login-item').style.display = 'none';
                 document.getElementById('profile-item').style.display = 'flex';
                 document.getElementById('logout-item').style.display = 'flex';
-                
-                // 🔥 NOUVELLE LOGIQUE : Gestion des noms vides
-                let prenom = userProfile.prenom || 'Utilisateur';
-                let nom = userProfile.nom || '';
-                
-                // Si nom est vide, utiliser prénom deux fois
-                if (!nom || nom.trim() === '') {
-                    nom = prenom;
-                }
-                
-                // Si prénom est vide, utiliser nom deux fois
-                if (!prenom || prenom.trim() === '') {
-                    prenom = nom || 'Utilisateur';
-                }
-                
-                document.getElementById('user-name').textContent = `${prenom} ${nom}`;
+                document.getElementById('user-name').textContent = `${userProfile.prenom} ${userProfile.nom}`;
                 
                 // Afficher le menu Administration seulement si l'utilisateur est admin
                 if (userProfile.role === 'admin') {
@@ -2761,7 +2686,6 @@
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.share-menu') && !e.target.closest('.share-btn')) {
                     document.querySelectorAll('.share-menu.show').forEach(m => m.classList.remove('show'));
-                    document.querySelectorAll('.share-menu-overlay').forEach(o => o.remove());
                 }
                 if (!e.target.closest('.admin-options')) {
                     document.querySelectorAll('.options-menu.show').forEach(menu => menu.classList.remove('show'));
@@ -3205,10 +3129,7 @@
                         <div class="share-btn" onclick="toggleShareMenu(event, '${article.article_id}')">
                             <i class="fas fa-share-alt"></i>
                             <div class="share-menu" id="share-menu-${article.article_id}">
-                                <button class="share-menu-close" onclick="event.stopPropagation(); this.closest('.share-menu').classList.remove('show'); document.querySelector('.share-menu-overlay')?.remove();">
-                                    ×
-                                </button>
-                                <h4><i class="fas fa-share-nodes"></i> Partager l'article</h4>
+                                <h4>Partager</h4>
                                 <div class="share-options">
                                     <a class="share-option facebook" onclick="shareToFacebook('${article.article_id}')">
                                         <i class="fab fa-facebook"></i>
@@ -3608,30 +3529,12 @@
         function toggleShareMenu(event, articleId) {
             event.stopPropagation();
             const menu = document.getElementById(`share-menu-${articleId}`);
-            
-            // Fermer tous les autres menus
             document.querySelectorAll('.share-menu.show').forEach(m => {
                 if (m.id !== `share-menu-${articleId}`) {
                     m.classList.remove('show');
                 }
             });
-            document.querySelectorAll('.share-menu-overlay').forEach(o => o.remove());
-            
-            // Toggle le menu actuel
-            if (menu.classList.contains('show')) {
-                menu.classList.remove('show');
-            } else {
-                // Créer l'overlay
-                const overlay = document.createElement('div');
-                overlay.className = 'share-menu-overlay show';
-                overlay.onclick = () => {
-                    menu.classList.remove('show');
-                    overlay.remove();
-                };
-                document.body.appendChild(overlay);
-                
-                menu.classList.add('show');
-            }
+            menu.classList.toggle('show');
         }
 
         function getArticleShareUrl(articleId) {
@@ -3858,4 +3761,4 @@
         window.toggleReplyBox = toggleReplyBox;
     </script>
 </body>
-    </html>
+        </html>
