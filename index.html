@@ -2302,13 +2302,17 @@
 
         async function saveSubscriptionToDatabase(subscription) {
             try {
-                const { supabase, getCurrentUser } = window.supabaseClient;
-                const currentUser = await getCurrentUser();
+                if (!supabase || !getCurrentUser) {
+                    console.warn('⚠️ Supabase non initialisé');
+                    return;
+                }
                 
-                if (!currentUser) return;
+                const user = await getCurrentUser();
+                
+                if (!user) return;
                 
                 const subscriptionData = {
-                    user_id: currentUser.id,
+                    user_id: user.id,
                     endpoint: subscription.endpoint,
                     p256dh_key: arrayBufferToBase64(subscription.getKey('p256dh')),
                     auth_key: arrayBufferToBase64(subscription.getKey('auth')),
@@ -2426,7 +2430,7 @@
         // ============================================================================
         // APPLICATION PRINCIPALE
         // ============================================================================
-        const { supabase, getCurrentUser, getUserProfile } = window.supabaseClient;
+        let supabase, getCurrentUser, getUserProfile;
         let currentUser = null;
         let userProfile = null;
         let allArticles = [];
@@ -2438,6 +2442,17 @@
         // INITIALISATION
         // ============================================================================
         window.addEventListener('load', async () => {
+            // 🎯 Initialiser les références Supabase depuis window.supabaseClient
+            if (window.supabaseClient) {
+                supabase = window.supabaseClient.supabase;
+                getCurrentUser = window.supabaseClient.getCurrentUser;
+                getUserProfile = window.supabaseClient.getUserProfile;
+            } else {
+                console.error('❌ supabaseClient non disponible');
+                ToastManager.error('Erreur', 'Impossible de charger les données');
+                return;
+            }
+
             ToastManager.init();
             LoadingManager.init();
             OfflineManager.init();
