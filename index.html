@@ -226,7 +226,10 @@
     <!-- Script principal intégré -->
     <script>
         // Récupération des fonctions depuis supabaseClient.js
-        const { supabase, getCurrentUser, getUserProfile } = window.supabaseClient;
+        // On utilise des noms différents pour éviter les conflits
+        const supabaseInstance = window.supabaseClient.supabase;
+        const getCurrentUser = window.supabaseClient.getCurrentUser;
+        const getUserProfile = window.supabaseClient.getUserProfile;
         
         // Variables globales
         let currentUser = null;
@@ -672,7 +675,7 @@
                 try {
                     LoadingManager.show();
                     sessionStorage.removeItem('welcomeShown');
-                    await supabase.auth.signOut();
+                    await supabaseInstance.auth.signOut();
                     sessionStorage.setItem('manualLogout', 'true');
                     ToastManager.success('Déconnexion', 'À bientôt !');
                     setTimeout(() => {
@@ -733,7 +736,7 @@
         async function loadUserReactions() {
             if (!currentUser) return;
             try {
-                const { data } = await supabase
+                const { data } = await supabaseInstance
                     .from('article_reactions')
                     .select('article_id, reaction_type')
                     .eq('user_id', currentUser.id);
@@ -819,7 +822,7 @@
                     throw new Error('Pas de connexion Internet');
                 }
                 
-                const { data: articles, error } = await supabase
+                const { data: articles, error } = await supabaseInstance
                     .from('articles')
                     .select(`
                         *,
@@ -1077,7 +1080,7 @@
             }
             
             try {
-                const { data: existing, error: selectError } = await supabase
+                const { data: existing, error: selectError } = await supabaseInstance
                     .from('article_reactions')
                     .select('*')
                     .eq('article_id', articleId)
@@ -1090,12 +1093,12 @@
                 }
                 
                 if (existing) {
-                    await supabase.from('article_reactions').delete().eq('reaction_id', existing.reaction_id);
+                    await supabaseInstance.from('article_reactions').delete().eq('reaction_id', existing.reaction_id);
                     if (userReactions[articleId]) {
                         userReactions[articleId] = userReactions[articleId].filter(r => r !== reactionType);
                     }
                 } else {
-                    await supabase.from('article_reactions').insert({ 
+                    await supabaseInstance.from('article_reactions').insert({ 
                         article_id: articleId, 
                         user_id: currentUser.id, 
                         reaction_type: reactionType 
@@ -1128,7 +1131,7 @@
         async function loadComments(articleId, container) {
             container.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
             try {
-                const { data: comments, error } = await supabase
+                const { data: comments, error } = await supabaseInstance
                     .from('sessions_commentaires')
                     .select(`*, users_profile(prenom, nom)`)
                     .eq('article_id', articleId)
@@ -1255,7 +1258,7 @@
             try {
                 LoadingManager.show();
                 
-                const { error } = await supabase.from('articles').delete().eq('article_id', articleId);
+                const { error } = await supabaseInstance.from('articles').delete().eq('article_id', articleId);
                 
                 if (error) throw error;
                 
@@ -1287,7 +1290,7 @@
         async function loadNotificationCount() {
             if (!currentUser) return;
             try {
-                const { count } = await supabase
+                const { count } = await supabaseInstance
                     .from('notifications')
                     .select('*', { count: 'exact', head: true })
                     .eq('user_id', currentUser.id)
@@ -1308,7 +1311,7 @@
         async function loadMessageCount() {
             if (!currentUser) return;
             try {
-                const { count } = await supabase
+                const { count } = await supabaseInstance
                     .from('messages')
                     .select('*', { count: 'exact', head: true })
                     .eq('receiver_id', currentUser.id)
@@ -1418,4 +1421,4 @@
         console.log('🎉 Script chargé avec succès - Version complète intégrée !');
     </script>
 </body>
-    </html>
+            </html>
