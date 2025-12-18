@@ -3,7 +3,7 @@
 // ============================================================================
 // Le client Supabase est initialisé dans supabaseClient.js
 // On récupère simplement la référence depuis window.supabaseClient
-let supabaseClientInstance
+let supabaseClientInstance;
 // Attendre que supabaseClient.js soit chargé
 if (window.supabaseClient && window.supabaseClient.supabase) {
     supabaseClientInstance = window.supabaseClient.supabase;
@@ -13,7 +13,6 @@ if (window.supabaseClient && window.supabaseClient.supabase) {
 }
 
 // Utiliser supabaseClientInstance au lieu de supabase dans tout le code
-
 
 // ============================================================================
 // VARIABLES GLOBALES
