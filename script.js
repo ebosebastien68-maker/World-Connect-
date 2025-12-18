@@ -13,7 +13,7 @@ if (window.supabaseClient && window.supabaseClient.supabase) {
 }
 
 // Utiliser supabaseClientInstance au lieu de supabase dans tout le code
-const supabase = supabaseClientInstance;
+
 
 // ============================================================================
 // VARIABLES GLOBALES
