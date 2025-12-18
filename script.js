@@ -1,28 +1,13 @@
 // ============================================================================
-// CONFIGURATION SUPABASE - UTILISE supabaseClient.js
+// RÉCUPÉRATION DU CLIENT SUPABASE DEPUIS supabaseClient.js
 // ============================================================================
-// Le client Supabase est initialisé dans supabaseClient.js
-// On récupère simplement la référence depuis window.supabaseClient
+// On récupère directement les exports de supabaseClient.js
+const { supabase, getCurrentUser: getUser, getUserProfile: getProfile } = window.supabaseClient;
 
-// Variable globale pour le client Supabase
-var supabase;
-
-// Fonction d'initialisation à appeler au chargement
-function initSupabaseClient() {
-    if (window.supabaseClient && window.supabaseClient.supabase) {
-        supabase = window.supabaseClient.supabase;
-        console.log('✅ Supabase client récupéré depuis supabaseClient.js');
-        return true;
-    } else {
-        console.error('❌ Erreur: Supabase client non trouvé. Vérifiez que supabaseClient.js est chargé avant script.js');
-        return false;
-    }
-}
-
-// Initialiser immédiatement
-initSupabaseClient();
+console.log('✅ Client Supabase récupéré depuis supabaseClient.js:', supabase ? 'OK ✓' : 'ERREUR ✗');
 
 // Utiliser supabaseClientInstance au lieu de supabase dans tout le code
+const supabase = supabaseClientInstance;
 
 // ============================================================================
 // VARIABLES GLOBALES
@@ -354,55 +339,15 @@ function arrayBufferToBase64(buffer) {
 }
 
 // ============================================================================
-// GESTION UTILISATEUR
+// GESTION UTILISATEUR - UTILISE LES FONCTIONS DE supabaseClient.js
 // ============================================================================
+// On utilise directement les fonctions exposées par supabaseClient.js
 async function getCurrentUser() {
-    try {
-        // Utiliser la fonction du supabaseClient.js
-        if (window.supabaseClient && window.supabaseClient.getCurrentUser) {
-            return await window.supabaseClient.getCurrentUser();
-        }
-        
-        // Fallback sur l'ancienne méthode
-        if (!supabase) {
-            console.error('❌ Client Supabase non initialisé');
-            return null;
-        }
-        
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) throw error;
-        return user;
-    } catch (error) {
-        console.warn('⚠️ Pas d\'utilisateur connecté:', error);
-        return null;
-    }
+    return await getUser();
 }
 
 async function getUserProfile(userId) {
-    try {
-        // Utiliser la fonction du supabaseClient.js
-        if (window.supabaseClient && window.supabaseClient.getUserProfile) {
-            return await window.supabaseClient.getUserProfile(userId);
-        }
-        
-        // Fallback sur l'ancienne méthode
-        if (!supabase) {
-            console.error('❌ Client Supabase non initialisé');
-            return null;
-        }
-        
-        const { data, error } = await supabase
-            .from('users_profile')
-            .select('*')
-            .eq('user_id', userId)
-            .single();
-        
-        if (error) throw error;
-        return data;
-    } catch (error) {
-        console.error('❌ Erreur profil:', error);
-        return null;
-    }
+    return await getProfile(userId);
 }
 
 // ============================================================================
@@ -1783,4 +1728,4 @@ window.ToastManager = ToastManager;
 window.LoadingManager = LoadingManager;
 window.OfflineManager = OfflineManager;
 
-console.log('🎉 Script.js chargé avec succès - 0% d\'erreur garanti !')
+console.log('🎉 Script.js chargé avec succès - 0% d\'erreur garanti !');
