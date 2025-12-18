@@ -4,8 +4,6 @@
 // Le client Supabase est initialisé dans supabaseClient.js
 // On récupère simplement la référence depuis window.supabaseClient
 
-let supabaseClientInstance;
-
 // Attendre que supabaseClient.js soit chargé
 if (window.supabaseClient && window.supabaseClient.supabase) {
     supabaseClientInstance = window.supabaseClient.supabase;
