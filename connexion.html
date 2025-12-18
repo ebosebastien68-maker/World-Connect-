@@ -215,7 +215,8 @@
             transform: translateY(0);
         }
 
-        .oauth-btn svg, .oauth-btn i {
+        .oauth-btn svg,
+        .oauth-btn i {
             width: 18px;
             height: 18px;
             flex-shrink: 0;
@@ -325,9 +326,15 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-8px);
+            }
+            75% {
+                transform: translateX(8px);
+            }
         }
 
         input.success {
@@ -537,8 +544,12 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .loader-text {
@@ -787,6 +798,135 @@
                             <i class="fas fa-lock input-icon"></i>
                             <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password">
                             <i class="fas fa-eye password-toggle" onclick="togglePassword('login-password', this)"></i>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">
+                        <span>Se connecter</span>
+                    </button>
+                </form>
+                <div class="back-link">
+                    <a href="#" onclick="switchTab('reset'); return false;">
+                        <i class="fas fa-key"></i>
+                        Mot de passe oublié ?
+                    </a>
+                </div>
+            </div>
+
+            <!-- Formulaire d'Inscription -->
+            <div id="inscription-form" class="form-content">
+                <h2>🚀 Créer un compte</h2>
+                <p class="subtitle">Rejoignez notre communauté en quelques secondes</p>
+                
+                <div class="oauth-buttons">
+                    <button class="oauth-btn google" onclick="signInWithGoogle()">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        Continuer avec Google
+                    </button>
+
+                    <button class="oauth-btn github" onclick="signInWithGitHub()">
+                        <i class="fab fa-github"></i>
+                        Continuer avec GitHub
+                    </button>
+
+                    <button class="oauth-btn discord" onclick="signInWithDiscord()">
+                        <i class="fab fa-discord"></i>
+                        Continuer avec Discord
+                    </button>
+                </div>
+
+                <div class="divider">
+                    <span>OU AVEC EMAIL</span>
+                </div>
+
+                <form id="signup-form">
+                    <div class="name-group">
+                        <div class="input-group">
+                            <label for="signup-prenom">Prénom</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="signup-prenom" required placeholder="John" autocomplete="given-name">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="signup-nom">Nom</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-user-tag input-icon"></i>
+                                <input type="text" id="signup-nom" required placeholder="Doe" autocomplete="family-name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-email">Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="signup-email" required placeholder="exemple@email.com" autocomplete="email">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-password">Mot de passe</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="signup-password" required placeholder="••••••••" minlength="6" autocomplete="new-password">
+                            <i class="fas fa-eye password-toggle" onclick="togglePassword('signup-password', this)"></i>
+                        </div>
+                        <div class="password-strength" id="password-strength">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
+                            </div>
+                            <div class="strength-text"></div>
+                        </div>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="terms" required>
+                        <label for="terms">
+                            J'accepte les <a href="#" onclick="return false;">conditions d'utilisation</a> et la <a href="#" onclick="return false;">politique de confidentialité</a>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn">
+                        <span>Créer mon compte</span>
+                    </button>
+                </form>
+
+                <div class="features">
+                    <h3><i class="fas fa-star"></i> Pourquoi nous rejoindre ?</h3>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Compte 100% gratuit</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Accès à toutes les fonctionnalités</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Connexion sécurisée</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire Mot de passe oublié -->
+            <div id="reset-form" class="form-content">
+                <h2>🔐 Récupération</h2>
+                <p class="subtitle">Pas de problème, nous allons vous aider</p>
+                <div class="info-text">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        Entrez votre adresse email et nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe.
+                    </div>
+                </div>
+                <form id="password-reset-form">
+                    <div class="input-group">
+                        <label for="reset-email">Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="reset-email" required placeholder="exemple@email.com" autocomplete="email">
                         </div>
                     </div>
                     <button type="submit" class="btn">
@@ -1151,4 +1291,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
