@@ -14,45 +14,66 @@
         }
 
         :root {
-            --primary: #667eea;
-            --primary-dark: #764ba2;
-            --success: #15803d;
-            --error: #e03131;
-            --text-primary: #212529;
-            --text-secondary: #6c757d;
-            --border: #e9ecef;
-            --bg-light: #f8f9fa;
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.12);
-            --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.2);
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --bg-light: #f9fafb;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.3), transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(72, 61, 139, 0.2), transparent 50%);
+            pointer-events: none;
         }
 
         .container {
             background: white;
-            border-radius: 24px;
-            box-shadow: var(--shadow-lg);
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
             overflow: hidden;
             width: 100%;
-            max-width: 480px;
+            max-width: 460px;
             position: relative;
-            animation: slideUp 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(40px) scale(0.95);
+                transform: translateY(30px) scale(0.96);
             }
             to {
                 opacity: 1;
@@ -63,31 +84,33 @@
         .tabs {
             display: flex;
             background: var(--bg-light);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--border);
             position: relative;
         }
 
         .tab-indicator {
             position: absolute;
-            bottom: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            border-radius: 3px 3px 0 0;
+            bottom: -2px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 2px 2px 0 0;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
         }
 
         .tab {
             flex: 1;
-            padding: 20px;
+            padding: 18px 20px;
             text-align: center;
             cursor: pointer;
             font-weight: 600;
             color: var(--text-secondary);
-            transition: all 0.3s ease;
-            font-size: 15px;
+            transition: all 0.2s ease;
+            font-size: 14px;
             position: relative;
             background: transparent;
             z-index: 1;
+            letter-spacing: 0.3px;
         }
 
         .tab.active {
@@ -97,11 +120,11 @@
 
         .tab:hover:not(.active) {
             color: var(--text-primary);
-            background: rgba(102, 126, 234, 0.05);
+            background: rgba(99, 102, 241, 0.04);
         }
 
         .form-container {
-            padding: 48px 40px;
+            padding: 40px 36px;
             position: relative;
         }
 
@@ -127,39 +150,41 @@
 
         h2 {
             color: var(--text-primary);
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             text-align: center;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
         .subtitle {
             text-align: center;
             color: var(--text-secondary);
-            margin-bottom: 32px;
+            margin-bottom: 28px;
             font-size: 14px;
+            line-height: 1.5;
         }
 
         .oauth-buttons {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin-bottom: 28px;
+            gap: 10px;
+            margin-bottom: 24px;
         }
 
         .oauth-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            padding: 14px 20px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
+            gap: 10px;
+            padding: 12px 18px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
             background: white;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.2s ease;
             color: var(--text-primary);
             position: relative;
             overflow: hidden;
@@ -172,8 +197,8 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            transition: left 0.5s;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.05), transparent);
+            transition: left 0.4s;
         }
 
         .oauth-btn:hover::before {
@@ -182,26 +207,26 @@
 
         .oauth-btn:hover {
             border-color: var(--primary);
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-sm);
         }
 
         .oauth-btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
         }
 
         .oauth-btn svg, .oauth-btn i {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             flex-shrink: 0;
         }
 
         .oauth-btn.google:hover {
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
         }
 
         .oauth-btn.github i {
-            font-size: 20px;
+            font-size: 18px;
             color: #24292e;
         }
 
@@ -211,12 +236,12 @@
         }
 
         .oauth-btn.discord i {
-            font-size: 20px;
+            font-size: 18px;
             color: #5865F2;
         }
 
         .oauth-btn.discord:hover {
-            background: linear-gradient(135deg, #f0f1ff 0%, #ffffff 100%);
+            background: linear-gradient(135deg, #eef0ff 0%, #ffffff 100%);
             border-color: #5865F2;
         }
 
@@ -224,10 +249,11 @@
             display: flex;
             align-items: center;
             text-align: center;
-            margin: 28px 0;
+            margin: 24px 0;
             color: var(--text-secondary);
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .divider::before,
@@ -238,21 +264,22 @@
         }
 
         .divider span {
-            padding: 0 16px;
+            padding: 0 14px;
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             position: relative;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: var(--text-primary);
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             transition: color 0.3s;
+            letter-spacing: 0.2px;
         }
 
         .input-wrapper {
@@ -261,32 +288,34 @@
 
         .input-icon {
             position: absolute;
-            left: 16px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
             transition: color 0.3s;
             pointer-events: none;
+            font-size: 16px;
         }
 
         input {
             width: 100%;
-            padding: 14px 16px;
-            padding-left: 45px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.3s ease;
+            padding: 12px 14px;
+            padding-left: 42px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s ease;
             background: white;
+            color: var(--text-primary);
         }
 
         input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
 
-        input:focus + .input-icon {
+        input:focus ~ .input-icon {
             color: var(--primary);
         }
 
@@ -297,8 +326,8 @@
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
 
         input.success {
@@ -306,18 +335,19 @@
         }
 
         input::placeholder {
-            color: #adb5bd;
+            color: #9ca3af;
         }
 
         .password-toggle {
             position: absolute;
-            right: 16px;
+            right: 14px;
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
             color: var(--text-secondary);
-            transition: color 0.3s;
+            transition: color 0.2s;
             z-index: 2;
+            font-size: 16px;
         }
 
         .password-toggle:hover {
@@ -325,7 +355,7 @@
         }
 
         .password-strength {
-            margin-top: 8px;
+            margin-top: 6px;
             display: none;
         }
 
@@ -334,65 +364,66 @@
         }
 
         .strength-bar {
-            height: 4px;
+            height: 3px;
             background: var(--border);
             border-radius: 2px;
             overflow: hidden;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .strength-fill {
             height: 100%;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 2px;
         }
 
         .strength-text {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
         }
 
         .strength-weak .strength-fill {
             width: 33%;
-            background: #e03131;
+            background: var(--error);
         }
 
         .strength-weak .strength-text {
-            color: #e03131;
+            color: var(--error);
         }
 
         .strength-medium .strength-fill {
             width: 66%;
-            background: #fab005;
+            background: var(--warning);
         }
 
         .strength-medium .strength-text {
-            color: #fab005;
+            color: var(--warning);
         }
 
         .strength-strong .strength-fill {
             width: 100%;
-            background: #15803d;
+            background: var(--success);
         }
 
         .strength-strong .strength-text {
-            color: #15803d;
+            color: var(--success);
         }
 
         .btn {
             width: 100%;
-            padding: 16px;
+            padding: 13px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
             position: relative;
             overflow: hidden;
+            letter-spacing: 0.3px;
         }
 
         .btn::before {
@@ -403,9 +434,9 @@
             width: 0;
             height: 0;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+            transition: width 0.5s, height 0.5s;
         }
 
         .btn:hover::before {
@@ -414,16 +445,16 @@
         }
 
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
         }
 
         .btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
         }
 
         .btn:disabled {
-            background: linear-gradient(135deg, #adb5bd 0%, #868e96 100%);
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -439,45 +470,45 @@
         }
 
         .message {
-            padding: 14px 16px;
-            border-radius: 12px;
-            margin-bottom: 24px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             text-align: center;
             display: none;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
         }
 
         .message.error {
-            background: #fff5f5;
+            background: #fef2f2;
             color: var(--error);
-            border: 2px solid #ffe3e3;
+            border: 1.5px solid #fecaca;
         }
 
         .message.success {
             background: #f0fdf4;
             color: var(--success);
-            border: 2px solid #dcfce7;
+            border: 1.5px solid #bbf7d0;
         }
 
         .message.info {
             background: #eff6ff;
-            color: #1e40af;
-            border: 2px solid #dbeafe;
+            color: #2563eb;
+            border: 1.5px solid #bfdbfe;
         }
 
         .message.show {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             animation: slideDown 0.3s ease-out;
         }
 
         @keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(-8px);
             }
             to {
                 opacity: 1;
@@ -488,7 +519,7 @@
         .loader {
             display: none;
             text-align: center;
-            padding: 40px 20px;
+            padding: 36px 20px;
         }
 
         .loader.show {
@@ -499,9 +530,9 @@
             border: 3px solid var(--bg-light);
             border-top: 3px solid var(--primary);
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 0.8s linear infinite;
+            width: 44px;
+            height: 44px;
+            animation: spin 0.7s linear infinite;
             margin: 0 auto;
         }
 
@@ -511,15 +542,15 @@
         }
 
         .loader-text {
-            margin-top: 20px;
+            margin-top: 16px;
             color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
         }
 
         .name-group {
             display: flex;
-            gap: 16px;
+            gap: 12px;
         }
 
         .name-group .input-group {
@@ -528,55 +559,56 @@
 
         .info-text {
             background: var(--bg-light);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 24px;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.6;
-            border: 1px solid var(--border);
+            border: 1.5px solid var(--border);
             display: flex;
             align-items: start;
-            gap: 12px;
+            gap: 10px;
         }
 
         .info-text i {
             color: var(--primary);
             margin-top: 2px;
             flex-shrink: 0;
+            font-size: 16px;
         }
 
         .back-link {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 16px;
         }
 
         .back-link a {
             color: var(--primary);
             text-decoration: none;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .back-link a:hover {
             color: var(--primary-dark);
-            gap: 8px;
+            gap: 7px;
         }
 
         .checkbox-group {
             display: flex;
             align-items: start;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 17px;
+            height: 17px;
             padding: 0;
             margin-top: 2px;
             cursor: pointer;
@@ -584,16 +616,18 @@
         }
 
         .checkbox-group label {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 400;
             margin: 0;
             cursor: pointer;
             user-select: none;
+            line-height: 1.5;
         }
 
         .checkbox-group label a {
             color: var(--primary);
             text-decoration: none;
+            font-weight: 600;
         }
 
         .checkbox-group label a:hover {
@@ -601,17 +635,18 @@
         }
 
         .features {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 24px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(79, 70, 229, 0.04) 100%);
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.1);
         }
 
         .features h3 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -619,147 +654,74 @@
 
         .features h3 i {
             color: var(--primary);
+            font-size: 16px;
         }
 
         .feature-list {
             display: grid;
-            gap: 12px;
+            gap: 10px;
         }
 
         .feature-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 14px;
+            gap: 10px;
+            font-size: 13px;
             color: var(--text-secondary);
         }
 
         .feature-item i {
             color: var(--primary);
-            font-size: 16px;
+            font-size: 15px;
             flex-shrink: 0;
         }
 
         @media (max-width: 480px) {
             body {
-                padding: 10px;
+                padding: 12px;
             }
 
             .form-container {
-                padding: 32px 24px;
+                padding: 32px 28px;
             }
 
             h2 {
                 font-size: 24px;
             }
 
+            .subtitle {
+                font-size: 13px;
+            }
+
             .name-group {
                 flex-direction: column;
-                gap: 20px;
+                gap: 18px;
             }
 
             .oauth-buttons {
-                gap: 10px;
+                gap: 8px;
             }
 
             .oauth-btn {
-                padding: 12px 16px;
-                font-size: 14px;
+                padding: 11px 16px;
+                font-size: 13px;
             }
 
             .tab {
                 padding: 16px 12px;
+                font-size: 13px;
+            }
+
+            input {
+                font-size: 14px;
+                padding: 11px 12px;
+                padding-left: 40px;
+            }
+
+            .btn {
+                padding: 12px;
                 font-size: 14px;
             }
-        }
-
-        .success-checkmark {
-            display: inline-block;
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 20px;
-        }
-
-        .success-checkmark .check-icon {
-            width: 60px;
-            height: 60px;
-            position: relative;
-            border-radius: 50%;
-            box-sizing: content-box;
-            border: 4px solid var(--success);
-        }
-
-        .success-checkmark .check-icon::before {
-            top: 3px;
-            left: -2px;
-            width: 30px;
-            transform-origin: 100% 50%;
-            border-radius: 100px 0 0 100px;
-        }
-
-        .success-checkmark .check-icon::after {
-            top: 0;
-            left: 30px;
-            width: 60px;
-            transform-origin: 0 50%;
-            border-radius: 0 100px 100px 0;
-            animation: rotate-circle 4.25s ease-in;
-        }
-
-        .success-checkmark .check-icon::before,
-        .success-checkmark .check-icon::after {
-            content: '';
-            height: 100px;
-            position: absolute;
-            background: white;
-            transform: rotate(-45deg);
-        }
-
-        .success-checkmark .icon-line {
-            height: 5px;
-            background-color: var(--success);
-            display: block;
-            border-radius: 2px;
-            position: absolute;
-            z-index: 10;
-        }
-
-        .success-checkmark .icon-line.line-tip {
-            top: 46px;
-            left: 14px;
-            width: 25px;
-            transform: rotate(45deg);
-            animation: icon-line-tip 0.75s;
-        }
-
-        .success-checkmark .icon-line.line-long {
-            top: 38px;
-            right: 8px;
-            width: 47px;
-            transform: rotate(-45deg);
-            animation: icon-line-long 0.75s;
-        }
-
-        @keyframes rotate-circle {
-            0% { transform: rotate(-45deg); }
-            5% { transform: rotate(-45deg); }
-            12% { transform: rotate(-405deg); }
-            100% { transform: rotate(-405deg); }
-        }
-
-        @keyframes icon-line-tip {
-            0% { width: 0; left: 1px; top: 19px; }
-            54% { width: 0; left: 1px; top: 19px; }
-            70% { width: 50px; left: -8px; top: 37px; }
-            84% { width: 17px; left: 21px; top: 48px; }
-            100% { width: 25px; left: 14px; top: 45px; }
-        }
-
-        @keyframes icon-line-long {
-            0% { width: 0; right: 46px; top: 54px; }
-            65% { width: 0; right: 46px; top: 54px; }
-            84% { width: 55px; right: 0; top: 35px; }
-            100% { width: 47px; right: 8px; top: 38px; }
         }
     </style>
 </head>
@@ -828,135 +790,6 @@
                         </div>
                     </div>
                     <button type="submit" class="btn">
-                        <span>Se connecter</span>
-                    </button>
-                </form>
-                <div class="back-link">
-                    <a href="#" onclick="switchTab('reset'); return false;">
-                        <i class="fas fa-key"></i>
-                        Mot de passe oublié ?
-                    </a>
-                </div>
-            </div>
-
-            <!-- Formulaire d'Inscription -->
-            <div id="inscription-form" class="form-content">
-                <h2>🚀 Créer un compte</h2>
-                <p class="subtitle">Rejoignez notre communauté en quelques secondes</p>
-                
-                <div class="oauth-buttons">
-                    <button class="oauth-btn google" onclick="signInWithGoogle()">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                        </svg>
-                        Continuer avec Google
-                    </button>
-
-                    <button class="oauth-btn github" onclick="signInWithGitHub()">
-                        <i class="fab fa-github"></i>
-                        Continuer avec GitHub
-                    </button>
-
-                    <button class="oauth-btn discord" onclick="signInWithDiscord()">
-                        <i class="fab fa-discord"></i>
-                        Continuer avec Discord
-                    </button>
-                </div>
-
-                <div class="divider">
-                    <span>OU AVEC EMAIL</span>
-                </div>
-
-                <form id="signup-form">
-                    <div class="name-group">
-                        <div class="input-group">
-                            <label for="signup-prenom">Prénom</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-user input-icon"></i>
-                                <input type="text" id="signup-prenom" required placeholder="John" autocomplete="given-name">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="signup-nom">Nom</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-user-tag input-icon"></i>
-                                <input type="text" id="signup-nom" required placeholder="Doe" autocomplete="family-name">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="signup-email">Email</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-envelope input-icon"></i>
-                            <input type="email" id="signup-email" required placeholder="exemple@email.com" autocomplete="email">
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="signup-password">Mot de passe</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-lock input-icon"></i>
-                            <input type="password" id="signup-password" required placeholder="••••••••" minlength="6" autocomplete="new-password">
-                            <i class="fas fa-eye password-toggle" onclick="togglePassword('signup-password', this)"></i>
-                        </div>
-                        <div class="password-strength" id="password-strength">
-                            <div class="strength-bar">
-                                <div class="strength-fill"></div>
-                            </div>
-                            <div class="strength-text"></div>
-                        </div>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="terms" required>
-                        <label for="terms">
-                            J'accepte les <a href="#" onclick="return false;">conditions d'utilisation</a> et la <a href="#" onclick="return false;">politique de confidentialité</a>
-                        </label>
-                    </div>
-                    <button type="submit" class="btn">
-                        <span>Créer mon compte</span>
-                    </button>
-                </form>
-
-                <div class="features">
-                    <h3><i class="fas fa-star"></i> Pourquoi nous rejoindre ?</h3>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Compte 100% gratuit</span>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Accès à toutes les fonctionnalités</span>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Connexion sécurisée</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Formulaire Mot de passe oublié -->
-            <div id="reset-form" class="form-content">
-                <h2>🔐 Récupération</h2>
-                <p class="subtitle">Pas de problème, nous allons vous aider</p>
-                <div class="info-text">
-                    <i class="fas fa-info-circle"></i>
-                    <div>
-                        Entrez votre adresse email et nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe.
-                    </div>
-                </div>
-                <form id="password-reset-form">
-                    <div class="input-group">
-                        <label for="reset-email">Email</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-envelope input-icon"></i>
-                            <input type="email" id="reset-email" required placeholder="exemple@email.com" autocomplete="email">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn">
                         <span>Envoyer le lien</span>
                     </button>
                 </form>
@@ -972,11 +805,14 @@
 
     <script src="supabaseClient.js"></script>
     <script>
-        let supabase, getCurrentUser, getUserProfile, redirectByRole;
+        let supabaseInstance, getCurrentUser, getUserProfile, redirectByRole;
 
         function initializeApp() {
             if (window.supabaseClient) {
-                ({ supabase, getCurrentUser, getUserProfile, redirectByRole } = window.supabaseClient);
+                supabaseInstance = window.supabaseClient.supabase;
+                getCurrentUser = window.supabaseClient.getCurrentUser;
+                getUserProfile = window.supabaseClient.getUserProfile;
+                redirectByRole = window.supabaseClient.redirectByRole;
                 checkIfLoggedIn();
             } else {
                 setTimeout(initializeApp, 100);
@@ -995,7 +831,6 @@
             updateTabIndicator();
         });
 
-        // Gestion des onglets avec animation
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1071,7 +906,6 @@
             }
         }
 
-        // Validation en temps réel
         document.getElementById('signup-email')?.addEventListener('input', function() {
             const email = this.value;
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1086,7 +920,6 @@
             }
         });
 
-        // Indicateur de force du mot de passe
         document.getElementById('signup-password')?.addEventListener('input', function() {
             const password = this.value;
             const strengthDiv = document.getElementById('password-strength');
@@ -1120,11 +953,10 @@
             }
         });
 
-        // Authentification OAuth
         async function signInWithGoogle() {
             try {
                 hideMessage();
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                const { data, error } = await supabaseInstance.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
                         redirectTo: `${window.location.origin}/index.html`,
@@ -1145,7 +977,7 @@
         async function signInWithGitHub() {
             try {
                 hideMessage();
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                const { data, error } = await supabaseInstance.auth.signInWithOAuth({
                     provider: 'github',
                     options: {
                         redirectTo: `${window.location.origin}/index.html`
@@ -1162,7 +994,7 @@
         async function signInWithDiscord() {
             try {
                 hideMessage();
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                const { data, error } = await supabaseInstance.auth.signInWithOAuth({
                     provider: 'discord',
                     options: {
                         redirectTo: `${window.location.origin}/index.html`
@@ -1176,7 +1008,6 @@
             }
         }
 
-        // Formulaire de connexion
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             hideMessage();
@@ -1186,7 +1017,7 @@
             const password = document.getElementById('login-password').value;
 
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabaseInstance.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
@@ -1211,7 +1042,6 @@
             }
         });
 
-        // Formulaire d'inscription
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             hideMessage();
@@ -1229,7 +1059,7 @@
             }
 
             try {
-                const { data: authData, error: authError } = await supabase.auth.signUp({
+                const { data: authData, error: authError } = await supabaseInstance.auth.signUp({
                     email: email,
                     password: password,
                     options: {
@@ -1249,7 +1079,7 @@
 
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
-                const { error: profileError } = await supabase
+                const { error: profileError } = await supabaseInstance
                     .from('users_profile')
                     .insert({
                         user_id: authData.user.id,
@@ -1275,7 +1105,7 @@
                 
                 if (error.message.includes('profil')) {
                     try {
-                        await supabase.auth.signOut();
+                        await supabaseInstance.auth.signOut();
                     } catch (e) {
                         console.error('Erreur lors du nettoyage:', e);
                     }
@@ -1283,7 +1113,6 @@
             }
         });
 
-        // Formulaire de réinitialisation
         document.getElementById('password-reset-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             hideMessage();
@@ -1292,7 +1121,7 @@
             const email = document.getElementById('reset-email').value;
 
             try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                const { error } = await supabaseInstance.auth.resetPasswordForEmail(email, {
                     redirectTo: `${window.location.origin}/auth.html`
                 });
 
@@ -1309,7 +1138,6 @@
             }
         });
 
-        // Animation des inputs au focus
         document.querySelectorAll('input').forEach(input => {
             input.addEventListener('focus', function() {
                 this.parentElement.parentElement.querySelector('label')?.classList.add('focused');
@@ -1323,4 +1151,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
