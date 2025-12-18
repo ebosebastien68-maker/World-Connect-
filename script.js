@@ -2,20 +2,20 @@
 // CONFIGURATION SUPABASE - UTILISE supabaseClient.js
 // ============================================================================
 // Le client Supabase est initialisé dans supabaseClient.js
-// On récupère simplement la référence depuis window
-let supabase;
+// On récupère simplement la référence depuis window.supabaseClient
+
+let supabaseClientInstance;
 
 // Attendre que supabaseClient.js soit chargé
 if (window.supabaseClient && window.supabaseClient.supabase) {
-    supabase = window.supabaseClient.supabase;
+    supabaseClientInstance = window.supabaseClient.supabase;
     console.log('✅ Supabase client récupéré depuis supabaseClient.js');
-} else if (window.supabase) {
-    // Fallback si supabase est directement dans window
-    supabase = window.supabase;
-    console.log('✅ Supabase client récupéré depuis window.supabase');
 } else {
     console.error('❌ Erreur: Supabase client non trouvé. Vérifiez que supabaseClient.js est chargé avant script.js');
 }
+
+// Utiliser supabaseClientInstance au lieu de supabase dans tout le code
+const supabase = supabaseClientInstance;
 
 // ============================================================================
 // VARIABLES GLOBALES
@@ -385,9 +385,12 @@ async function initOptimisticManagers() {
             const { data: { session } } = await supabase.auth.getSession();
             
             if (session) {
+                const SUPABASE_URL = window.supabaseClient?.supabaseUrl || supabase.supabaseUrl;
+                const SUPABASE_KEY = window.supabaseClient?.supabaseKey || supabase.supabaseKey;
+                
                 await window.OptimisticSync.init(
                     SUPABASE_URL,
-                    SUPABASE_ANON_KEY,
+                    SUPABASE_KEY,
                     {
                         ...currentUser,
                         token: session.access_token,
@@ -1752,4 +1755,3 @@ window.LoadingManager = LoadingManager;
 window.OfflineManager = OfflineManager;
 
 console.log('🎉 Script.js chargé avec succès - 0% d\'erreur garanti !');
-      
