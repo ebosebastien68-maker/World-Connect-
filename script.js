@@ -7,7 +7,6 @@ const { supabase, getCurrentUser: getUser, getUserProfile: getProfile } = window
 console.log('✅ Client Supabase récupéré depuis supabaseClient.js:', supabase ? 'OK ✓' : 'ERREUR ✗');
 
 // Utiliser supabaseClientInstance au lieu de supabase dans tout le code
-const supabase = supabaseClientInstance;
 
 // ============================================================================
 // VARIABLES GLOBALES
