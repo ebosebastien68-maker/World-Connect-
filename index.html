@@ -1139,15 +1139,152 @@
                 
                 if (error) throw error;
                 
-                if (window.CommentsWidget) {
-                    window.CommentsWidget.render(container, articleId, comments, currentUser, userProfile);
-                } else {
-                    container.innerHTML = '<p style="padding: 20px; text-align: center;">Système de commentaires en cours de chargement...</p>';
-                }
+                // Rendu simple des commentaires
+                renderComments(container, articleId, comments || []);
+                
             } catch (error) {
                 console.error('❌ Erreur commentaires:', error);
                 container.innerHTML = '<p style="color: #ef4444; padding: 20px;">Erreur de chargement des commentaires</p>';
             }
+        }
+
+        function renderComments(container, articleId, comments) {
+            let html = `
+                <div style="padding: 20px; border-top: 1px solid var(--border-color);">
+                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 700;">Commentaires (${comments.length})</h4>
+            `;
+
+            if (!currentUser || !userProfile) {
+                html += `
+                    <div style="text-align: center; padding: 30px; background: var(--bg-primary); border-radius: 12px;">
+                        <i class="fas fa-lock" style="font-size: 32px; color: var(--text-tertiary); margin-bottom: 12px;"></i>
+                        <p style="color: var(--text-secondary); margin-bottom: 16px;">Connectez-vous pour commenter</p>
+                        <button onclick="window.location.href='connexion.html'" style="padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            Se connecter
+                        </button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                        <textarea id="comment-input-${articleId}" placeholder="Écrivez votre commentaire..." 
+                            style="flex: 1; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; font-family: inherit; min-height: 60px; resize: vertical; background: var(--bg-primary); color: var(--text-primary);"></textarea>
+                        <button onclick="submitComment('${articleId}')" 
+                            style="padding: 12px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                            <i class="fas fa-paper-plane"></i> Envoyer
+                        </button>
+                    </div>
+                `;
+            }
+
+            if (comments.length === 0) {
+                html += `<p style="text-align: center; color: var(--text-tertiary); padding: 20px;">Soyez le premier à commenter !</p>`;
+            } else {
+                comments.forEach(comment => {
+                    const author = comment.users_profile || { prenom: 'Utilisateur', nom: '' };
+                    const prenom = author.prenom || 'Utilisateur';
+                    const nom = author.nom || '';
+                    const texte = comment.texte;
+                    const date = comment.date_created;
+                    const initials = `${prenom[0]}${nom ? nom[0] : ''}`.toUpperCase();
+                    const isMyComment = currentUser && currentUser.id === comment.user_id;
+
+                    html += `
+                        <div style="margin-bottom: 16px; padding: 16px; background: var(--bg-primary); border-radius: 12px; border-left: 3px solid var(--accent-blue);">
+                            <div style="display: flex; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0;">
+                                    ${initials}
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                        <span style="font-weight: 700; font-size: 14px;">${escapeHtml(prenom)} ${escapeHtml(nom)}</span>
+                                        <span style="font-size: 12px; color: var(--text-tertiary);">${formatDate(date)}</span>
+                                    </div>
+                                    <p style="color: var(--text-primary); line-height: 1.5; font-size: 14px;">${escapeHtml(texte)}</p>
+                                    ${isMyComment ? `
+                                        <button onclick="deleteComment('${comment.session_id}', '${articleId}')" 
+                                            style="margin-top: 8px; background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 13px; font-weight: 600;">
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function submitComment(articleId) {
+            if (!currentUser || !userProfile) {
+                ToastManager.warning('Connexion requise', 'Connectez-vous pour commenter');
+                return;
+            }
+
+            const input = document.getElementById(`comment-input-${articleId}`);
+            const texte = input.value.trim();
+
+            if (!texte) return;
+
+            try {
+                const { error } = await supabaseInstance
+                    .from('sessions_commentaires')
+                    .insert([{
+                        article_id: articleId,
+                        user_id: currentUser.id,
+                        texte: texte
+                    }]);
+
+                if (error) throw error;
+
+                input.value = '';
+                ToastManager.success('Commentaire publié', 'Votre commentaire a été ajouté');
+                
+                const container = document.getElementById(`comments-${articleId}`);
+                loadComments(articleId, container);
+
+            } catch (error) {
+                console.error('❌ Erreur envoi commentaire:', error);
+                ToastManager.error('Erreur', 'Impossible d\'envoyer le commentaire');
+            }
+        }
+
+        async function deleteComment(commentId, articleId) {
+            if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
+
+            try {
+                const { error } = await supabaseInstance
+                    .from('sessions_commentaires')
+                    .delete()
+                    .eq('session_id', commentId)
+                    .eq('user_id', currentUser.id);
+
+                if (error) throw error;
+
+                ToastManager.success('Commentaire supprimé', 'Le commentaire a été supprimé');
+                
+                const container = document.getElementById(`comments-${articleId}`);
+                loadComments(articleId, container);
+
+            } catch (error) {
+                console.error('❌ Erreur suppression:', error);
+                ToastManager.error('Erreur', 'Impossible de supprimer');
+            }
+        }
+
+        function formatDate(dateString) {
+            const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+            return new Date(dateString).toLocaleDateString('fr-FR', options);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // ============================================================================
@@ -1402,6 +1539,8 @@
         window.loadArticles = loadArticles;
         window.handleReaction = handleReaction;
         window.toggleComments = toggleComments;
+        window.submitComment = submitComment;
+        window.deleteComment = deleteComment;
         window.toggleShareMenu = toggleShareMenu;
         window.shareToFacebook = shareToFacebook;
         window.shareToTwitter = shareToTwitter;
