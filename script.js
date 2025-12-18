@@ -1,4 +1,4 @@
-// ============================================================================
+
 // CONFIGURATION SUPABASE - UTILISE supabaseClient.js
 // ============================================================================
 // Le client Supabase est initialisé dans supabaseClient.js
