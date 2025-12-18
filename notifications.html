@@ -14,9 +14,25 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #6b7c4a;
+            --primary-light: #8a9d5f;
+            --bg-dark: #0a0e27;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.5);
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-hover: rgba(255, 255, 255, 0.12);
+            --border: rgba(255, 255, 255, 0.1);
+            --danger: #dc3545;
+            --success: #32cd32;
+            --warning: #ffd700;
+            --info: #ff69b4;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0a0e27;
+            background: var(--bg-dark);
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
@@ -40,7 +56,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #6b7c4a 0%, #8a9d5f 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             padding: 0 40px;
             height: 80px;
             display: flex;
@@ -54,7 +70,7 @@
         }
 
         .header h1 {
-            color: #ffffff;
+            color: var(--text-primary);
             font-size: 26px;
             font-weight: 700;
             letter-spacing: 0.5px;
@@ -69,7 +85,7 @@
 
         .mark-all-btn {
             background: rgba(255, 255, 255, 0.15);
-            color: #ffffff;
+            color: var(--text-primary);
             border: 2px solid rgba(255, 255, 255, 0.3);
             padding: 10px 24px;
             border-radius: 8px;
@@ -120,11 +136,11 @@
 
         .tab.active {
             background: rgba(107, 124, 74, 0.4);
-            color: #ffffff;
+            color: var(--text-primary);
         }
 
         .filter-info {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--card-bg);
             padding: 20px 28px;
             border-radius: 12px;
             margin-bottom: 30px;
@@ -132,18 +148,18 @@
             justify-content: space-between;
             align-items: center;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
         }
 
         .filter-info span {
-            color: rgba(255, 255, 255, 0.9);
+            color: var(--text-secondary);
             font-weight: 600;
             font-size: 15px;
         }
 
         .count-badge {
-            background: linear-gradient(135deg, #6b7c4a, #8a9d5f);
-            color: #ffffff;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: var(--text-primary);
             padding: 6px 16px;
             border-radius: 20px;
             font-size: 13px;
@@ -157,7 +173,7 @@
         }
 
         .notification-card {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--card-bg);
             border-radius: 16px;
             padding: 24px;
             display: flex;
@@ -167,7 +183,7 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             backdrop-filter: blur(10px);
         }
 
@@ -188,11 +204,11 @@
         }
 
         .notification-card.unread::before {
-            background: linear-gradient(to bottom, #6b7c4a, #8a9d5f);
+            background: linear-gradient(to bottom, var(--primary), var(--primary-light));
         }
 
         .notification-card:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: var(--card-hover);
             transform: translateX(8px);
             border-color: rgba(107, 124, 74, 0.5);
         }
@@ -205,7 +221,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #8a9d5f;
+            color: var(--primary-light);
             font-size: 22px;
             flex-shrink: 0;
             transition: all 0.3s ease;
@@ -218,17 +234,17 @@
 
         .notif-icon.reaction {
             background: rgba(255, 20, 147, 0.2);
-            color: #ff69b4;
+            color: var(--info);
         }
 
         .notif-icon.comment {
             background: rgba(50, 205, 50, 0.2);
-            color: #32cd32;
+            color: var(--success);
         }
 
         .notif-icon.reply {
             background: rgba(255, 215, 0, 0.2);
-            color: #ffd700;
+            color: var(--warning);
         }
 
         .notif-content {
@@ -236,7 +252,7 @@
         }
 
         .notif-text {
-            color: rgba(255, 255, 255, 0.9);
+            color: var(--text-secondary);
             line-height: 1.6;
             margin-bottom: 12px;
             font-size: 15px;
@@ -247,7 +263,7 @@
             align-items: center;
             gap: 16px;
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
         }
 
         .notif-time {
@@ -257,7 +273,7 @@
         }
 
         .notif-badge {
-            background: linear-gradient(135deg, #6b7c4a, #8a9d5f);
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
             color: white;
             padding: 4px 12px;
             border-radius: 12px;
@@ -270,7 +286,7 @@
         .delete-btn {
             background: rgba(220, 53, 69, 0.2);
             border: none;
-            color: #dc3545;
+            color: var(--danger);
             cursor: pointer;
             font-size: 18px;
             padding: 10px 12px;
@@ -286,12 +302,12 @@
         .loader {
             text-align: center;
             padding: 80px 20px;
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
         }
 
         .spinner {
             border: 3px solid rgba(107, 124, 74, 0.2);
-            border-top: 3px solid #8a9d5f;
+            border-top: 3px solid var(--primary-light);
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -300,14 +316,18 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .empty-state {
             text-align: center;
             padding: 100px 20px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
         }
 
         .empty-state i {
@@ -317,7 +337,7 @@
         }
 
         .empty-state h3 {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
             margin-bottom: 15px;
             font-size: 24px;
             font-weight: 700;
@@ -325,7 +345,7 @@
 
         .empty-state p {
             font-size: 16px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
         }
 
         @media (max-width: 768px) {
@@ -403,20 +423,19 @@
 
     <script src="supabaseClient.js"></script>
     <script>
-        // Three.js Animation
+        // ==================== THREE.JS ANIMATION ====================
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ 
+        const renderer = new THREE.WebGLRenderer({
             canvas: document.getElementById('threejs-canvas'),
             alpha: true,
             antialias: true
         });
-        
+
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x000000, 0);
         camera.position.z = 30;
 
-        // Create "World Connect" text particles
         const particlesGeometry = new THREE.BufferGeometry();
         const particlesCount = 2000;
         const positions = new Float32Array(particlesCount * 3);
@@ -427,7 +446,6 @@
             positions[i + 1] = (Math.random() - 0.5) * 100;
             positions[i + 2] = (Math.random() - 0.5) * 100;
 
-            // Blue color with variations
             colors[i] = 0.2 + Math.random() * 0.3;
             colors[i + 1] = 0.4 + Math.random() * 0.4;
             colors[i + 2] = 0.8 + Math.random() * 0.2;
@@ -447,7 +465,6 @@
         const particles = new THREE.Points(particlesGeometry, particlesMaterial);
         scene.add(particles);
 
-        // Create text geometry for "World Connect"
         const textParticles = new THREE.Group();
         const textConfig = [
             { text: 'WORLD', yOffset: 2 },
@@ -458,7 +475,7 @@
             const textGeometry = new THREE.BufferGeometry();
             const textPositions = [];
             const textColors = [];
-            
+
             for (let i = 0; i < 300; i++) {
                 textPositions.push(
                     (Math.random() - 0.5) * 15,
@@ -485,7 +502,6 @@
 
         scene.add(textParticles);
 
-        // Animation loop
         function animate() {
             requestAnimationFrame(animate);
 
@@ -502,6 +518,7 @@
 
             renderer.render(scene, camera);
         }
+
         animate();
 
         window.addEventListener('resize', () => {
@@ -510,13 +527,25 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Notification System
-        const { supabase, getCurrentUser } = window.supabaseClient;
+        // ==================== SUPABASE SETUP ====================
+        let supabaseInstance, getCurrentUser;
+
+        function initializeSupabase() {
+            if (window.supabaseClient) {
+                supabaseInstance = window.supabaseClient.supabase;
+                getCurrentUser = window.supabaseClient.getCurrentUser;
+                initNotifications();
+            } else {
+                setTimeout(initializeSupabase, 100);
+            }
+        }
+
+        // ==================== NOTIFICATION SYSTEM ====================
         let currentUser = null;
         let allNotifications = [];
         let currentFilter = 'all';
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        async function initNotifications() {
             currentUser = await getCurrentUser();
             if (!currentUser) {
                 window.location.href = 'connexion.html';
@@ -525,11 +554,11 @@
 
             await loadNotifications();
             setInterval(loadNotifications, 10000);
-        });
+        }
 
         async function loadNotifications() {
             try {
-                const { data: notifications, error } = await supabase
+                const { data: notifications, error } = await supabaseInstance
                     .from('notifications')
                     .select('*')
                     .eq('user_id', currentUser.id)
@@ -552,14 +581,14 @@
             currentFilter = filter;
 
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            
+
             const activeTab = Array.from(document.querySelectorAll('.tab')).find(tab => {
                 const text = tab.textContent.toLowerCase();
                 return (filter === 'all' && text.includes('toutes')) ||
-                       (filter === 'unread' && text.includes('non')) ||
-                       (filter === 'read' && text.includes('lues') && !text.includes('non'));
+                    (filter === 'unread' && text.includes('non')) ||
+                    (filter === 'read' && text.includes('lues') && !text.includes('non'));
             });
-            
+
             if (activeTab) {
                 activeTab.classList.add('active');
             }
@@ -643,7 +672,7 @@
 
         function getNotificationIcon(text) {
             const textLower = text.toLowerCase();
-            
+
             if (textLower.includes('réaction')) {
                 return 'fas fa-heart';
             } else if (textLower.includes('commentaire')) {
@@ -661,7 +690,7 @@
 
         function getNotificationType(text) {
             const textLower = text.toLowerCase();
-            
+
             if (textLower.includes('réaction')) {
                 return 'reaction';
             } else if (textLower.includes('commentaire')) {
@@ -694,7 +723,7 @@
 
         async function markAsRead(notificationId) {
             try {
-                await supabase
+                await supabaseInstance
                     .from('notifications')
                     .update({ read_status: true })
                     .eq('notification_id', notificationId);
@@ -708,7 +737,7 @@
 
         async function markAllAsRead() {
             try {
-                await supabase
+                await supabaseInstance
                     .from('notifications')
                     .update({ read_status: true })
                     .eq('user_id', currentUser.id)
@@ -730,7 +759,7 @@
             }
 
             try {
-                await supabase
+                await supabaseInstance
                     .from('notifications')
                     .delete()
                     .eq('notification_id', notificationId);
@@ -748,6 +777,8 @@
             div.textContent = text;
             return div.innerHTML;
         }
+
+        initializeSupabase();
     </script>
 </body>
 </html>
