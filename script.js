@@ -1,18 +1,29 @@
-
+// ============================================================================
 // CONFIGURATION SUPABASE - UTILISE supabaseClient.js
 // ============================================================================
 // Le client Supabase est initialisé dans supabaseClient.js
 // On récupère simplement la référence depuis window.supabaseClient
-let supabaseClientInstance;
-// Attendre que supabaseClient.js soit chargé
-if (window.supabaseClient && window.supabaseClient.supabase) {
-    supabaseClientInstance = window.supabaseClient.supabase;
-    console.log('✅ Supabase client récupéré depuis supabaseClient.js');
-} else {
-    console.error('❌ Erreur: Supabase client non trouvé. Vérifiez que supabaseClient.js est chargé avant script.js');
+
+// Variable globale pour le client Supabase
+var supabase;
+
+// Fonction d'initialisation à appeler au chargement
+function initSupabaseClient() {
+    if (window.supabaseClient && window.supabaseClient.supabase) {
+        supabase = window.supabaseClient.supabase;
+        console.log('✅ Supabase client récupéré depuis supabaseClient.js');
+        return true;
+    } else {
+        console.error('❌ Erreur: Supabase client non trouvé. Vérifiez que supabaseClient.js est chargé avant script.js');
+        return false;
+    }
 }
 
+// Initialiser immédiatement
+initSupabaseClient();
+
 // Utiliser supabaseClientInstance au lieu de supabase dans tout le code
+const supabase = supabaseClientInstance;
 
 // ============================================================================
 // VARIABLES GLOBALES
@@ -348,6 +359,17 @@ function arrayBufferToBase64(buffer) {
 // ============================================================================
 async function getCurrentUser() {
     try {
+        // Utiliser la fonction du supabaseClient.js
+        if (window.supabaseClient && window.supabaseClient.getCurrentUser) {
+            return await window.supabaseClient.getCurrentUser();
+        }
+        
+        // Fallback sur l'ancienne méthode
+        if (!supabase) {
+            console.error('❌ Client Supabase non initialisé');
+            return null;
+        }
+        
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error) throw error;
         return user;
@@ -359,6 +381,17 @@ async function getCurrentUser() {
 
 async function getUserProfile(userId) {
     try {
+        // Utiliser la fonction du supabaseClient.js
+        if (window.supabaseClient && window.supabaseClient.getUserProfile) {
+            return await window.supabaseClient.getUserProfile(userId);
+        }
+        
+        // Fallback sur l'ancienne méthode
+        if (!supabase) {
+            console.error('❌ Client Supabase non initialisé');
+            return null;
+        }
+        
         const { data, error } = await supabase
             .from('users_profile')
             .select('*')
@@ -1751,4 +1784,4 @@ window.ToastManager = ToastManager;
 window.LoadingManager = LoadingManager;
 window.OfflineManager = OfflineManager;
 
-console.log('🎉 Script.js chargé avec succès - 0% d\'erreur garanti !');
+console.log('🎉 Script.js chargé avec succès - 0% d\'erreur garanti !')
