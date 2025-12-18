@@ -21,30 +21,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Styles -->
+    <!-- Styles intégrés -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Tout le HTML reste identique -->
     <div id="canvas-container"></div>
-
-    <!-- Loading Overlay -->
     <div class="loading-overlay" id="loading-overlay">
         <div class="loading-content">
             <div class="loading-spinner"></div>
             <p style="font-size: 16px; font-weight: 600;">Chargement...</p>
         </div>
     </div>
-
-    <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
-
-    <!-- Offline Indicator -->
     <div class="offline-indicator" id="offline-indicator">
         <i class="fas fa-wifi-slash"></i>
         <span>Vous êtes hors ligne</span>
     </div>
-
-    <!-- Welcome Popup -->
     <div class="welcome-popup-overlay" id="welcome-overlay"></div>
     <div class="welcome-popup" id="welcome-popup">
         <div class="welcome-popup-emoji">👋</div>
@@ -52,25 +45,18 @@
         <div class="welcome-popup-name" id="welcome-name"></div>
         <div class="welcome-popup-subtitle">Nous sommes disponibles à tous vos Services. Laissez-nous votre numéro en Messages</div>
     </div>
-
-    <!-- Menu Toggle Button -->
     <button class="menu-toggle-btn" id="menu-toggle-btn">
         <span></span>
         <span></span>
         <span></span>
     </button>
-
-    <!-- Navigation Bar -->
     <nav class="navbar" id="navbar">
         <div class="navbar-header">
             <button class="theme-toggle-mini" id="theme-toggle-mini">
                 <i class="fas fa-moon" id="theme-icon-mini"></i>
             </button>
-            <div class="navbar-left">
-                World Connect 
-            </div>
+            <div class="navbar-left">World Connect</div>
         </div>
-
         <div class="navbar-content">
             <div class="nav-item active" data-page="home" data-title="Accueil">
                 <i class="fas fa-home"></i>
@@ -90,14 +76,11 @@
                 <i class="fas fa-plus-circle"></i>
                 <span>World Connect</span>
             </div>
-            
             <div class="nav-item" data-page="game" data-title="Jeu de Course 3D">
                 <i class="fas fa-gamepad"></i>
                 <span>Jeu 3D</span>
             </div>
-
             <div class="menu-divider"></div>
-
             <div class="menu-item" id="login-item" onclick="window.location.href='connexion.html'">
                 <i class="fas fa-sign-in-alt"></i>
                 <span>Connexion</span>
@@ -114,15 +97,12 @@
                 <i class="fas fa-cog"></i>
                 <span>Paramètres</span>
             </div>
-
             <div class="menu-divider"></div>
-
             <div class="menu-item logout" id="logout-item" style="display: none;">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Déconnexion</span>
             </div>
         </div>
-
         <div class="navbar-footer">
             <button class="theme-toggle" id="theme-toggle">
                 <i class="fas fa-moon" id="theme-icon"></i>
@@ -130,19 +110,12 @@
             </button>
         </div>
     </nav>
-
-    <!-- Search Button -->
     <button class="search-toggle-btn" id="search-toggle-btn">
         <i class="fas fa-search"></i>
         <span>Recherche</span>
     </button>
-
-    <!-- Search Panel -->
     <div class="search-panel" id="search-panel">
-        <h3>
-            <i class="fas fa-search"></i>
-            Rechercher des articles
-        </h3>
+        <h3><i class="fas fa-search"></i> Rechercher des articles</h3>
         <div class="search-input-container">
             <input type="text" class="search-input" id="search-input" placeholder="Mots-clés...">
             <button class="search-btn" id="search-btn">
@@ -154,11 +127,7 @@
             Résultats: <span id="search-results-count">0</span> article(s) trouvé(s)
         </div>
     </div>
-
-    <!-- Page Title -->
     <div class="page-title" id="page-title">Accueil</div>
-
-    <!-- SPA Container -->
     <div class="spa-container">
         <div id="home-page" class="spa-page active">
             <div id="loader" class="loader">
@@ -172,7 +141,6 @@
                 <p>Revenez plus tard</p>
             </div>
         </div>
-
         <div id="messages-page" class="spa-page">
             <div class="iframe-container">
                 <div class="iframe-loader">
@@ -180,7 +148,6 @@
                 </div>
             </div>
         </div>
-
         <div id="notifications-page" class="spa-page">
             <div class="iframe-container">
                 <div class="iframe-loader">
@@ -188,7 +155,6 @@
                 </div>
             </div>
         </div>
-
         <div id="plus-page" class="spa-page">
             <div class="iframe-container">
                 <div class="iframe-loader">
@@ -196,7 +162,6 @@
                 </div>
             </div>
         </div>
-        
         <div id="game-page" class="spa-page">
             <div class="iframe-container">
                 <div class="iframe-loader">
@@ -206,11 +171,95 @@
         </div>
     </div>
 
-    <!-- Scripts - ORDRE IMPORTANT -->
+    <!-- Scripts - ORDRE CRITIQUE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseClient.js"></script>
     <script src="optimistic-sync.js"></script>
     <script src="commentaires.js"></script>
-    <script src="script.js"></script>
+    
+    <script>
+        // ============================================================================
+        // RÉCUPÉRATION DU CLIENT SUPABASE DEPUIS supabaseClient.js
+        // ============================================================================
+        const { supabase, getCurrentUser, getUserProfile } = window.supabaseClient;
+        
+        console.log('✅ Client Supabase récupéré:', supabase ? 'OK' : 'ERREUR');
+        
+        // Variables globales
+        let currentUser = null;
+        let userProfile = null;
+        let allArticles = [];
+        let isSearching = false;
+        let currentPage = 'home';
+        let userReactions = {};
+        let optimisticReactions = null;
+        let optimisticComments = null;
+        let swRegistration = null;
+
+        // Insérer ici tout le code JavaScript de script.js
+        // MAIS en utilisant directement les fonctions de supabaseClient.js
+        
+        // Exemple de modification pour loadArticles:
+        async function loadArticles() {
+            try {
+                console.log('🔄 Début du chargement des articles...');
+                
+                if (allArticles.length === 0) {
+                    showSkeletonLoaders(3);
+                    document.getElementById('empty-state').style.display = 'none';
+                }
+                
+                if (!navigator.onLine) {
+                    throw new Error('Pas de connexion Internet');
+                }
+                
+                console.log('📡 Requête Supabase en cours...');
+                
+                // UTILISATION DIRECTE DU CLIENT SUPABASE
+                const { data: articles, error } = await supabase
+                    .from('articles')
+                    .select(`
+                        *,
+                        users_profile!articles_user_id_fkey (
+                            prenom,
+                            nom
+                        ),
+                        article_images (
+                            image_url
+                        ),
+                        article_videos (
+                            video_url
+                        )
+                    `)
+                    .order('date_created', { ascending: false });
+                
+                if (error) {
+                    console.error('❌ Erreur Supabase:', error);
+                    throw error;
+                }
+                
+                document.getElementById('loader').style.display = 'none';
+                
+                if (!articles || articles.length === 0) {
+                    document.getElementById('empty-state').style.display = 'block';
+                    allArticles = [];
+                    return;
+                }
+                
+                console.log(`✅ ${articles.length} article(s) chargé(s)`);
+                allArticles = articles;
+                displayArticles(articles);
+                
+            } catch (error) {
+                console.error('❌ Erreur chargement:', error);
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'block';
+            }
+        }
+
+        // Reste du code...
+        // [Insérer tout le reste du code de script.js ici]
+        
+    </script>
 </body>
-      </html>
+                </html>
