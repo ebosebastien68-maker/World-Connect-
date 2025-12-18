@@ -23,7 +23,7 @@ function initSupabaseClient() {
 initSupabaseClient();
 
 // Utiliser supabaseClientInstance au lieu de supabase dans tout le code
-const { supabase, getCurrentUser: getUser, getUserProfile: getProfile } = window.supabaseClient;
+const { supabase, getCurrentUser: getUser, getUserProfile: getProfile } 
 
 
 
