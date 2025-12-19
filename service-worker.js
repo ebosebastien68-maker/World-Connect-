@@ -741,7 +741,10 @@ case 'GET_SYNC_QUEUE':
           retries: item.retries
         })),
         processing: syncQueue.processing
-      };
+      });
+    }
+  }
+  break;
       
       event.ports[0].postMessage(queueData);
     } catch (error) {
