@@ -5,7 +5,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // On s'assure de n'initialiser le client qu'une seule fois.
 if (!window.supabaseClient) {
-    // Crée le client Supabase à partir de l'objet global `supabase` fourni par le CDN
+    // ✅ Utilise un nom différent pour éviter le conflit avec la variable globale du CDN
     const supabaseInstance = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     /**
@@ -149,9 +149,10 @@ if (!window.supabaseClient) {
         return user !== null;
     }
 
-    // Expose les fonctions et le client sur l'objet window pour un accès global
+    // ✅ Expose les fonctions et le client sur l'objet window pour un accès global
+    // On utilise le nom "supabase" ici car c'est dans l'objet window.supabaseClient
     window.supabaseClient = {
-        supabase: supabaseInstance,
+        supabase: supabaseInstance,  // ✅ Pas de conflit ici
         getCurrentUser,
         getUserProfile,
         signOut,
@@ -159,4 +160,4 @@ if (!window.supabaseClient) {
         checkAuthAndRedirect,
         isLoggedIn
     };
-        }
+}
