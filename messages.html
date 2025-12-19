@@ -331,56 +331,46 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            max-width: 340px;
+            max-width: 300px;
         }
         
-        .audio-icon {
-            width: 54px;
-            height: 54px;
+        .audio-play-btn {
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
+            background: linear-gradient(135deg, #6b7c3f 0%, #8a9b56 100%);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            flex-shrink: 0;
-            background: linear-gradient(135deg, #6b7c3f 0%, #8a9b56 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(107, 124, 63, 0.4);
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 18px;
+            flex-shrink: 0;
         }
         
-        .audio-icon:hover {
+        .audio-play-btn:hover {
             transform: scale(1.1);
-        }
-        
-        .audio-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .audio-duration {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: #fff;
+            box-shadow: 0 4px 15px rgba(107, 124, 63, 0.4);
         }
         
         .audio-waveform {
-            width: 100%;
-            height: 4px;
-            background: rgba(107, 124, 63, 0.3);
-            border-radius: 2px;
+            flex: 1;
+            height: 40px;
+            background: rgba(107, 124, 63, 0.2);
+            border-radius: 20px;
             position: relative;
-            margin-bottom: 4px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .audio-progress {
-            height: 100%;
-            background: linear-gradient(135deg, #6b7c3f 0%, #8a9b56 100%);
-            border-radius: 2px;
-            width: 0%;
-            transition: width 0.3s ease;
+        .audio-duration {
+            font-size: 12px;
+            color: #a0aec0;
+            font-weight: 500;
         }
         
         /* File attachment */
@@ -598,62 +588,87 @@
         }
         
         .voice-btn {
-            background: linear-gradient(135deg, #6b7c3f 0%, #8a9b56 100%);
-            color: white;
+            background: rgba(107, 124, 63, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #8a9b56;
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            cursor: pointer;
             font-size: 20px;
-            flex-shrink: 0;
+            cursor: pointer;
             transition: all 0.3s ease;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 15px rgba(107, 124, 63, 0.4);
             position: relative;
         }
         
-        .voice-btn:hover:not(:disabled) { 
-            background: linear-gradient(135deg, #8a9b56 0%, #6b7c3f 100%);
+        .voice-btn:hover {
+            background: rgba(107, 124, 63, 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(107, 124, 63, 0.6);
         }
         
         .voice-btn.recording {
             background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-            animation: pulse 1.5s infinite;
+            color: white;
+            animation: pulse-record 1.5s infinite;
         }
         
-        .voice-btn.recording:hover {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        @keyframes pulse-record {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        .input-wrapper { 
+            flex: 1; 
+            position: relative; 
+            display: flex; 
+            align-items: center;
+            background: rgba(30, 40, 60, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 0 18px;
+            transition: all 0.3s ease;
         }
         
-        .voice-btn:disabled { 
-            opacity: 0.4; 
-            cursor: not-allowed;
+        .input-wrapper:focus-within {
+            border-color: rgba(107, 124, 63, 0.6);
+            box-shadow: 0 0 20px rgba(107, 124, 63, 0.2);
         }
         
-        .voice-btn.admin-only {
-            display: none;
+        .message-input { 
+            width: 100%; 
+            padding: 14px 0;
+            border: none;
+            background: transparent;
+            font-size: 15px; 
+            font-family: inherit;
+            resize: none;
+            max-height: 120px;
+            overflow-y: auto;
+            color: #e0e0e0;
         }
         
-        .recording-indicator {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 16px;
-            height: 16px;
-            background: #ef4444;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            animation: pulse 1s infinite;
+        .message-input::placeholder {
+            color: rgba(160, 174, 192, 0.6);
+        }
+        
+        .message-input:focus { 
+            outline: none;
+        }
+        
+        .emoji-btn {
+            background: transparent;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 0 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .emoji-btn:hover {
+            transform: scale(1.2);
         }
         
         .send-btn { 
@@ -1118,6 +1133,70 @@
             transform: rotate(90deg) scale(1.1);
             background: rgba(107, 124, 63, 0.5);
         }
+
+        /* Voice recording indicator */
+        .recording-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 20, 40, 0.95);
+            backdrop-filter: blur(30px);
+            border: 2px solid rgba(107, 124, 63, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 2000;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .recording-indicator.show {
+            display: flex;
+        }
+
+        .recording-wave {
+            width: 120px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            border-radius: 2px;
+            animation: wave 1.5s infinite;
+        }
+
+        .wave-bar:nth-child(1) { height: 20px; animation-delay: 0s; }
+        .wave-bar:nth-child(2) { height: 40px; animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { height: 60px; animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { height: 30px; animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { height: 50px; animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { height: 25px; animation-delay: 0.5s; }
+
+        @keyframes wave {
+            0%, 100% { height: 20px; }
+            50% { height: 60px; }
+        }
+
+        .recording-time {
+            color: #ef4444;
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .recording-text {
+            color: #e0e0e0;
+            font-size: 16px;
+            text-align: center;
+        }
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -1164,6 +1243,20 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Voice recording indicator -->
+    <div class="recording-indicator" id="recording-indicator">
+        <div class="recording-wave">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+        </div>
+        <div class="recording-time" id="recording-time">00:00</div>
+        <div class="recording-text">🎤 Enregistrement vocal en cours...<br>Cliquez à nouveau pour arrêter</div>
     </div>
 
     <!-- Modal Conversations -->
@@ -1305,9 +1398,8 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // ==================== MESSAGERIE CORRIGÉE ====================
-        
-        // Variables corrigées selon le guide Supabase
+        // ==================== MESSAGERIE ====================
+        // Variables corrigées pour éviter le conflit Supabase
         let supabaseInstance, getCurrentUser, getUserProfile, redirectByRole;
         let currentUser = null;
         let userProfile = null;
@@ -1323,29 +1415,27 @@
         let selectedFile = null;
         let messagesCache = [];
 
-        // Variables pour l'enregistrement vocal (administrateurs uniquement)
+        // Variables pour l'enregistrement vocal
         let mediaRecorder = null;
         let audioChunks = [];
         let isRecording = false;
-        let recordingStream = null;
+        let recordingStartTime = null;
+        let recordingTimer = null;
 
-        // Initialisation corrigée
         function initializeApp() {
             if (window.supabaseClient) {
-                // Récupération correcte des variables depuis supabaseClient.js
                 supabaseInstance = window.supabaseClient.supabase;
                 getCurrentUser = window.supabaseClient.getCurrentUser;
                 getUserProfile = window.supabaseClient.getUserProfile;
                 redirectByRole = window.supabaseClient.redirectByRole;
                 
-                // Continuer l'initialisation
-                initUserSession();
+                initApp();
             } else {
                 setTimeout(initializeApp, 100);
             }
         }
 
-        async function initUserSession() {
+        async function initApp() {
             currentUser = await getCurrentUser();
             if (!currentUser) {
                 window.location.href = 'connexion.html';
@@ -1509,15 +1599,14 @@
             container.innerHTML = '';
             conversations.forEach(conv => {
                 const initials = `${conv.user.prenom[0]}${conv.user.nom[0]}`.toUpperCase();
-                let lastMsg = '📷 Photo';
+                let lastMsg;
                 if (conv.lastMessage.audio_url) {
-                    lastMsg = '🎤 Message vocal';
-                } else if (conv.lastMessage.texte) {
-                    lastMsg = conv.lastMessage.texte.substring(0, 50);
+                    lastMsg = '🎵 Message vocal';
                 } else if (conv.lastMessage.image_url) {
                     lastMsg = '📷 Photo';
+                } else {
+                    lastMsg = conv.lastMessage.texte?.substring(0, 50) || '📷 Photo';
                 }
-
                 const time = formatTime(conv.lastMessage.date_created);
                 const isUnread = conv.unread > 0;
 
@@ -1638,14 +1727,9 @@
             currentChatUser = user;
             selectedImage = null;
             selectedFile = null;
-            
-            // Arrêter l'enregistrement si en cours
-            if (isRecording) {
-                stopVoiceRecording();
-            }
-            
             const initials = `${user.prenom[0]}${user.nom[0]}`.toUpperCase();
             const chatArea = document.getElementById('chat-area');
+
             const isAdmin = userProfile.role === 'admin';
 
             chatArea.innerHTML = `
@@ -1696,12 +1780,21 @@
                                 <i class="fas fa-file"></i>
                                 <span>Fichier ${!isAdmin ? '🔒' : ''}</span>
                             </div>
+                            ${isAdmin ? `<div class="attach-option" onclick="toggleVoiceRecording(); document.getElementById('attach-menu').classList.remove('show');" title="Enregistrement vocal">
+                                <i class="fas fa-microphone"></i>
+                                <span>Audio vocal 🔒</span>
+                            </div>` : ''}
                         </div>
                     </div>
-                    <button class="voice-btn ${!isAdmin ? 'admin-only' : ''}" id="voice-btn" onclick="toggleVoiceRecording()" title="${isAdmin ? 'Enregistrement vocal' : 'Réservé aux administrateurs'}" ${!isAdmin ? 'style="display:none;"' : ''}>
-                        <i class="fas fa-microphone" id="voice-icon"></i>
-                        <div class="recording-indicator" id="recording-indicator" style="display: none;"></div>
-                    </button>
+                    ${isAdmin ? `<button class="voice-btn" id="voice-btn" onclick="toggleVoiceRecording()" title="Enregistrement vocal">
+                        <i class="fas fa-microphone"></i>
+                    </button>` : ''}
+                    <div class="input-wrapper">
+                        <textarea class="message-input" id="message-input" placeholder="Aa" rows="1" oninput="handleInputChange()" onkeydown="handleKeyDown(event)"></textarea>
+                        <button class="emoji-btn" onclick="insertEmoji()" title="Emoji">
+                            😊
+                        </button>
+                    </div>
                     <button class="send-btn" onclick="sendMessage()" id="send-btn" disabled>
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -1713,134 +1806,126 @@
             subscribeToMessages(user.user_id);
             subscribeToTypingStatus(user.user_id);
             subscribeToDeliveryStatus(user.user_id);
+            
+            const input = document.getElementById('message-input');
+            input.focus();
         }
 
-        // ==================== ENREGISTREMENT VOCAL (ADMINISTRATEURS UNIQUEMENT) ====================
-        
+        // ==================== ENREGISTREMENT VOCAL ====================
         async function toggleVoiceRecording() {
             if (userProfile.role !== 'admin') {
-                alert('L\'enregistrement vocal est réservé aux administrateurs');
+                alert('Seuls les administrateurs peuvent envoyer des messages vocaux');
                 return;
             }
 
-            if (isRecording) {
-                stopVoiceRecording();
-            } else {
+            if (!isRecording) {
                 await startVoiceRecording();
+            } else {
+                await stopVoiceRecording();
             }
         }
 
         async function startVoiceRecording() {
             try {
-                recordingStream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true
-                    } 
-                });
-                
-                mediaRecorder = new MediaRecorder(recordingStream, {
-                    mimeType: 'audio/webm;codecs=opus'
-                });
-                
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
                 
                 mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
+                    audioChunks.push(event.data);
                 };
-                
+
                 mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    await sendVoiceMessage(audioBlob);
-                    
-                    // Nettoyer
-                    if (recordingStream) {
-                        recordingStream.getTracks().forEach(track => track.stop());
-                        recordingStream = null;
-                    }
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    await uploadVoiceMessage(audioBlob);
+                    stream.getTracks().forEach(track => track.stop());
                 };
-                
+
                 mediaRecorder.start();
                 isRecording = true;
+                recordingStartTime = Date.now();
                 
-                // Mise à jour de l'interface
+                // UI Updates
                 const voiceBtn = document.getElementById('voice-btn');
-                const voiceIcon = document.getElementById('voice-icon');
-                const recordingIndicator = document.getElementById('recording-indicator');
-                
-                if (voiceBtn && voiceIcon && recordingIndicator) {
+                if (voiceBtn) {
                     voiceBtn.classList.add('recording');
-                    voiceIcon.className = 'fas fa-stop';
-                    recordingIndicator.style.display = 'block';
+                    voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
                 }
+
+                document.getElementById('recording-indicator').classList.add('show');
                 
-                console.log('Enregistrement vocal démarré');
+                // Start timer
+                recordingTimer = setInterval(updateRecordingTime, 1000);
                 
             } catch (error) {
-                console.error('Erreur démarrage enregistrement:', error);
-                alert('Impossible d\'accéder au microphone. Veuillez autoriser l\'accès et réessayer.');
-                isRecording = false;
+                console.error('Erreur accès microphone:', error);
+                alert('Impossible d\'accéder au microphone. Vérifiez les permissions.');
             }
         }
 
-        function stopVoiceRecording() {
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            }
-            
+        async function stopVoiceRecording() {
+            if (!mediaRecorder || !isRecording) return;
+
+            mediaRecorder.stop();
             isRecording = false;
             
-            // Mise à jour de l'interface
-            const voiceBtn = document.getElementById('voice-btn');
-            const voiceIcon = document.getElementById('voice-icon');
-            const recordingIndicator = document.getElementById('recording-indicator');
-            
-            if (voiceBtn && voiceIcon && recordingIndicator) {
-                voiceBtn.classList.remove('recording');
-                voiceIcon.className = 'fas fa-microphone';
-                recordingIndicator.style.display = 'none';
+            // Clear timer
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
             }
-            
-            console.log('Enregistrement vocal arrêté');
+
+            // UI Updates
+            const voiceBtn = document.getElementById('voice-btn');
+            if (voiceBtn) {
+                voiceBtn.classList.remove('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            }
+
+            document.getElementById('recording-indicator').classList.remove('show');
         }
 
-        async function sendVoiceMessage(audioBlob) {
-            if (!currentChatUser) return;
+        function updateRecordingTime() {
+            if (!recordingStartTime) return;
             
-            const sendBtn = document.getElementById('send-btn');
-            if (sendBtn) {
-                sendBtn.disabled = true;
-                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            }
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            const timeDisplay = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('recording-time').textContent = timeDisplay;
+        }
 
+        async function uploadVoiceMessage(audioBlob) {
             try {
-                // Upload du fichier audio
-                const fileName = `voice_${Date.now()}_${currentUser.id}.webm`;
+                const fileName = `voice_${Date.now()}_${currentUser.id}.wav`;
+                
                 const { error: uploadError } = await supabaseInstance.storage
-                    .from('messages-audio')
+                    .from('messages-files')
                     .upload(fileName, audioBlob, {
-                        contentType: 'audio/webm',
+                        contentType: 'audio/wav',
                         upsert: false
                     });
 
                 if (uploadError) throw uploadError;
-
-                const { data } = supabaseInstance.storage
-                    .from('messages-audio')
+                
+                const { data: audioUrlData } = supabaseInstance.storage
+                    .from('messages-files')
                     .getPublicUrl(fileName);
 
-                // Insertion du message avec l'URL audio
-                const { error: insertError } = await supabaseInstance
+                // Insert message with audio
+                const { data: messageData, error: insertError } = await supabaseInstance
                     .from('messages')
                     .insert({
                         sender_id: currentUser.id,
                         receiver_id: currentChatUser.user_id,
-                        audio_url: data.publicUrl,
+                        texte: null,
+                        image_url: null,
+                        audio_url: audioUrlData.publicUrl,
                         delivery_status: 'sent'
-                    });
+                    })
+                    .select()
+                    .single();
 
                 if (insertError) throw insertError;
 
@@ -1848,17 +1933,37 @@
                 
             } catch (error) {
                 console.error('Erreur envoi message vocal:', error);
-                alert('Erreur lors de l\'envoi du message vocal. Veuillez réessayer.');
-            } finally {
-                if (sendBtn) {
-                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                    sendBtn.disabled = !hasContent();
-                }
+                alert('Erreur lors de l\'envoi du message vocal');
             }
         }
 
-        function hasContent() {
-            return selectedImage !== null || selectedFile !== null;
+        function handleInputChange() {
+            const input = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            
+            input.style.height = 'auto';
+            input.style.height = Math.min(input.scrollHeight, 100) + 'px';
+            
+            const hasContent = input.value.trim().length > 0 || selectedImage !== null || selectedFile !== null;
+            sendBtn.disabled = !hasContent;
+            
+            if (input.value.trim().length > 0 && !isTyping) {
+                updateTypingStatus(true);
+            }
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                updateTypingStatus(false);
+            }, 2000);
+        }
+
+        function handleKeyDown(event) {
+            // Retirer la fonctionnalité d'envoi automatique avec Enter
+            // L'utilisateur doit maintenant utiliser le bouton Send uniquement
+            if (event.key === 'Enter' && !event.shiftKey) {
+                // Ne pas envoyer automatiquement, juste faire un retour à la ligne
+                // Laisser le comportement par défaut
+            }
         }
 
         async function updateTypingStatus(typing) {
@@ -2065,14 +2170,11 @@
                 if (msg.audio_url) {
                     content += `
                         <div class="message-audio">
-                            <div class="audio-icon" onclick="playAudio('${msg.audio_url}', this)" data-playing="false">
+                            <button class="audio-play-btn" onclick="playAudio('${msg.audio_url}', this)">
                                 <i class="fas fa-play"></i>
-                            </div>
-                            <div class="audio-info">
-                                <div class="audio-duration">Message vocal</div>
-                                <div class="audio-waveform">
-                                    <div class="audio-progress"></div>
-                                </div>
+                            </button>
+                            <div class="audio-waveform">
+                                <div class="audio-duration">🎵 Message vocal</div>
                             </div>
                         </div>
                     `;
@@ -2133,47 +2235,30 @@
             container.appendChild(groupDiv);
         }
 
-        // Lecteur audio pour messages vocaux
-        let currentAudio = null;
-        
-        function playAudio(audioUrl, iconElement) {
-            const isPlaying = iconElement.dataset.playing === 'true';
-            const icon = iconElement.querySelector('i');
+        function playAudio(audioUrl, button) {
+            const audio = new Audio(audioUrl);
+            const icon = button.querySelector('i');
             
-            if (currentAudio && !currentAudio.paused) {
-                currentAudio.pause();
-                // Réinitialiser l'icône de l'audio précédent
-                document.querySelectorAll('.audio-icon').forEach(el => {
-                    el.dataset.playing = 'false';
-                    el.querySelector('i').className = 'fas fa-play';
-                });
-            }
+            icon.className = 'fas fa-spinner fa-spin';
             
-            if (isPlaying) {
-                iconElement.dataset.playing = 'false';
-                icon.className = 'fas fa-play';
-                if (currentAudio) currentAudio.pause();
-            } else {
-                currentAudio = new Audio(audioUrl);
-                iconElement.dataset.playing = 'true';
+            audio.onloadeddata = () => {
                 icon.className = 'fas fa-pause';
-                
-                currentAudio.play().catch(error => {
-                    console.error('Erreur lecture audio:', error);
-                    iconElement.dataset.playing = 'false';
-                    icon.className = 'fas fa-play';
-                });
-                
-                currentAudio.onended = () => {
-                    iconElement.dataset.playing = 'false';
-                    icon.className = 'fas fa-play';
-                };
-                
-                currentAudio.onerror = () => {
-                    iconElement.dataset.playing = 'false';
-                    icon.className = 'fas fa-play';
-                    alert('Erreur lors de la lecture du message vocal');
-                };
+                audio.play();
+            };
+            
+            audio.onended = () => {
+                icon.className = 'fas fa-play';
+            };
+            
+            audio.onerror = () => {
+                icon.className = 'fas fa-exclamation-triangle';
+                alert('Erreur lors de la lecture du message vocal');
+            };
+            
+            // Si l'audio est déjà en cours de lecture, le mettre en pause
+            if (!audio.paused) {
+                audio.pause();
+                icon.className = 'fas fa-play';
             }
         }
 
@@ -2218,7 +2303,7 @@
                 previewImage.src = e.target.result;
                 previewContainer.style.display = 'block';
                 
-                updateSendButton();
+                handleInputChange();
             };
             reader.readAsDataURL(file);
         }
@@ -2227,7 +2312,7 @@
             selectedImage = null;
             document.getElementById('image-preview-container').style.display = 'none';
             document.getElementById('image-input').value = '';
-            updateSendButton();
+            handleInputChange();
         }
 
         function handleFileSelect(event) {
@@ -2260,14 +2345,14 @@
             previewIcon.innerHTML = `<i class="fas ${iconClass}"></i>`;
             
             previewContainer.style.display = 'block';
-            updateSendButton();
+            handleInputChange();
         }
 
         function removeFilePreview() {
             selectedFile = null;
             document.getElementById('file-preview-container').style.display = 'none';
             document.getElementById('file-input').value = '';
-            updateSendButton();
+            handleInputChange();
         }
 
         function getFileTypeFromMime(mimeType, fileName) {
@@ -2280,18 +2365,12 @@
             return 'other';
         }
 
-        function updateSendButton() {
-            const sendBtn = document.getElementById('send-btn');
-            if (sendBtn) {
-                const hasContent = selectedImage !== null || selectedFile !== null;
-                sendBtn.disabled = !hasContent;
-            }
-        }
-
         async function sendMessage() {
+            const input = document.getElementById('message-input');
             const sendBtn = document.getElementById('send-btn');
+            const texte = input ? input.value.trim() : '';
 
-            if (!selectedImage && !selectedFile) return;
+            if (!texte && !selectedImage && !selectedFile) return;
 
             if (sendBtn) {
                 sendBtn.disabled = true;
@@ -2329,7 +2408,9 @@
                     .insert({
                         sender_id: currentUser.id,
                         receiver_id: currentChatUser.user_id,
+                        texte: texte || null,
                         image_url: imageUrl,
+                        audio_url: null,
                         delivery_status: 'sent'
                     })
                     .select()
@@ -2369,6 +2450,12 @@
 
                     if (fileMetaError) throw fileMetaError;
                 }
+
+                if (input) {
+                    input.value = '';
+                    input.style.height = 'auto';
+                    input.focus();
+                }
                 
                 removeImagePreview();
                 removeFilePreview();
@@ -2379,7 +2466,7 @@
             } finally {
                 if (sendBtn) {
                     sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                    updateSendButton();
+                    handleInputChange();
                 }
             }
         }
@@ -2498,6 +2585,17 @@
             });
         }
 
+        function insertEmoji() {
+            const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🔥', '😍', '🤔', '👏', '🙏'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            const input = document.getElementById('message-input');
+            if (input) {
+                input.value += emoji;
+                input.focus();
+                handleInputChange();
+            }
+        }
+
         function openImageFullscreen(imageUrl) {
             window.open(imageUrl, '_blank');
         }
@@ -2519,7 +2617,9 @@
 
         window.addEventListener('beforeunload', () => {
             updateTypingStatus(false);
-            if (isRecording) stopVoiceRecording();
+            if (mediaRecorder && isRecording) {
+                stopVoiceRecording();
+            }
             if (messageSubscription) supabaseInstance.removeChannel(messageSubscription);
             if (typingSubscription) supabaseInstance.removeChannel(typingSubscription);
             if (deliverySubscription) supabaseInstance.removeChannel(deliverySubscription);
@@ -2532,4 +2632,4 @@
         }, 30000);
     </script>
 </body>
-                                                   </html>
+    </html>
