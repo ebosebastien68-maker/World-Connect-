@@ -718,24 +718,43 @@ self.addEventListener('message', (event) => {
       }
       break;
       
-    case 'SYNC_ACTION':
-      event.waitUntil(syncQueue.add(payload));
-      break;
+case 'SYNC_ACTION':
+  event.waitUntil(syncQueue.add(payload));
+  break;
       
-    case 'FORCE_SYNC':
-      event.waitUntil(syncQueue.processQueue());
-      break;
+case 'FORCE_SYNC':
+  event.waitUntil(syncQueue.processQueue());
+  break;
       
-    case 'GET_SYNC_QUEUE':
-      if (event.ports?.[0]) {
-        event.ports[0].postMessage({ 
-          queue: syncQueue.queue,
-          processing: syncQueue.processing
-        });
-      }
-      break;
+case 'GET_SYNC_QUEUE':
+  if (event.ports?.[0]) {
+    // ✅ CORRECTION : Sérialisation des données avant postMessage
+    try {
+      // Créer une copie sérialisable de la queue
+      const queueData = {
+        queue: syncQueue.queue.map(item => ({
+          // Copie seulement les propriétés sérialisables
+          id: item.id,
+          action: item.action,
+          payload: item.payload ? JSON.parse(JSON.stringify(item.payload)) : null,
+          timestamp: item.timestamp,
+          retries: item.retries
+        })),
+        processing: syncQueue.processing
+      };
+      
+      event.ports[0].postMessage(queueData);
+    } catch (error) {
+      console.error('❌ Erreur sérialisation queue:', error);
+      // Envoie une réponse d'erreur au lieu de planter
+      event.ports[0].postMessage({ 
+        error: 'Impossible de sérialiser la queue',
+        queue: [],
+        processing: false
+      });
+    }
   }
-});
+  break;
 
 // ----------------------------------------------------------------------------
 // GESTION D'ERREURS
