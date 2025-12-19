@@ -1,7 +1,7 @@
 // ============================================================================
 // SERVICE WORKER PRODUCTION - WORLD CONNECT
 // ============================================================================
-// Version: 5.0.1 - Fix Notification Body
+// Version: 5.0.2 - Fix IDBRequest Clone Error
 // ============================================================================
 
 'use strict';
@@ -9,7 +9,7 @@
 // ----------------------------------------------------------------------------
 // CONFIGURATION
 // ----------------------------------------------------------------------------
-const VERSION = '5.0.1';
+const VERSION = '5.0.2';
 const CACHE_NAME = `worldconnect-v${VERSION}`;
 const CACHE_STATIC = `${CACHE_NAME}-static`;
 const CACHE_IMAGES = `${CACHE_NAME}-images`;
@@ -252,11 +252,35 @@ class SyncQueue {
       const tx = db.transaction('syncQueue', 'readwrite');
       const store = tx.objectStore('syncQueue');
       
-      await store.clear();
+      // Clear d'abord
+      await new Promise((resolve, reject) => {
+        const clearReq = store.clear();
+        clearReq.onsuccess = () => resolve();
+        clearReq.onerror = () => reject(clearReq.error);
+      });
       
+      // Ensuite ajouter les items
       for (const item of this.queue) {
-        await store.add(item);
+        await new Promise((resolve, reject) => {
+          // 🔥 Sérialiser l'item pour éviter les références circulaires
+          const safeItem = {
+            id: item.id,
+            action: {
+              type: item.action.type,
+              data: JSON.parse(JSON.stringify(item.action.data))
+            },
+            timestamp: item.timestamp,
+            retries: item.retries,
+            maxRetries: item.maxRetries
+          };
+          
+          const addReq = store.add(safeItem);
+          addReq.onsuccess = () => resolve();
+          addReq.onerror = () => reject(addReq.error);
+        });
       }
+      
+      console.log('💾 Queue sauvegardée');
     } catch (error) {
       console.error('❌ Erreur sauvegarde queue:', error);
     }
@@ -268,7 +292,14 @@ class SyncQueue {
       const tx = db.transaction('syncQueue', 'readonly');
       const store = tx.objectStore('syncQueue');
       
-      this.queue = await store.getAll();
+      // 🔥 Utiliser une Promise pour récupérer toutes les données
+      const items = await new Promise((resolve, reject) => {
+        const getAllReq = store.getAll();
+        getAllReq.onsuccess = () => resolve(getAllReq.result);
+        getAllReq.onerror = () => reject(getAllReq.error);
+      });
+      
+      this.queue = items || [];
       console.log(`📦 ${this.queue.length} action(s) chargée(s)`);
       
       if (this.queue.length > 0) {
@@ -284,18 +315,27 @@ class SyncQueue {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('WorldConnectSync', 1);
       
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => {
+        console.error('❌ Erreur ouverture DB:', request.error);
+        reject(request.error);
+      };
+      
+      request.onsuccess = () => {
+        console.log('✅ DB ouverte');
+        resolve(request.result); // 🔥 Retourner result, pas request
+      };
       
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
         
         if (!db.objectStoreNames.contains('syncQueue')) {
-          db.createObjectStore('syncQueue', { keyPath: 'id' });
+          const store = db.createObjectStore('syncQueue', { keyPath: 'id' });
+          console.log('📦 Store syncQueue créé');
         }
         
         if (!db.objectStoreNames.contains('offlineData')) {
-          db.createObjectStore('offlineData', { keyPath: 'key' });
+          const store = db.createObjectStore('offlineData', { keyPath: 'key' });
+          console.log('📦 Store offlineData créé');
         }
       };
     });
@@ -303,8 +343,23 @@ class SyncQueue {
 
   async notifyClients(message) {
     const clients = await self.clients.matchAll({ type: 'window' });
+    
+    // 🔥 Sérialiser le message pour éviter les erreurs de clonage
+    const safeMessage = JSON.parse(JSON.stringify({
+      type: message.type,
+      action: message.action ? {
+        type: message.action.type,
+        timestamp: message.action.timestamp || Date.now()
+      } : undefined,
+      error: message.error || undefined
+    }));
+    
     clients.forEach(client => {
-      client.postMessage(message);
+      try {
+        client.postMessage(safeMessage);
+      } catch (error) {
+        console.error('❌ Erreur postMessage:', error);
+      }
     });
   }
 }
@@ -481,11 +536,15 @@ self.addEventListener('activate', (event) => {
         
         const clients = await self.clients.matchAll({ type: 'window' });
         clients.forEach(client => {
-          client.postMessage({
-            type: 'SW_ACTIVATED',
-            version: VERSION,
-            support: SUPPORT
-          });
+          try {
+            client.postMessage({
+              type: 'SW_ACTIVATED',
+              version: VERSION,
+              support: SUPPORT
+            });
+          } catch (error) {
+            console.error('❌ Erreur postMessage activation:', error);
+          }
         });
       } catch (error) {
         console.error('❌ Erreur activation:', error);
@@ -628,10 +687,17 @@ self.addEventListener('push', (event) => {
         // Jouer un son (optionnel)
         const clients = await self.clients.matchAll({ type: 'window' });
         clients.forEach(client => {
-          client.postMessage({
-            type: 'PLAY_NOTIFICATION_SOUND',
-            notification: notificationData
-          });
+          try {
+            client.postMessage({
+              type: 'PLAY_NOTIFICATION_SOUND',
+              notification: {
+                title: notificationData.title,
+                body: notificationData.body
+              }
+            });
+          } catch (error) {
+            console.error('❌ Erreur postMessage son:', error);
+          }
         });
         
       } catch (error) {
@@ -710,11 +776,15 @@ self.addEventListener('message', (event) => {
       
     case 'GET_VERSION':
       if (event.ports?.[0]) {
-        event.ports[0].postMessage({ 
-          version: VERSION,
-          support: SUPPORT,
-          queueLength: syncQueue.queue.length
-        });
+        try {
+          event.ports[0].postMessage({ 
+            version: VERSION,
+            support: SUPPORT,
+            queueLength: syncQueue.queue.length
+          });
+        } catch (error) {
+          console.error('❌ Erreur postMessage version:', error);
+        }
       }
       break;
       
@@ -728,10 +798,23 @@ self.addEventListener('message', (event) => {
       
     case 'GET_SYNC_QUEUE':
       if (event.ports?.[0]) {
-        event.ports[0].postMessage({ 
-          queue: syncQueue.queue,
-          processing: syncQueue.processing
-        });
+        // 🔥 Sérialiser la queue avant envoi
+        const safeQueue = syncQueue.queue.map(item => ({
+          id: item.id,
+          type: item.action.type,
+          timestamp: item.timestamp,
+          retries: item.retries,
+          maxRetries: item.maxRetries
+        }));
+        
+        try {
+          event.ports[0].postMessage({ 
+            queue: safeQueue,
+            processing: syncQueue.processing
+          });
+        } catch (error) {
+          console.error('❌ Erreur envoi queue:', error);
+        }
       }
       break;
   }
@@ -752,3 +835,4 @@ self.addEventListener('unhandledrejection', (event) => {
 console.log(`✅ Service Worker v${VERSION} prêt pour la production!`);
 console.log('📱 Notifications Push: ACTIVÉES ET CORRIGÉES');
 console.log('🔄 Synchronisation optimiste: ACTIVÉE');
+console.log('🔥 Fix IDBRequest Clone: APPLIQUÉ');
