@@ -706,7 +706,7 @@ self.addEventListener('message', (event) => {
           console.log('🧹 Tous les caches supprimés');
         })()
       );
-      break;
+      
       
     case 'GET_VERSION':
       if (event.ports?.[0]) {
