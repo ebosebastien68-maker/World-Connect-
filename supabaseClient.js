@@ -5,17 +5,16 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // On s'assure de n'initialiser le client qu'une seule fois.
 if (!window.supabaseClient) {
-    // ✅ Utilise un nom différent pour éviter le conflit avec la variable globale du CDN
-    const supabaseInstance = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ✅ CRÉER L'INSTANCE EN DEHORS DU SCOPE LOCAL
+    const supabaseClientInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     /**
      * Récupère l'objet utilisateur actuellement connecté en se basant sur la session.
-     * C'est la méthode la plus fiable pour connaître l'état de l'authentification.
      * @returns {Promise<object|null>} L'objet utilisateur ou null si non connecté.
      */
     async function getCurrentUser() {
         try {
-            const { data: { session }, error } = await supabaseInstance.auth.getSession();
+            const { data: { session }, error } = await supabaseClientInstance.auth.getSession();
             if (error) throw error;
             return session ? session.user : null;
         } catch (error) {
@@ -36,11 +35,9 @@ if (!window.supabaseClient) {
         }
 
         try {
-            // Le trigger `handle_new_user` dans le SQL garantit que ce profil
-            // est créé automatiquement lors de l'inscription.
-            const { data, error, status } = await supabaseInstance
+            const { data, error, status } = await supabaseClientInstance
                 .from('users_profile')
-                .select('prenom, nom, role') // On ne sélectionne que ce qui est nécessaire
+                .select('user_id, prenom, nom, role') // ✅ Ajout de user_id
                 .eq('user_id', userId)
                 .single();
 
@@ -60,18 +57,15 @@ if (!window.supabaseClient) {
      * Déconnecte l'utilisateur actuel.
      */
     async function signOut() {
-        const { error } = await supabaseInstance.auth.signOut();
+        const { error } = await supabaseClientInstance.auth.signOut();
         if (error) {
             console.error('Erreur lors de la déconnexion:', error.message);
         }
-        // Redirige vers la page de connexion après la déconnexion
         window.location.href = '/'; 
     }
 
     /**
      * Redirige l'utilisateur vers la page appropriée en fonction de son rôle.
-     * Cette fonction doit être appelée UNIQUEMENT après une action de connexion/inscription réussie.
-     * Elle ne doit PAS être appelée automatiquement sur toutes les pages.
      */
     async function redirectByRole() {
         const user = await getCurrentUser();
@@ -89,7 +83,6 @@ if (!window.supabaseClient) {
             return;
         }
 
-        // Redirection basée sur le rôle récupéré du profil
         if (profile.role === 'admin') {
             window.location.href = 'publier.html';
         } else {
@@ -99,22 +92,18 @@ if (!window.supabaseClient) {
 
     /**
      * Vérifie si l'utilisateur est connecté et le redirige si nécessaire.
-     * Cette fonction devrait être appelée UNIQUEMENT sur les pages qui nécessitent une authentification.
-     * NE PAS utiliser sur les pages de connexion/inscription.
      * @param {boolean} requireAuth - Si true, redirige vers connexion.html si non connecté
      * @param {string|null} requiredRole - Si spécifié, vérifie que l'utilisateur a ce rôle
      */
     async function checkAuthAndRedirect(requireAuth = false, requiredRole = null) {
         const user = await getCurrentUser();
         
-        // Si l'authentification est requise mais l'utilisateur n'est pas connecté
         if (requireAuth && !user) {
             console.log("Authentification requise. Redirection vers connexion.html");
             window.location.href = 'connexion.html';
             return false;
         }
 
-        // Si un rôle spécifique est requis
         if (user && requiredRole) {
             const profile = await getUserProfile(user.id);
             
@@ -126,7 +115,6 @@ if (!window.supabaseClient) {
 
             if (profile.role !== requiredRole) {
                 console.warn(`Rôle insuffisant. Requis: ${requiredRole}, Actuel: ${profile.role}`);
-                // Redirige vers la page appropriée pour son rôle
                 if (profile.role === 'admin') {
                     window.location.href = 'publier.html';
                 } else {
@@ -141,7 +129,6 @@ if (!window.supabaseClient) {
 
     /**
      * Vérifie simplement si l'utilisateur est connecté sans redirection.
-     * Utile pour afficher/masquer des éléments UI.
      * @returns {Promise<boolean>}
      */
     async function isLoggedIn() {
@@ -149,10 +136,9 @@ if (!window.supabaseClient) {
         return user !== null;
     }
 
-    // ✅ Expose les fonctions et le client sur l'objet window pour un accès global
-    // On utilise le nom "supabase" ici car c'est dans l'objet window.supabaseClient
+    // ✅ Expose les fonctions et le client sur l'objet window
     window.supabaseClient = {
-        supabase: supabaseInstance,  // ✅ Pas de conflit ici
+        supabase: supabaseClientInstance,  // ✅ Utilise la bonne référence
         getCurrentUser,
         getUserProfile,
         signOut,
@@ -160,4 +146,6 @@ if (!window.supabaseClient) {
         checkAuthAndRedirect,
         isLoggedIn
     };
+
+    console.log('✅ Supabase Client initialisé avec succès');
 }
