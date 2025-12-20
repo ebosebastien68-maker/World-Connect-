@@ -582,24 +582,37 @@
                 
                 if (msg.files && msg.files.length > 0) {
                     msg.files.forEach(file => {
-                        const fileIcon = getFileIcon(file.file_type);
-                        content += `
-                            <div class="message-file" onclick="downloadFile('${file.file_url}', '${file.file_name}')">
-                                <div class="file-icon">
-                                    <i class="fas ${fileIcon}"></i>
-                                </div>
-                                <div class="file-info">
-                                    <div class="file-name">${escapeHtml(file.file_name)}</div>
-                                    <div class="file-meta">
-                                        <span>${file.file_type}</span>
-                                        <span>${formatFileSize(file.file_size)}</span>
+                        if (file.file_type === 'audio') {
+                            content += `
+                                <div class="message-audio">
+                                    <button class="audio-play-btn" onclick="playAudio('${file.file_url}', this)">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <div class="audio-waveform">
+                                        <div class="audio-duration">🎵 Message vocal</div>
                                     </div>
                                 </div>
-                                <div class="file-download">
-                                    <i class="fas fa-download"></i>
+                            `;
+                        } else {
+                            const fileIcon = getFileIcon(file.file_type);
+                            content += `
+                                <div class="message-file" onclick="downloadFile('${file.file_url}', '${file.file_name}')">
+                                    <div class="file-icon">
+                                        <i class="fas ${fileIcon}"></i>
+                                    </div>
+                                    <div class="file-info">
+                                        <div class="file-name">${escapeHtml(file.file_name)}</div>
+                                        <div class="file-meta">
+                                            <span>${file.file_type}</span>
+                                            <span>${formatFileSize(file.file_size)}</span>
+                                        </div>
+                                    </div>
+                                    <div class="file-download">
+                                        <i class="fas fa-download"></i>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
+                            `;
+                        }
                     });
                 }
                 
@@ -936,6 +949,24 @@
 
         async function uploadVoiceMessage(audioBlob) {
             try {
+                // 1. Créer le message SANS audio_url
+                const { data: messageData, error: insertError } = await supabaseInstance
+                    .from('messages')
+                    .insert({
+                        sender_id: currentUser.id,
+                        receiver_id: currentChatUser.user_id,
+                        texte: null,
+                        image_url: null,
+                        // ❌ PAS de audio_url ici
+                        delivery_status: 'sent'
+                    })
+                    .select()
+                    .single();
+
+                if (insertError) throw insertError;
+                const messageId = messageData.message_id;
+                
+                // 2. Upload l'audio dans Storage
                 const fileName = `voice_${Date.now()}_${currentUser.id}.wav`;
                 
                 const { error: uploadError } = await supabaseInstance.storage
@@ -951,24 +982,24 @@
                     .from('messages-files')
                     .getPublicUrl(fileName);
 
-                const { data: messageData, error: insertError } = await supabaseInstance
-                    .from('messages')
+                // 3. ✅ Insérer dans message_files (comme les autres fichiers)
+                const { error: fileMetaError } = await supabaseInstance
+                    .from('message_files')
                     .insert({
-                        sender_id: currentUser.id,
-                        receiver_id: currentChatUser.user_id,
-                        texte: null,
-                        image_url: null,
-                        audio_url: audioUrlData.publicUrl,
-                        delivery_status: 'sent'
-                    })
-                    .select()
-                    .single();
+                        message_id: messageId,
+                        file_url: audioUrlData.publicUrl,
+                        file_name: fileName,
+                        file_type: 'audio', // Type audio
+                        file_size: audioBlob.size,
+                        mime_type: 'audio/wav'
+                    });
 
-                if (insertError) throw insertError;
-                console.log('Message vocal envoyé avec succès');
+                if (fileMetaError) throw fileMetaError;
+                
+                console.log('✅ Message vocal envoyé avec succès');
                 
             } catch (error) {
-                console.error('Erreur envoi message vocal:', error);
+                console.error('❌ Erreur envoi message vocal:', error);
                 alert('Erreur lors de l\'envoi du message vocal');
             }
         }
@@ -1418,4 +1449,4 @@
         }, 30000);
     </script>
 </body>
-</html>
+    </html>
