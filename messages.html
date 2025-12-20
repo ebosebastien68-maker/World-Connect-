@@ -203,26 +203,51 @@
 
         // ==================== INITIALISATION ====================
         function initializeApp() {
-            if (window.supabaseClient) {
+            if (window.supabaseClient && window.supabaseClient.supabase) {
                 supabaseInstance = window.supabaseClient.supabase;
                 getCurrentUser = window.supabaseClient.getCurrentUser;
                 getUserProfile = window.supabaseClient.getUserProfile;
                 redirectByRole = window.supabaseClient.redirectByRole;
                 
+                // ✅ Vérification critique
+                console.log('✅ Supabase initialisé:', !!supabaseInstance);
+                console.log('✅ URL:', supabaseInstance?.supabaseUrl);
+                console.log('✅ Auth disponible:', !!supabaseInstance?.auth);
+                
                 initApp();
             } else {
+                console.warn('⏳ En attente de supabaseClient...');
                 setTimeout(initializeApp, 100);
             }
         }
 
         async function initApp() {
+            // ✅ Double vérification de l'authentification
+            if (!supabaseInstance) {
+                console.error('❌ supabaseInstance non initialisé');
+                alert('Erreur: Client Supabase non initialisé. Rechargez la page.');
+                return;
+            }
+
             currentUser = await getCurrentUser();
             if (!currentUser) {
+                console.warn('❌ Utilisateur non connecté, redirection...');
                 window.location.href = 'connexion.html';
                 return;
             }
 
+            console.log('✅ Utilisateur connecté:', currentUser.id);
+
             userProfile = await getUserProfile(currentUser.id);
+            if (!userProfile) {
+                console.error('❌ Profil utilisateur introuvable');
+                alert('Erreur: Profil introuvable. Veuillez vous reconnecter.');
+                window.location.href = 'connexion.html';
+                return;
+            }
+
+            console.log('✅ Profil chargé:', userProfile);
+            
             await initInterface();
 
             document.getElementById('search-conversations').addEventListener('input', (e) => filterList('conversations', e.target.value));
@@ -297,18 +322,31 @@
             }
         }
 
-        // ==================== CHARGEMENT DONNÉES (VERSION ORIGINALE CORRIGÉE) ====================
+        // ==================== CHARGEMENT DONNÉES ====================
         async function loadConversations() {
             try {
-                // ✅ MÉTHODE ORIGINALE : Une seule requête avec .or()
-                const { data: messages, error } = await supabaseInstance
-                    .from('messages')
-                    .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
-                    .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
-                    .order('date_created', { ascending: false })
-                    .limit(200);
+                // ✅ NOUVELLE MÉTHODE : Deux requêtes simples au lieu d'un .or() complexe
+                const [sentMessages, receivedMessages] = await Promise.all([
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
+                        .eq('sender_id', currentUser.id)
+                        .order('date_created', { ascending: false })
+                        .limit(100),
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
+                        .eq('receiver_id', currentUser.id)
+                        .order('date_created', { ascending: false })
+                        .limit(100)
+                ]);
 
-                if (error) throw error;
+                if (sentMessages.error) throw sentMessages.error;
+                if (receivedMessages.error) throw receivedMessages.error;
+
+                // Fusionner et trier les messages
+                const messages = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
+                    .sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
 
                 const userIds = new Set();
                 messages.forEach(msg => {
@@ -363,16 +401,30 @@
 
         async function loadMessages(otherUserId) {
             try {
-                // ✅ MÉTHODE ORIGINALE : Une seule requête avec .or()
-                const { data, error } = await supabaseInstance
-                    .from('messages')
-                    .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
-                    .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
-                    .order('date_created', { ascending: true })
-                    .limit(200);
+                // ✅ NOUVELLE MÉTHODE : Deux requêtes simples
+                const [sentMessages, receivedMessages] = await Promise.all([
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
+                        .eq('sender_id', currentUser.id)
+                        .eq('receiver_id', otherUserId)
+                        .order('date_created', { ascending: true })
+                        .limit(100),
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
+                        .eq('sender_id', otherUserId)
+                        .eq('receiver_id', currentUser.id)
+                        .order('date_created', { ascending: true })
+                        .limit(100)
+                ]);
 
-                if (error) throw error;
-                messagesCache = data || [];
+                if (sentMessages.error) throw sentMessages.error;
+                if (receivedMessages.error) throw receivedMessages.error;
+
+                // Fusionner et trier les messages
+                messagesCache = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
+                    .sort((a, b) => new Date(a.date_created) - new Date(b.date_created));
                 
                 if (messagesCache.length > 0) {
                     const messageIds = messagesCache.map(m => m.message_id);
@@ -1478,4 +1530,4 @@
         }, 30000);
     </script>
 </body>
-                </html>
+    </html>
