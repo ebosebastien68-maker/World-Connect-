@@ -91,6 +91,7 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         camera.position.z = 50;
 
+        // Particules
         const particlesGeometry = new THREE.BufferGeometry();
         const particlesCount = 3000;
         const posArray = new Float32Array(particlesCount * 3);
@@ -112,6 +113,7 @@
         const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
         scene.add(particlesMesh);
 
+        // Lignes de connexion
         const linesGroup = new THREE.Group();
         scene.add(linesGroup);
         
@@ -142,6 +144,7 @@
         
         createConnectionLines();
 
+        // Sphère centrale
         const sphereGeometry = new THREE.SphereGeometry(8, 32, 32);
         const sphereMaterial = new THREE.MeshBasicMaterial({
             color: 0x2e5c8a,
@@ -152,6 +155,7 @@
         const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
         scene.add(sphere);
 
+        // Animation
         let time = 0;
         function animate() {
             requestAnimationFrame(animate);
@@ -293,44 +297,29 @@
             }
         }
 
-        // ==================== 🔥 CORRECTION : CHARGEMENT CONVERSATIONS ====================
+        // ==================== CHARGEMENT DONNÉES ====================
         async function loadConversations() {
             try {
-                console.log('📥 Chargement des conversations...');
-                
-                // 🔥 FIX : Deux requêtes séparées au lieu de .or()
-                const sentQuery = supabaseInstance
-                    .from('messages')
-                    .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
-                    .eq('sender_id', currentUser.id)
-                    .order('date_created', { ascending: false })
-                    .limit(100);
+                const [sentMessages, receivedMessages] = await Promise.all([
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
+                        .eq('sender_id', currentUser.id)
+                        .order('date_created', { ascending: false })
+                        .limit(100),
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
+                        .eq('receiver_id', currentUser.id)
+                        .order('date_created', { ascending: false })
+                        .limit(100)
+                ]);
 
-                const receivedQuery = supabaseInstance
-                    .from('messages')
-                    .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
-                    .eq('receiver_id', currentUser.id)
-                    .order('date_created', { ascending: false })
-                    .limit(100);
+                if (sentMessages.error) throw sentMessages.error;
+                if (receivedMessages.error) throw receivedMessages.error;
 
-                const [sentResult, receivedResult] = await Promise.all([sentQuery, receivedQuery]);
-
-                if (sentResult.error) {
-                    console.error('❌ Erreur messages envoyés:', sentResult.error);
-                    throw sentResult.error;
-                }
-                if (receivedResult.error) {
-                    console.error('❌ Erreur messages reçus:', receivedResult.error);
-                    throw receivedResult.error;
-                }
-
-                console.log('✅ Messages envoyés:', sentResult.data?.length || 0);
-                console.log('✅ Messages reçus:', receivedResult.data?.length || 0);
-
-                const allMessages = [...(sentResult.data || []), ...(receivedResult.data || [])]
+                const allMessages = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
                     .sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
-
-                console.log('📊 Total messages:', allMessages.length);
 
                 const userIds = new Set();
                 allMessages.forEach(msg => {
@@ -339,43 +328,27 @@
                 });
 
                 if (userIds.size === 0) {
-                    console.log('ℹ️ Aucune conversation');
                     conversationsCache = [];
                     return;
                 }
-
-                console.log('👥 Récupération des profils pour', userIds.size, 'utilisateur(s)...');
 
                 const { data: users, error: usersError } = await supabaseInstance
                     .from('users_profile')
                     .select('user_id, prenom, nom, role')
                     .in('user_id', Array.from(userIds));
 
-                if (usersError) {
-                    console.error('❌ Erreur profils:', usersError);
-                    throw usersError;
-                }
-
-                console.log('✅ Profils récupérés:', users?.length || 0);
+                if (usersError) throw usersError;
 
                 const usersMap = {};
-                (users || []).forEach(u => { 
-                    usersMap[u.user_id] = u; 
-                });
+                users.forEach(u => { usersMap[u.user_id] = u; });
 
                 const conversations = {};
                 allMessages.forEach(msg => {
                     const otherId = msg.sender_id === currentUser.id ? msg.receiver_id : msg.sender_id;
                     const otherUser = usersMap[otherId];
 
-                    if (!otherUser) {
-                        console.warn('⚠️ Utilisateur introuvable:', otherId);
-                        return;
-                    }
-
-                    if (userProfile.role === 'user' && otherUser.role !== 'admin') {
-                        return;
-                    }
+                    if (!otherUser) return;
+                    if (userProfile.role === 'user' && otherUser.role !== 'admin') return;
 
                     if (!conversations[otherId]) {
                         conversations[otherId] = {
@@ -384,7 +357,6 @@
                             unread: 0
                         };
                     }
-
                     if (msg.receiver_id === currentUser.id && !msg.read_status) {
                         conversations[otherId].unread++;
                     }
@@ -394,74 +366,45 @@
                     new Date(b.lastMessage.date_created) - new Date(a.lastMessage.date_created)
                 );
 
-                console.log('✅ Conversations chargées:', conversationsCache.length);
-
             } catch (error) {
-                console.error('❌ Erreur chargement conversations:', error);
-                console.error('Détails:', {
-                    message: error.message,
-                    hint: error.hint,
-                    details: error.details,
-                    code: error.code
-                });
+                console.error('Erreur chargement conversations:', error);
                 conversationsCache = [];
             }
         }
 
-        // ==================== 🔥 CORRECTION : CHARGEMENT MESSAGES ====================
         async function loadMessages(otherUserId) {
             try {
-                console.log('📥 Chargement messages avec:', otherUserId);
+                const [sentMessages, receivedMessages] = await Promise.all([
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
+                        .eq('sender_id', currentUser.id)
+                        .eq('receiver_id', otherUserId)
+                        .order('date_created', { ascending: true })
+                        .limit(200),
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
+                        .eq('sender_id', otherUserId)
+                        .eq('receiver_id', currentUser.id)
+                        .order('date_created', { ascending: true })
+                        .limit(200)
+                ]);
 
-                // 🔥 FIX : Deux requêtes séparées
-                const sentQuery = supabaseInstance
-                    .from('messages')
-                    .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
-                    .eq('sender_id', currentUser.id)
-                    .eq('receiver_id', otherUserId)
-                    .order('date_created', { ascending: true })
-                    .limit(200);
+                if (sentMessages.error) throw sentMessages.error;
+                if (receivedMessages.error) throw receivedMessages.error;
 
-                const receivedQuery = supabaseInstance
-                    .from('messages')
-                    .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
-                    .eq('sender_id', otherUserId)
-                    .eq('receiver_id', currentUser.id)
-                    .order('date_created', { ascending: true })
-                    .limit(200);
-
-                const [sentResult, receivedResult] = await Promise.all([sentQuery, receivedQuery]);
-
-                if (sentResult.error) {
-                    console.error('❌ Erreur messages envoyés:', sentResult.error);
-                    throw sentResult.error;
-                }
-                if (receivedResult.error) {
-                    console.error('❌ Erreur messages reçus:', receivedResult.error);
-                    throw receivedResult.error;
-                }
-
-                console.log('✅ Messages envoyés:', sentResult.data?.length || 0);
-                console.log('✅ Messages reçus:', receivedResult.data?.length || 0);
-
-                messagesCache = [...(sentResult.data || []), ...(receivedResult.data || [])]
+                messagesCache = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
                     .sort((a, b) => new Date(a.date_created) - new Date(b.date_created));
                 
-                console.log('📊 Total messages:', messagesCache.length);
-
                 if (messagesCache.length > 0) {
                     const messageIds = messagesCache.map(m => m.message_id);
-                    
-                    console.log('📎 Chargement des fichiers...');
-                    const { data: files, error: filesError } = await supabaseInstance
+                    const { data: files } = await supabaseInstance
                         .from('message_files')
                         .select('*')
                         .in('message_id', messageIds);
                     
-                    if (filesError) {
-                        console.warn('⚠️ Erreur chargement fichiers:', filesError);
-                    } else if (files) {
-                        console.log('✅ Fichiers chargés:', files.length);
+                    if (files) {
                         messagesCache.forEach(msg => {
                             msg.files = files.filter(f => f.message_id === msg.message_id);
                         });
@@ -469,15 +412,8 @@
                 }
                 
                 displayMessages(messagesCache);
-                
             } catch (error) {
-                console.error('❌ Erreur chargement messages:', error);
-                console.error('Détails:', {
-                    message: error.message,
-                    hint: error.hint,
-                    details: error.details,
-                    code: error.code
-                });
+                console.error('Erreur chargement messages:', error);
                 messagesCache = [];
                 showEmptyState('Erreur de chargement', 'Impossible de charger les messages');
             }
@@ -1378,7 +1314,7 @@
         }
 
         function handleKeyDown(event) {
-            // Enter = nouvelle ligne
+            // Enter = nouvelle ligne (comportement par défaut)
         }
 
         function insertEmoji() {
