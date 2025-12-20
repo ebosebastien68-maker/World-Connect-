@@ -1590,8 +1590,8 @@
     } catch (error) {
         console.error('Erreur chargement conversations:', error);
         conversationsCache = [];
+     }
     }
-        }
         function openConversationsModal() {
             displayConversations(conversationsCache);
             document.getElementById('conversations-modal').classList.add('show');
