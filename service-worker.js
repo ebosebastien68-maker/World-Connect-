@@ -1,7 +1,7 @@
 // ============================================================================
 // SERVICE WORKER PRODUCTION - WORLD CONNECT
 // ============================================================================
-// Version: 5.0.2 - Fix IDBRequest Clone Error
+// Version: 5.0.1 - Fix Notification Body
 // ============================================================================
 
 'use strict';
@@ -9,7 +9,7 @@
 // ----------------------------------------------------------------------------
 // CONFIGURATION
 // ----------------------------------------------------------------------------
-const VERSION = '5.0.2';
+const VERSION = '5.0.1';
 const CACHE_NAME = `worldconnect-v${VERSION}`;
 const CACHE_STATIC = `${CACHE_NAME}-static`;
 const CACHE_IMAGES = `${CACHE_NAME}-images`;
@@ -56,7 +56,7 @@ const CONFIG = {
   CACHE_MAX_AGE: 86400000, // 24h
   NOTIFICATION_ICON: '/connect_pro.png',
   NETWORK_TIMEOUT: 5000,
-  VAPID_PUBLIC_KEY: 'BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA',
+  VAPID_PUBLIC_KEY: 'BEDVco0GQtfwptI7b5r5v6nrwdN_mYlSR0SM1s80MMuxwGSoPBeDohL3SxyXWoJLX8aQsXNsv9VQxBfj68JqnsI',
   SYNC_RETRY_INTERVAL: 60000,
   MAX_SYNC_RETRIES: 5
 };
@@ -252,35 +252,11 @@ class SyncQueue {
       const tx = db.transaction('syncQueue', 'readwrite');
       const store = tx.objectStore('syncQueue');
       
-      // Clear d'abord
-      await new Promise((resolve, reject) => {
-        const clearReq = store.clear();
-        clearReq.onsuccess = () => resolve();
-        clearReq.onerror = () => reject(clearReq.error);
-      });
+      await store.clear();
       
-      // Ensuite ajouter les items
       for (const item of this.queue) {
-        await new Promise((resolve, reject) => {
-          // 🔥 Sérialiser l'item pour éviter les références circulaires
-          const safeItem = {
-            id: item.id,
-            action: {
-              type: item.action.type,
-              data: JSON.parse(JSON.stringify(item.action.data))
-            },
-            timestamp: item.timestamp,
-            retries: item.retries,
-            maxRetries: item.maxRetries
-          };
-          
-          const addReq = store.add(safeItem);
-          addReq.onsuccess = () => resolve();
-          addReq.onerror = () => reject(addReq.error);
-        });
+        await store.add(item);
       }
-      
-      console.log('💾 Queue sauvegardée');
     } catch (error) {
       console.error('❌ Erreur sauvegarde queue:', error);
     }
@@ -292,14 +268,7 @@ class SyncQueue {
       const tx = db.transaction('syncQueue', 'readonly');
       const store = tx.objectStore('syncQueue');
       
-      // 🔥 Utiliser une Promise pour récupérer toutes les données
-      const items = await new Promise((resolve, reject) => {
-        const getAllReq = store.getAll();
-        getAllReq.onsuccess = () => resolve(getAllReq.result);
-        getAllReq.onerror = () => reject(getAllReq.error);
-      });
-      
-      this.queue = items || [];
+      this.queue = await store.getAll();
       console.log(`📦 ${this.queue.length} action(s) chargée(s)`);
       
       if (this.queue.length > 0) {
@@ -315,27 +284,18 @@ class SyncQueue {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('WorldConnectSync', 1);
       
-      request.onerror = () => {
-        console.error('❌ Erreur ouverture DB:', request.error);
-        reject(request.error);
-      };
-      
-      request.onsuccess = () => {
-        console.log('✅ DB ouverte');
-        resolve(request.result); // 🔥 Retourner result, pas request
-      };
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
       
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
         
         if (!db.objectStoreNames.contains('syncQueue')) {
-          const store = db.createObjectStore('syncQueue', { keyPath: 'id' });
-          console.log('📦 Store syncQueue créé');
+          db.createObjectStore('syncQueue', { keyPath: 'id' });
         }
         
         if (!db.objectStoreNames.contains('offlineData')) {
-          const store = db.createObjectStore('offlineData', { keyPath: 'key' });
-          console.log('📦 Store offlineData créé');
+          db.createObjectStore('offlineData', { keyPath: 'key' });
         }
       };
     });
@@ -343,23 +303,8 @@ class SyncQueue {
 
   async notifyClients(message) {
     const clients = await self.clients.matchAll({ type: 'window' });
-    
-    // 🔥 Sérialiser le message pour éviter les erreurs de clonage
-    const safeMessage = JSON.parse(JSON.stringify({
-      type: message.type,
-      action: message.action ? {
-        type: message.action.type,
-        timestamp: message.action.timestamp || Date.now()
-      } : undefined,
-      error: message.error || undefined
-    }));
-    
     clients.forEach(client => {
-      try {
-        client.postMessage(safeMessage);
-      } catch (error) {
-        console.error('❌ Erreur postMessage:', error);
-      }
+      client.postMessage(message);
     });
   }
 }
@@ -536,15 +481,11 @@ self.addEventListener('activate', (event) => {
         
         const clients = await self.clients.matchAll({ type: 'window' });
         clients.forEach(client => {
-          try {
-            client.postMessage({
-              type: 'SW_ACTIVATED',
-              version: VERSION,
-              support: SUPPORT
-            });
-          } catch (error) {
-            console.error('❌ Erreur postMessage activation:', error);
-          }
+          client.postMessage({
+            type: 'SW_ACTIVATED',
+            version: VERSION,
+            support: SUPPORT
+          });
         });
       } catch (error) {
         console.error('❌ Erreur activation:', error);
@@ -687,17 +628,10 @@ self.addEventListener('push', (event) => {
         // Jouer un son (optionnel)
         const clients = await self.clients.matchAll({ type: 'window' });
         clients.forEach(client => {
-          try {
-            client.postMessage({
-              type: 'PLAY_NOTIFICATION_SOUND',
-              notification: {
-                title: notificationData.title,
-                body: notificationData.body
-              }
-            });
-          } catch (error) {
-            console.error('❌ Erreur postMessage son:', error);
-          }
+          client.postMessage({
+            type: 'PLAY_NOTIFICATION_SOUND',
+            notification: notificationData
+          });
         });
         
       } catch (error) {
@@ -776,15 +710,11 @@ self.addEventListener('message', (event) => {
       
     case 'GET_VERSION':
       if (event.ports?.[0]) {
-        try {
-          event.ports[0].postMessage({ 
-            version: VERSION,
-            support: SUPPORT,
-            queueLength: syncQueue.queue.length
-          });
-        } catch (error) {
-          console.error('❌ Erreur postMessage version:', error);
-        }
+        event.ports[0].postMessage({ 
+          version: VERSION,
+          support: SUPPORT,
+          queueLength: syncQueue.queue.length
+        });
       }
       break;
       
@@ -798,23 +728,10 @@ self.addEventListener('message', (event) => {
       
     case 'GET_SYNC_QUEUE':
       if (event.ports?.[0]) {
-        // 🔥 Sérialiser la queue avant envoi
-        const safeQueue = syncQueue.queue.map(item => ({
-          id: item.id,
-          type: item.action.type,
-          timestamp: item.timestamp,
-          retries: item.retries,
-          maxRetries: item.maxRetries
-        }));
-        
-        try {
-          event.ports[0].postMessage({ 
-            queue: safeQueue,
-            processing: syncQueue.processing
-          });
-        } catch (error) {
-          console.error('❌ Erreur envoi queue:', error);
-        }
+        event.ports[0].postMessage({ 
+          queue: syncQueue.queue,
+          processing: syncQueue.processing
+        });
       }
       break;
   }
@@ -835,4 +752,3 @@ self.addEventListener('unhandledrejection', (event) => {
 console.log(`✅ Service Worker v${VERSION} prêt pour la production!`);
 console.log('📱 Notifications Push: ACTIVÉES ET CORRIGÉES');
 console.log('🔄 Synchronisation optimiste: ACTIVÉE');
-console.log('🔥 Fix IDBRequest Clone: APPLIQUÉ');
