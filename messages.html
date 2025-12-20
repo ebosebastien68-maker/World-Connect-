@@ -297,32 +297,21 @@
             }
         }
 
-        // ==================== CHARGEMENT DONNÉES ====================
+        // ==================== CHARGEMENT DONNÉES (VERSION ORIGINALE CORRIGÉE) ====================
         async function loadConversations() {
             try {
-                const [sentMessages, receivedMessages] = await Promise.all([
-                    supabaseInstance
-                        .from('messages')
-                        .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
-                        .eq('sender_id', currentUser.id)
-                        .order('date_created', { ascending: false })
-                        .limit(100),
-                    supabaseInstance
-                        .from('messages')
-                        .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
-                        .eq('receiver_id', currentUser.id)
-                        .order('date_created', { ascending: false })
-                        .limit(100)
-                ]);
+                // ✅ MÉTHODE ORIGINALE : Une seule requête avec .or()
+                const { data: messages, error } = await supabaseInstance
+                    .from('messages')
+                    .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
+                    .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+                    .order('date_created', { ascending: false })
+                    .limit(200);
 
-                if (sentMessages.error) throw sentMessages.error;
-                if (receivedMessages.error) throw receivedMessages.error;
-
-                const allMessages = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
-                    .sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
+                if (error) throw error;
 
                 const userIds = new Set();
-                allMessages.forEach(msg => {
+                messages.forEach(msg => {
                     const otherId = msg.sender_id === currentUser.id ? msg.receiver_id : msg.sender_id;
                     userIds.add(otherId);
                 });
@@ -343,7 +332,7 @@
                 users.forEach(u => { usersMap[u.user_id] = u; });
 
                 const conversations = {};
-                allMessages.forEach(msg => {
+                messages.forEach(msg => {
                     const otherId = msg.sender_id === currentUser.id ? msg.receiver_id : msg.sender_id;
                     const otherUser = usersMap[otherId];
 
@@ -374,28 +363,16 @@
 
         async function loadMessages(otherUserId) {
             try {
-                const [sentMessages, receivedMessages] = await Promise.all([
-                    supabaseInstance
-                        .from('messages')
-                        .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
-                        .eq('sender_id', currentUser.id)
-                        .eq('receiver_id', otherUserId)
-                        .order('date_created', { ascending: true })
-                        .limit(200),
-                    supabaseInstance
-                        .from('messages')
-                        .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
-                        .eq('sender_id', otherUserId)
-                        .eq('receiver_id', currentUser.id)
-                        .order('date_created', { ascending: true })
-                        .limit(200)
-                ]);
+                // ✅ MÉTHODE ORIGINALE : Une seule requête avec .or()
+                const { data, error } = await supabaseInstance
+                    .from('messages')
+                    .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
+                    .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
+                    .order('date_created', { ascending: true })
+                    .limit(200);
 
-                if (sentMessages.error) throw sentMessages.error;
-                if (receivedMessages.error) throw receivedMessages.error;
-
-                messagesCache = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
-                    .sort((a, b) => new Date(a.date_created) - new Date(b.date_created));
+                if (error) throw error;
+                messagesCache = data || [];
                 
                 if (messagesCache.length > 0) {
                     const messageIds = messagesCache.map(m => m.message_id);
@@ -1004,10 +981,11 @@
                 .on('postgres_changes', {
                     event: 'INSERT',
                     schema: 'public',
-                    table: 'messages',
-                    filter: `sender_id=eq.${currentUser.id}`
+                    table: 'messages'
                 }, async (payload) => {
-                    if (payload.new.receiver_id === otherUserId) {
+                    if ((payload.new.sender_id === otherUserId && payload.new.receiver_id === currentUser.id) ||
+                        (payload.new.sender_id === currentUser.id && payload.new.receiver_id === otherUserId)) {
+                        
                         const { data: files } = await supabaseInstance
                             .from('message_files')
                             .select('*')
@@ -1016,25 +994,11 @@
                         payload.new.files = files || [];
                         messagesCache.push(payload.new);
                         displayMessages(messagesCache);
-                        loadConversations();
-                    }
-                })
-                .on('postgres_changes', {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `sender_id=eq.${otherUserId}`
-                }, async (payload) => {
-                    if (payload.new.receiver_id === currentUser.id) {
-                        const { data: files } = await supabaseInstance
-                            .from('message_files')
-                            .select('*')
-                            .eq('message_id', payload.new.message_id);
                         
-                        payload.new.files = files || [];
-                        messagesCache.push(payload.new);
-                        displayMessages(messagesCache);
-                        markMessagesAsRead(otherUserId);
+                        if (payload.new.receiver_id === currentUser.id) {
+                            markMessagesAsRead(otherUserId);
+                        }
+                        
                         loadConversations();
                     }
                 })
@@ -1454,4 +1418,4 @@
         }, 30000);
     </script>
 </body>
-    </html>
+</html>
