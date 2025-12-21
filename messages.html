@@ -325,17 +325,17 @@
         // ==================== CHARGEMENT DONNÉES ====================
         async function loadConversations() {
             try {
-                // ✅ NOUVELLE MÉTHODE : Deux requêtes simples au lieu d'un .or() complexe
+                // ✅ Sélectionner uniquement les colonnes nécessaires
                 const [sentMessages, receivedMessages] = await Promise.all([
                     supabaseInstance
                         .from('messages')
-                        .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
+                        .select('message_id, sender_id, receiver_id, texte, image_url, date_created, read_status, delivery_status')
                         .eq('sender_id', currentUser.id)
                         .order('date_created', { ascending: false })
                         .limit(100),
                     supabaseInstance
                         .from('messages')
-                        .select('message_id, sender_id, receiver_id, texte, image_url, audio_url, date_created, read_status, delivery_status')
+                        .select('message_id, sender_id, receiver_id, texte, image_url, date_created, read_status, delivery_status')
                         .eq('receiver_id', currentUser.id)
                         .order('date_created', { ascending: false })
                         .limit(100)
@@ -401,48 +401,76 @@
 
         async function loadMessages(otherUserId) {
             try {
-                // ✅ NOUVELLE MÉTHODE : Deux requêtes simples
+                console.log('🔍 Chargement messages avec:', otherUserId);
+                
+                // ✅ Sélectionner uniquement les colonnes nécessaires (sans audio_url qui n'existe peut-être pas)
                 const [sentMessages, receivedMessages] = await Promise.all([
                     supabaseInstance
                         .from('messages')
-                        .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
+                        .select('message_id, sender_id, texte, image_url, date_created, delivery_status, read_status')
                         .eq('sender_id', currentUser.id)
                         .eq('receiver_id', otherUserId)
                         .order('date_created', { ascending: true })
                         .limit(100),
                     supabaseInstance
                         .from('messages')
-                        .select('message_id, sender_id, texte, image_url, audio_url, date_created, delivery_status, read_status')
+                        .select('message_id, sender_id, texte, image_url, date_created, delivery_status, read_status')
                         .eq('sender_id', otherUserId)
                         .eq('receiver_id', currentUser.id)
                         .order('date_created', { ascending: true })
                         .limit(100)
                 ]);
 
-                if (sentMessages.error) throw sentMessages.error;
-                if (receivedMessages.error) throw receivedMessages.error;
+                console.log('📤 Messages envoyés:', sentMessages);
+                console.log('📥 Messages reçus:', receivedMessages);
+
+                if (sentMessages.error) {
+                    console.error('❌ Erreur messages envoyés:', sentMessages.error);
+                    throw sentMessages.error;
+                }
+                if (receivedMessages.error) {
+                    console.error('❌ Erreur messages reçus:', receivedMessages.error);
+                    throw receivedMessages.error;
+                }
 
                 // Fusionner et trier les messages
                 messagesCache = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
                     .sort((a, b) => new Date(a.date_created) - new Date(b.date_created));
                 
+                console.log('✅ Total messages:', messagesCache.length);
+                
                 if (messagesCache.length > 0) {
                     const messageIds = messagesCache.map(m => m.message_id);
-                    const { data: files } = await supabaseInstance
+                    console.log('🔍 Chargement fichiers pour', messageIds.length, 'messages');
+                    
+                    const { data: files, error: filesError } = await supabaseInstance
                         .from('message_files')
                         .select('*')
                         .in('message_id', messageIds);
                     
-                    if (files) {
-                        messagesCache.forEach(msg => {
-                            msg.files = files.filter(f => f.message_id === msg.message_id);
-                        });
+                    if (filesError) {
+                        console.error('⚠️ Erreur chargement fichiers (non bloquant):', filesError);
+                    } else {
+                        console.log('📎 Fichiers chargés:', files?.length || 0);
+                        if (files) {
+                            messagesCache.forEach(msg => {
+                                msg.files = files.filter(f => f.message_id === msg.message_id);
+                            });
+                        }
                     }
                 }
                 
+                console.log('✅ Affichage des messages...');
                 displayMessages(messagesCache);
+                
             } catch (error) {
-                console.error('Erreur chargement messages:', error);
+                console.error('❌ Erreur complète chargement messages:', error);
+                console.error('Détails:', {
+                    message: error.message,
+                    code: error.code,
+                    details: error.details,
+                    hint: error.hint
+                });
                 messagesCache = [];
                 showEmptyState('Erreur de chargement', 'Impossible de charger les messages');
             }
@@ -484,13 +512,25 @@
             conversations.forEach(conv => {
                 const initials = `${conv.user.prenom[0]}${conv.user.nom[0]}`.toUpperCase();
                 let lastMsg;
-                if (conv.lastMessage.audio_url) {
-                    lastMsg = '🎵 Message vocal';
+                
+                // Vérifier les fichiers d'abord
+                if (conv.lastMessage.files && conv.lastMessage.files.length > 0) {
+                    const firstFile = conv.lastMessage.files[0];
+                    if (firstFile.file_type === 'audio') {
+                        lastMsg = '🎵 Message vocal';
+                    } else if (firstFile.file_type === 'video') {
+                        lastMsg = '🎥 Vidéo';
+                    } else if (firstFile.file_type === 'pdf') {
+                        lastMsg = '📄 PDF';
+                    } else {
+                        lastMsg = '📎 Fichier';
+                    }
                 } else if (conv.lastMessage.image_url) {
                     lastMsg = '📷 Photo';
                 } else {
-                    lastMsg = conv.lastMessage.texte?.substring(0, 50) || '📷 Photo';
+                    lastMsg = conv.lastMessage.texte?.substring(0, 50) || '📎 Fichier';
                 }
+                
                 const time = formatTime(conv.lastMessage.date_created);
                 const isUnread = conv.unread > 0;
 
@@ -619,19 +659,7 @@
                 if (msg.texte) content += `<div class="message-text">${escapeHtml(msg.texte)}</div>`;
                 if (msg.image_url) content += `<img src="${msg.image_url}" class="message-image" onclick="openImageFullscreen('${msg.image_url}')">`;
                 
-                if (msg.audio_url) {
-                    content += `
-                        <div class="message-audio">
-                            <button class="audio-play-btn" onclick="playAudio('${msg.audio_url}', this)">
-                                <i class="fas fa-play"></i>
-                            </button>
-                            <div class="audio-waveform">
-                                <div class="audio-duration">🎵 Message vocal</div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
+                // ✅ Afficher les fichiers depuis message_files (pas audio_url)
                 if (msg.files && msg.files.length > 0) {
                     msg.files.forEach(file => {
                         if (file.file_type === 'audio') {
@@ -839,7 +867,6 @@
                         receiver_id: currentChatUser.user_id,
                         texte: texte || null,
                         image_url: imageUrl,
-                        audio_url: null,
                         delivery_status: 'sent'
                     })
                     .select()
