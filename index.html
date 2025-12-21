@@ -211,22 +211,9 @@
     <script src="optimistic-sync.js"></script>
     <script src="commentaires.js"></script>
     
-    <!-- Service Worker pour PWA -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker
-                    .register('./service-worker.js')
-                    .then(() => console.log('✅ Service Worker enregistré avec succès !'))
-                    .catch(error => console.error('❌ Erreur lors de l\'enregistrement du Service Worker :', error));
-            });
-        }
-    </script>
-    
     <!-- Script principal intégré -->
     <script>
         // Récupération des fonctions depuis supabaseClient.js
-        // On utilise des noms différents pour éviter les conflits
         const supabaseInstance = window.supabaseClient.supabase;
         const getCurrentUser = window.supabaseClient.getCurrentUser;
         const getUserProfile = window.supabaseClient.getUserProfile;
@@ -239,6 +226,7 @@
         let currentPage = 'home';
         let userReactions = {};
         let scene, camera, renderer, particles;
+        let swRegistration = null; // 🔥 AJOUT POUR NOTIFICATIONS
 
         // ============================================================================
         // TOAST NOTIFICATION SYSTEM
@@ -362,6 +350,135 @@
                 return this.isOnline;
             }
         };
+
+        // ============================================================================
+        // SERVICE WORKER & PUSH NOTIFICATIONS - 🔥 CODE RESTAURÉ
+        // ============================================================================
+        async function initServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                console.warn('⚠️ Service Worker non supporté');
+                return;
+            }
+
+            try {
+                swRegistration = await navigator.serviceWorker.register('./service-worker.js');
+                console.log('✅ Service Worker enregistré');
+                
+                // Écouter les messages du Service Worker
+                navigator.serviceWorker.addEventListener('message', handleSWMessage);
+                
+                await navigator.serviceWorker.ready;
+                
+                // Demander les permissions de notification
+                if ('Notification' in window && 'PushManager' in window) {
+                    await requestNotificationPermission();
+                }
+            } catch (error) {
+                console.error('❌ Erreur Service Worker:', error);
+                ToastManager.error('Erreur', 'Impossible d\'activer les notifications push');
+            }
+        }
+
+        function handleSWMessage(event) {
+            const { type, version, support } = event.data || {};
+            
+            if (type === 'SW_ACTIVATED') {
+                console.log('🚀 Service Worker activé - Version:', version);
+                console.log('📋 Support navigateur:', support);
+            } else if (type === 'RESUBSCRIBE_PUSH') {
+                ToastManager.warning('Notification', 'Veuillez réactiver les notifications');
+                requestNotificationPermission();
+            } else if (type === 'PLAY_NOTIFICATION_SOUND') {
+                // Optionnel : jouer un son de notification
+                console.log('🔔 Notification reçue:', event.data.notification);
+            }
+        }
+
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    await subscribeToPushNotifications();
+                    ToastManager.success('Notifications activées', 'Vous recevrez désormais nos notifications pour une meilleure performance');
+                } else if (permission === 'denied') {
+                    ToastManager.warning('Notifications désactivées', 'Activez-les dans les paramètres de votre navigateur pour ne rien manquer');
+                }
+            } catch (error) {
+                console.error('❌ Erreur permission:', error);
+            }
+        }
+
+        async function subscribeToPushNotifications() {
+            if (!swRegistration) return;
+            
+            try {
+                // 🔥 CLÉ VAPID SYNCHRONISÉE AVEC LE SERVICE WORKER v5.0.2
+                const vapidPublicKey = 'BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA';
+                const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+                
+                const subscription = await swRegistration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedVapidKey
+                });
+                
+                console.log('✅ Abonnement push créé');
+                await saveSubscriptionToDatabase(subscription);
+                
+            } catch (error) {
+                console.error('❌ Erreur abonnement push:', error);
+                ToastManager.error('Erreur', 'Impossible de s\'abonner aux notifications');
+            }
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        async function saveSubscriptionToDatabase(subscription) {
+            try {
+                if (!currentUser) {
+                    console.warn('⚠️ Pas d\'utilisateur connecté, abonnement non sauvegardé');
+                    return;
+                }
+                
+                const subscriptionData = {
+                    user_id: currentUser.id,
+                    endpoint: subscription.endpoint,
+                    p256dh_key: arrayBufferToBase64(subscription.getKey('p256dh')),
+                    auth_key: arrayBufferToBase64(subscription.getKey('auth')),
+                    user_agent: navigator.userAgent,
+                    device_type: 'web',
+                    created_at: new Date().toISOString()
+                };
+                
+                // 🔥 UTILISATION DE supabaseInstance
+                await supabaseInstance.from('subscriptions').upsert(subscriptionData, {
+                    onConflict: 'user_id,endpoint'
+                });
+                
+                console.log('✅ Subscription enregistrée en base de données');
+                
+            } catch (error) {
+                console.error('❌ Erreur sauvegarde subscription:', error);
+            }
+        }
+
+        function arrayBufferToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
 
         // ============================================================================
         // THREE.JS ANIMATION BACKGROUND
@@ -805,7 +922,7 @@
                     table: 'messages',
                     filter: `receiver_id=eq.${currentUser.id}`
                 }, () => {
-                        loadMessageCount();
+                    loadMessageCount();
                 })
                 .subscribe();
         }
@@ -1139,7 +1256,6 @@
                 
                 if (error) throw error;
                 
-                // Rendu simple des commentaires
                 renderComments(container, articleId, comments || []);
                 
             } catch (error) {
@@ -1470,7 +1586,7 @@
         // INITIALISATION PRINCIPALE
         // ============================================================================
         window.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 Initialisation de l\'application...');
+            console.log('🚀 Initialisation de l\'application World Connect...');
             
             // Initialiser les managers
             ToastManager.init();
@@ -1479,6 +1595,9 @@
             
             // Initialiser Three.js
             initThreeJS();
+            
+            // 🔥 INITIALISER LE SERVICE WORKER ET NOTIFICATIONS
+            await initServiceWorker();
             
             // Vérifier la déconnexion manuelle
             const manualLogout = sessionStorage.getItem('manualLogout');
@@ -1504,6 +1623,21 @@
                             setupRealTimeUpdates();
                             loadNotificationCount();
                             loadMessageCount();
+                            
+                            // 🔥 RÉABONNER AUX NOTIFICATIONS SI L'UTILISATEUR EST CONNECTÉ
+                            if (swRegistration && 'Notification' in window && Notification.permission === 'granted') {
+                                try {
+                                    const subscription = await swRegistration.pushManager.getSubscription();
+                                    if (!subscription) {
+                                        console.log('🔔 Pas d\'abonnement existant, création...');
+                                        await subscribeToPushNotifications();
+                                    } else {
+                                        console.log('✅ Abonnement push déjà existant');
+                                    }
+                                } catch (subError) {
+                                    console.warn('⚠️ Erreur vérification abonnement:', subError);
+                                }
+                            }
                         }
                     } catch (profileError) {
                         console.warn('⚠️ Erreur profil:', profileError);
@@ -1530,7 +1664,18 @@
                 }
             }, 30000);
             
-            console.log('✅ Application initialisée avec succès');
+            // Recharger les articles lors du retour en ligne
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && currentUser) {
+                    loadNotificationCount();
+                    loadMessageCount();
+                    loadArticles();
+                }
+            });
+            
+            console.log('✅ Application World Connect initialisée avec succès !');
+            console.log('📱 Système de notifications: ACTIVÉ');
+            console.log('🔑 Clé VAPID: BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA');
         });
 
         // ============================================================================
@@ -1557,7 +1702,9 @@
         window.LoadingManager = LoadingManager;
         window.OfflineManager = OfflineManager;
 
-        console.log('🎉 Script chargé avec succès - Version complète intégrée !');
+        console.log('🎉 World Connect - Script chargé avec succès !');
+        console.log('📱 Version: 5.0.2 - Notifications Push Restaurées');
+        console.log('🔥 Toutes les fonctionnalités sont opérationnelles');
     </script>
 </body>
-    </html>
+                </html>
