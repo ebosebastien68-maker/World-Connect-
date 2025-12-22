@@ -569,7 +569,11 @@
 
             container.innerHTML = '';
             contacts.forEach(user => {
-                const initials = `${user.prenom[0]}${user.nom[0]}`.toUpperCase();
+                // ✅ Vérification de sécurité pour éviter "undefined"
+                const prenom = user.prenom || 'U';
+                const nom = user.nom || 'ser';
+                const initials = `${prenom[0]}${nom[0]}`.toUpperCase();
+                
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.onclick = () => {
@@ -580,7 +584,7 @@
                     <div class="item-avatar">${initials}</div>
                     <div class="item-info">
                         <div class="item-header">
-                            <span class="item-name">${user.prenom} ${user.nom}</span>
+                            <span class="item-name">${prenom} ${nom}</span>
                             ${user.role === 'admin' ? '<span class="item-role">Admin</span>' : ''}
                         </div>
                         <div class="item-preview">Démarrer une conversation</div>
@@ -1557,4 +1561,4 @@
         }, 30000);
     </script>
 </body>
-    </html>
+                </html>
