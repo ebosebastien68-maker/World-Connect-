@@ -1404,8 +1404,12 @@
             
             if (!input || !sendBtn) return;
             
+            // ✅ Réinitialiser la hauteur pour calculer la vraie hauteur nécessaire
             input.style.height = 'auto';
-            input.style.height = Math.min(input.scrollHeight, 100) + 'px';
+            
+            // ✅ Calculer la nouvelle hauteur (min 24px, max 180px)
+            const newHeight = Math.max(24, Math.min(input.scrollHeight, 180));
+            input.style.height = newHeight + 'px';
             
             const hasContent = input.value.trim().length > 0 || selectedImage !== null || selectedFile !== null;
             sendBtn.disabled = !hasContent;
@@ -1561,4 +1565,4 @@
         }, 30000);
     </script>
 </body>
-                </html>
+    </html>
