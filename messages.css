@@ -636,27 +636,48 @@ body {
     box-shadow: 0 0 20px rgba(107, 124, 63, 0.2);
 }
 
+.input-wrapper { 
+    flex: 1; 
+    position: relative; 
+    display: flex; 
+    align-items: center;
+    background: rgba(30, 40, 60, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 28px;
+    padding: 0 20px;
+    transition: all 0.3s ease;
+    min-height: 58px;
+}
+
+.input-wrapper:focus-within {
+    border-color: rgba(107, 124, 63, 0.6);
+    box-shadow: 0 0 20px rgba(107, 124, 63, 0.2);
+}
+
 .message-input { 
     width: 100%; 
-    padding: 14px 0;
+    padding: 18px 0;
     border: none;
     background: transparent;
-    font-size: 15px; 
+    font-size: 17px;
     font-family: inherit;
+    font-weight: 400;
     resize: none;
-    max-height: 120px;
+    min-height: 52px;
+    max-height: 180px;
     overflow-y: auto;
     color: #e0e0e0;
+    line-height: 1.5;
 }
 
 .message-input::placeholder {
     color: rgba(160, 174, 192, 0.6);
+    font-size: 16px;
 }
 
 .message-input:focus { 
     outline: none;
 }
-
 .emoji-btn {
     background: transparent;
     border: none;
