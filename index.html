@@ -352,7 +352,7 @@
         };
 
         // ============================================================================
-        // SERVICE WORKER & PUSH NOTIFICATIONS - 🔥 CODE RESTAURÉ
+        // SERVICE WORKER & PUSH NOTIFICATIONS - 🔥 VERSION PROFESSIONNELLE
         // ============================================================================
         async function initServiceWorker() {
             if (!('serviceWorker' in navigator)) {
@@ -368,14 +368,13 @@
                 navigator.serviceWorker.addEventListener('message', handleSWMessage);
                 
                 await navigator.serviceWorker.ready;
+                console.log('✅ Service Worker prêt');
                 
-                // Demander les permissions de notification
-                if ('Notification' in window && 'PushManager' in window) {
-                    await requestNotificationPermission();
-                }
+                // ✅ NE PAS demander les permissions maintenant
+                // On attend que l'utilisateur soit connecté
+                
             } catch (error) {
                 console.error('❌ Erreur Service Worker:', error);
-                ToastManager.error('Erreur', 'Impossible d\'activer les notifications push');
             }
         }
 
@@ -395,18 +394,119 @@
         }
 
         async function requestNotificationPermission() {
+            // ✅ Vérifier que l'utilisateur est connecté AVANT de demander
+            if (!currentUser || !userProfile) {
+                console.warn('⚠️ Utilisateur non connecté, demande de notification annulée');
+                return false;
+            }
+
+            // ✅ Vérifier si déjà demandé précédemment
+            const notificationAsked = localStorage.getItem('notificationAsked');
+            if (notificationAsked === 'true' && Notification.permission !== 'default') {
+                console.log('ℹ️ Notification déjà demandée précédemment');
+                
+                // Si permission accordée, vérifier l'abonnement
+                if (Notification.permission === 'granted') {
+                    await ensureSubscriptionExists();
+                }
+                return false;
+            }
+
             try {
+                // ✅ Message contextuel AVANT de demander la permission
+                ToastManager.info(
+                    '🔔 Restez informé', 
+                    'Activez les notifications pour ne rien manquer des nouveautés !',
+                    8000
+                );
+
+                // ✅ Attendre 1.5 secondes pour que l'utilisateur lise le message
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
                 const permission = await Notification.requestPermission();
+                
+                // ✅ Marquer comme déjà demandé
+                localStorage.setItem('notificationAsked', 'true');
+                localStorage.setItem('notificationAskedDate', new Date().toISOString());
                 
                 if (permission === 'granted') {
                     await subscribeToPushNotifications();
-                    ToastManager.success('Notifications activées', 'Vous recevrez désormais nos notifications pour une meilleure performance');
+                    ToastManager.success(
+                        '✅ Notifications activées', 
+                        'Vous recevrez désormais nos actualités en temps réel !',
+                        6000
+                    );
+                    return true;
                 } else if (permission === 'denied') {
-                    ToastManager.warning('Notifications désactivées', 'Activez-les dans les paramètres de votre navigateur pour ne rien manquer');
+                    ToastManager.warning(
+                        '🔕 Notifications désactivées', 
+                        'Vous pouvez les réactiver à tout moment dans les paramètres',
+                        6000
+                    );
+                    return false;
+                } else {
+                    console.log('ℹ️ Permission de notification ignorée');
+                    return false;
                 }
             } catch (error) {
                 console.error('❌ Erreur permission:', error);
+                return false;
             }
+        }
+
+        // ✅ NOUVELLE FONCTION : Vérifier et créer l'abonnement si nécessaire
+        async function ensureSubscriptionExists() {
+            if (!swRegistration || !currentUser) return;
+
+            try {
+                const existingSubscription = await swRegistration.pushManager.getSubscription();
+                
+                if (!existingSubscription) {
+                    console.log('🔔 Pas d\'abonnement, création...');
+                    await subscribeToPushNotifications();
+                } else {
+                    console.log('✅ Abonnement push déjà existant');
+                    
+                    // ✅ Vérifier si l'abonnement est en base de données
+                    await saveSubscriptionToDatabase(existingSubscription);
+                }
+            } catch (error) {
+                console.warn('⚠️ Erreur vérification abonnement:', error);
+            }
+        }
+
+        // ✅ NOUVELLE FONCTION : Demander les notifications après un délai (non intrusif)
+        async function requestNotificationAfterDelay() {
+            // ✅ Vérifications de sécurité
+            if (!currentUser || !userProfile) {
+                console.log('ℹ️ Pas d\'utilisateur, pas de demande de notification');
+                return;
+            }
+
+            if (!('Notification' in window) || !('PushManager' in window)) {
+                console.warn('⚠️ Notifications non supportées');
+                return;
+            }
+
+            // ✅ Ne pas redemander si déjà répondu (accordé ou refusé)
+            const notificationAsked = localStorage.getItem('notificationAsked');
+            if (notificationAsked === 'true' && Notification.permission !== 'default') {
+                console.log('ℹ️ Permission déjà gérée:', Notification.permission);
+                
+                // Si accordée, vérifier l'abonnement
+                if (Notification.permission === 'granted') {
+                    await ensureSubscriptionExists();
+                }
+                return;
+            }
+
+            // ✅ Attendre 3 secondes après connexion (non intrusif)
+            setTimeout(async () => {
+                // Double vérification que l'utilisateur est toujours connecté
+                if (currentUser && userProfile) {
+                    await requestNotificationPermission();
+                }
+            }, 3000);
         }
 
         async function subscribeToPushNotifications() {
@@ -444,8 +544,15 @@
 
         async function saveSubscriptionToDatabase(subscription) {
             try {
+                // ✅ VÉRIFICATION CRITIQUE : Utilisateur connecté
                 if (!currentUser) {
                     console.warn('⚠️ Pas d\'utilisateur connecté, abonnement non sauvegardé');
+                    return;
+                }
+
+                // ✅ VÉRIFICATION : Profil chargé
+                if (!userProfile) {
+                    console.warn('⚠️ Profil utilisateur non chargé, abonnement non sauvegardé');
                     return;
                 }
                 
@@ -460,14 +567,22 @@
                 };
                 
                 // 🔥 UTILISATION DE supabaseInstance
-                await supabaseInstance.from('subscriptions').upsert(subscriptionData, {
-                    onConflict: 'user_id,endpoint'
-                });
+                const { data, error } = await supabaseInstance
+                    .from('subscriptions')
+                    .upsert(subscriptionData, {
+                        onConflict: 'user_id,endpoint'
+                    });
                 
-                console.log('✅ Subscription enregistrée en base de données');
+                if (error) {
+                    console.error('❌ Erreur sauvegarde subscription:', error);
+                    return;
+                }
+                
+                console.log('✅ Subscription enregistrée en base de données pour', userProfile.prenom, userProfile.nom);
+                console.log('📱 Endpoint:', subscription.endpoint.substring(0, 50) + '...');
                 
             } catch (error) {
-                console.error('❌ Erreur sauvegarde subscription:', error);
+                console.error('❌ Erreur critique sauvegarde subscription:', error);
             }
         }
 
@@ -1583,88 +1698,145 @@
         }
 
         // ============================================================================
-        // INITIALISATION PRINCIPALE
+        // INITIALISATION PRINCIPALE - 🔥 ORDRE OPTIMISÉ
         // ============================================================================
         window.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 Initialisation de l\'application World Connect...');
+            console.log('📅', new Date().toLocaleString('fr-FR'));
             
-            // Initialiser les managers
+            // ============================================================================
+            // ÉTAPE 1 : INITIALISER LES MANAGERS
+            // ============================================================================
             ToastManager.init();
             LoadingManager.init();
             OfflineManager.init();
+            console.log('✅ Managers initialisés');
             
-            // Initialiser Three.js
+            // ============================================================================
+            // ÉTAPE 2 : INITIALISER THREE.JS (Visuel)
+            // ============================================================================
             initThreeJS();
+            console.log('✅ Three.js initialisé');
             
-            // 🔥 INITIALISER LE SERVICE WORKER ET NOTIFICATIONS
+            // ============================================================================
+            // ÉTAPE 3 : ENREGISTRER LE SERVICE WORKER (Sans demander de permission)
+            // ============================================================================
             await initServiceWorker();
+            console.log('✅ Service Worker enregistré');
             
-            // Vérifier la déconnexion manuelle
+            // ============================================================================
+            // ÉTAPE 4 : VÉRIFIER LA DÉCONNEXION MANUELLE
+            // ============================================================================
             const manualLogout = sessionStorage.getItem('manualLogout');
             if (manualLogout === 'true') {
                 sessionStorage.removeItem('manualLogout');
+                console.log('ℹ️ Déconnexion manuelle détectée, arrêt de l\'initialisation');
                 return;
             }
 
             try {
                 LoadingManager.show();
                 
-                // Récupérer l'utilisateur actuel
+                // ============================================================================
+                // ÉTAPE 5 : RÉCUPÉRER L'UTILISATEUR ACTUEL
+                // ============================================================================
+                console.log('🔍 Récupération de l\'utilisateur...');
                 currentUser = await getCurrentUser();
                 
                 if (currentUser) {
+                    console.log('✅ Utilisateur connecté:', currentUser.id);
+                    
                     try {
+                        // ============================================================================
+                        // ÉTAPE 6 : CHARGER LE PROFIL UTILISATEUR
+                        // ============================================================================
+                        console.log('🔍 Chargement du profil...');
                         userProfile = await getUserProfile(currentUser.id);
                         
                         if (userProfile) {
+                            console.log('✅ Profil chargé:', userProfile.prenom, userProfile.nom);
+                            
+                            // ============================================================================
+                            // ÉTAPE 7 : CONFIGURER L'INTERFACE UTILISATEUR
+                            // ============================================================================
                             updateMenu();
                             showWelcomePopup();
+                            console.log('✅ Interface mise à jour');
+                            
+                            // ============================================================================
+                            // ÉTAPE 8 : CHARGER LES DONNÉES UTILISATEUR
+                            // ============================================================================
                             await loadUserReactions();
+                            console.log('✅ Réactions chargées');
+                            
                             setupRealTimeUpdates();
+                            console.log('✅ Temps réel activé');
+                            
                             loadNotificationCount();
                             loadMessageCount();
+                            console.log('✅ Compteurs chargés');
                             
-                            // 🔥 RÉABONNER AUX NOTIFICATIONS SI L'UTILISATEUR EST CONNECTÉ
-                            if (swRegistration && 'Notification' in window && Notification.permission === 'granted') {
-                                try {
-                                    const subscription = await swRegistration.pushManager.getSubscription();
-                                    if (!subscription) {
-                                        console.log('🔔 Pas d\'abonnement existant, création...');
-                                        await subscribeToPushNotifications();
-                                    } else {
-                                        console.log('✅ Abonnement push déjà existant');
-                                    }
-                                } catch (subError) {
-                                    console.warn('⚠️ Erreur vérification abonnement:', subError);
-                                }
+                            // ============================================================================
+                            // ÉTAPE 9 : 🔥 DEMANDER LES NOTIFICATIONS (MAINTENANT !)
+                            // ============================================================================
+                            console.log('🔔 Vérification des notifications...');
+                            
+                            // ✅ Vérifier si les notifications sont déjà accordées
+                            if ('Notification' in window && Notification.permission === 'granted') {
+                                console.log('✅ Permission de notification déjà accordée');
+                                await ensureSubscriptionExists();
+                            } 
+                            // ✅ Si pas encore demandé, demander après un délai
+                            else if (Notification.permission === 'default') {
+                                console.log('🔔 Demande de notification programmée...');
+                                await requestNotificationAfterDelay();
                             }
+                            // ✅ Si refusé, ne rien faire
+                            else {
+                                console.log('🔕 Notifications refusées par l\'utilisateur');
+                            }
+                        } else {
+                            console.warn('⚠️ Profil utilisateur introuvable');
                         }
                     } catch (profileError) {
                         console.warn('⚠️ Erreur profil:', profileError);
                         ToastManager.warning('Attention', 'Impossible de charger votre profil');
                     }
+                } else {
+                    console.log('ℹ️ Aucun utilisateur connecté');
                 }
             } catch (error) {
-                console.error('⚠️ Erreur init:', error);
+                console.error('⚠️ Erreur initialisation:', error);
             } finally {
                 LoadingManager.hide();
             }
             
-            // Charger les articles
+            // ============================================================================
+            // ÉTAPE 10 : CHARGER LES ARTICLES
+            // ============================================================================
             await loadArticles();
+            console.log('✅ Articles chargés');
             
-            // Initialiser la navigation
+            // ============================================================================
+            // ÉTAPE 11 : INITIALISER LA NAVIGATION
+            // ============================================================================
             initNavigation();
+            console.log('✅ Navigation initialisée');
             
-            // Rafraîchir les compteurs toutes les 30 secondes
+            // ============================================================================
+            // ÉTAPE 12 : DÉMARRER LES INTERVALLES
+            // ============================================================================
             setInterval(() => {
                 if (currentUser) {
                     loadNotificationCount();
                     loadMessageCount();
                 }
             }, 30000);
+            console.log('✅ Intervalles démarrés (30s)');
             
-            // Recharger les articles lors du retour en ligne
+            // ============================================================================
+            // ÉTAPE 13 : ÉCOUTER LES ÉVÉNEMENTS
+            // ============================================================================
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden && currentUser) {
                     loadNotificationCount();
@@ -1672,15 +1844,137 @@
                     loadArticles();
                 }
             });
+            console.log('✅ Événements configurés');
             
-            console.log('✅ Application World Connect initialisée avec succès !');
-            console.log('📱 Système de notifications: ACTIVÉ');
-            console.log('🔑 Clé VAPID: BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA');
+            // ============================================================================
+            // INITIALISATION TERMINÉE
+            // ============================================================================
+            console.log('═══════════════════════════════════════════════════');
+            console.log('✅ APPLICATION WORLD CONNECT INITIALISÉE AVEC SUCCÈS');
+            console.log('═══════════════════════════════════════════════════');
+            console.log('📱 Version: 5.0.2 PRO');
+            console.log('🔔 Système de notifications: OPTIMISÉ');
+            console.log('🔑 Clé VAPID: BH3HWUJHOVhPrzNe... (synchronisée)');
+            console.log('👤 Utilisateur:', currentUser ? `${userProfile?.prenom} ${userProfile?.nom}` : 'Non connecté');
+            console.log('🔔 Notifications:', Notification.permission);
+            console.log('═══════════════════════════════════════════════════');
         });
 
         // ============================================================================
-        // EXPORTS GLOBAUX
+        // EXPORTS GLOBAUX + FONCTION POUR RÉACTIVER LES NOTIFICATIONS
         // ============================================================================
+        
+        // ✅ NOUVELLE FONCTION : Réactiver les notifications manuellement (pour les paramètres)
+        async function enableNotifications() {
+            if (!currentUser || !userProfile) {
+                ToastManager.warning(
+                    'Connexion requise', 
+                    'Veuillez vous connecter pour activer les notifications'
+                );
+                setTimeout(() => {
+                    window.location.href = 'connexion.html';
+                }, 2000);
+                return;
+            }
+
+            if (!('Notification' in window) || !('PushManager' in window)) {
+                ToastManager.error(
+                    'Non supporté', 
+                    'Votre navigateur ne supporte pas les notifications'
+                );
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                ToastManager.error(
+                    'Permission refusée', 
+                    'Vous avez bloqué les notifications. Réactivez-les dans les paramètres de votre navigateur.'
+                );
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                ToastManager.info(
+                    'Déjà activées', 
+                    'Les notifications sont déjà activées sur cet appareil'
+                );
+                await ensureSubscriptionExists();
+                return;
+            }
+
+            // Forcer la demande même si déjà demandé avant
+            localStorage.removeItem('notificationAsked');
+            await requestNotificationPermission();
+        }
+
+        // ✅ NOUVELLE FONCTION : Désactiver les notifications
+        async function disableNotifications() {
+            if (!swRegistration) {
+                ToastManager.info('Aucune notification', 'Aucun abonnement actif');
+                return;
+            }
+
+            try {
+                const subscription = await swRegistration.pushManager.getSubscription();
+                
+                if (subscription) {
+                    await subscription.unsubscribe();
+                    console.log('✅ Abonnement push supprimé');
+                    
+                    // Supprimer de la base de données
+                    if (currentUser && supabaseInstance) {
+                        await supabaseInstance
+                            .from('subscriptions')
+                            .delete()
+                            .eq('user_id', currentUser.id)
+                            .eq('endpoint', subscription.endpoint);
+                        
+                        console.log('✅ Abonnement supprimé de la base de données');
+                    }
+                    
+                    ToastManager.success(
+                        'Notifications désactivées', 
+                        'Vous ne recevrez plus de notifications sur cet appareil'
+                    );
+                } else {
+                    ToastManager.info(
+                        'Aucune notification', 
+                        'Aucun abonnement actif à désactiver'
+                    );
+                }
+            } catch (error) {
+                console.error('❌ Erreur désactivation:', error);
+                ToastManager.error(
+                    'Erreur', 
+                    'Impossible de désactiver les notifications'
+                );
+            }
+        }
+
+        // ✅ NOUVELLE FONCTION : Vérifier le statut des notifications
+        async function getNotificationStatus() {
+            const status = {
+                supported: 'Notification' in window && 'PushManager' in window,
+                permission: Notification.permission,
+                subscribed: false,
+                endpoint: null
+            };
+
+            if (swRegistration) {
+                try {
+                    const subscription = await swRegistration.pushManager.getSubscription();
+                    if (subscription) {
+                        status.subscribed = true;
+                        status.endpoint = subscription.endpoint;
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur vérification statut:', error);
+                }
+            }
+
+            return status;
+        }
+
         window.loadArticles = loadArticles;
         window.handleReaction = handleReaction;
         window.toggleComments = toggleComments;
@@ -1701,10 +1995,21 @@
         window.ToastManager = ToastManager;
         window.LoadingManager = LoadingManager;
         window.OfflineManager = OfflineManager;
+        
+        // ✅ EXPORTS DES NOUVELLES FONCTIONS DE GESTION DES NOTIFICATIONS
+        window.enableNotifications = enableNotifications;
+        window.disableNotifications = disableNotifications;
+        window.getNotificationStatus = getNotificationStatus;
+        window.requestNotificationPermission = requestNotificationPermission;
 
         console.log('🎉 World Connect - Script chargé avec succès !');
-        console.log('📱 Version: 5.0.2 - Notifications Push Restaurées');
+        console.log('📱 Version: 5.0.2 PRO - Notifications après connexion');
         console.log('🔥 Toutes les fonctionnalités sont opérationnelles');
+        console.log('');
+        console.log('💡 FONCTIONS DISPONIBLES :');
+        console.log('   - enableNotifications() : Activer les notifications');
+        console.log('   - disableNotifications() : Désactiver les notifications');
+        console.log('   - getNotificationStatus() : Vérifier le statut');
     </script>
 </body>
-                </html>
+        </html>
