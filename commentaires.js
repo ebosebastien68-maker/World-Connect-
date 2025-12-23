@@ -1351,4 +1351,4 @@ if (!window.deleteReply) {
     window.deleteReply = (replyId, articleId) => {
         window.CommentsWidget.deleteReply(replyId, articleId);
     };
-    }
+}
