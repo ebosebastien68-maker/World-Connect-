@@ -19,19 +19,14 @@ window.CommentsWidget = {
     // INITIALISATION
     // ============================================================================
     
-    /**
-     * Initialiser le widget
-     */
     async init() {
         console.log('🔄 [CommentsWidget] Initialisation...');
         
-        // Vérifier que supabaseClient est disponible
         if (!window.supabaseClient) {
             console.error('❌ [CommentsWidget] supabaseClient non disponible');
             return false;
         }
         
-        // 🔥 UTILISER supabaseInstance au lieu de supabase
         this.supabaseInstance = window.supabaseClient.supabase;
         this.currentUser = await window.supabaseClient.getCurrentUser();
         
@@ -52,9 +47,6 @@ window.CommentsWidget = {
     // RENDU DES COMMENTAIRES
     // ============================================================================
     
-    /**
-     * Charger et afficher les commentaires pour un article
-     */
     async loadComments(articleId, container) {
         if (!this.supabaseInstance) {
             await this.init();
@@ -65,7 +57,6 @@ window.CommentsWidget = {
         try {
             console.log('📥 [CommentsWidget] Chargement commentaires:', articleId);
             
-            // Récupérer les commentaires via la vue SQL
             const { data: comments, error: commentError } = await this.supabaseInstance
                 .from('comments_with_actor_info')
                 .select('*')
@@ -74,7 +65,6 @@ window.CommentsWidget = {
             
             if (commentError) throw commentError;
             
-            // Récupérer TOUTES les réponses
             const { data: allReplies, error: replyError } = await this.supabaseInstance
                 .from('replies_with_actor_info')
                 .select('*')
@@ -82,7 +72,6 @@ window.CommentsWidget = {
             
             if (replyError) throw replyError;
             
-            // Filtrer les réponses qui appartiennent aux commentaires de cet article
             const commentIds = comments.map(c => c.session_id);
             const replies = allReplies.filter(r => commentIds.includes(r.session_id));
             
@@ -91,10 +80,7 @@ window.CommentsWidget = {
                 replies: replies?.length || 0
             });
             
-            // Rendu
             this.renderComments(container, articleId, comments || [], replies || []);
-            
-            // Activer le temps réel
             this.setupRealtime(articleId, container);
             
         } catch (error) {
@@ -112,11 +98,7 @@ window.CommentsWidget = {
         }
     },
     
-    /**
-     * Rendu HTML des commentaires
-     */
     renderComments(container, articleId, comments, allReplies) {
-        // Grouper les réponses par session_id
         const repliesByComment = {};
         allReplies.forEach(reply => {
             const parentId = reply.session_id;
@@ -134,7 +116,6 @@ window.CommentsWidget = {
                 </div>
         `;
         
-        // Section d'ajout de commentaire
         if (!this.currentUser || !this.userProfile) {
             html += `
                 <div class="comments-login-prompt">
@@ -167,7 +148,6 @@ window.CommentsWidget = {
             `;
         }
         
-        // Liste des commentaires
         if (comments.length === 0) {
             html += `
                 <div class="comments-empty">
@@ -177,23 +157,17 @@ window.CommentsWidget = {
             `;
         } else {
             html += '<div class="comments-list">';
-            
             comments.forEach(comment => {
                 html += this.renderComment(comment, repliesByComment[comment.session_id] || [], articleId);
             });
-            
             html += '</div>';
         }
         
         html += '</div>';
-        
         this.injectStyles();
         container.innerHTML = html;
     },
     
-    /**
-     * Rendu d'un commentaire individuel
-     */
     renderComment(comment, replies, articleId) {
         const commentId = comment.session_id;
         const prenom = comment.prenom_acteur || 'Utilisateur';
@@ -202,24 +176,22 @@ window.CommentsWidget = {
         const date = comment.date_created;
         const initials = this.getInitials(prenom, nom);
         
-        // 🔥 UTILISER acteur_id pour identifier le propriétaire
         const isMyComment = this.currentUser && this.currentUser.id === comment.acteur_id;
         const isAdmin = this.userProfile && this.userProfile.role === 'admin';
         const canModify = isMyComment || isAdmin;
         
         let html = `
-            <div class="comment-item" id="comment-${commentId}" data-comment-id="${commentId}">
+            <div class="comment-item" id="comment-${commentId}">
                 <div class="comment-main">
                     <div class="comment-avatar">${initials}</div>
                     <div class="comment-content">
                         <div class="comment-header">
                             <span class="comment-author">${this.escapeHtml(prenom)} ${this.escapeHtml(nom)}</span>
                             <span class="comment-date">${this.formatDate(date)}</span>
-                            ${isAdmin && !isMyComment ? '<span class="admin-badge">Admin</span>' : ''}
+                            ${isAdmin && !isMyComment ? '<span class="admin-badge">ADMIN</span>' : ''}
                         </div>
                         <div class="comment-text" id="comment-text-${commentId}">${this.escapeHtml(texte)}</div>
                         
-                        <!-- Zone d'édition (cachée par défaut) -->
                         <div id="comment-edit-${commentId}" class="comment-edit-box" style="display: none;">
                             <textarea id="comment-edit-input-${commentId}" class="comment-edit-input">${this.escapeHtml(texte)}</textarea>
                             <div class="comment-edit-actions">
@@ -279,9 +251,6 @@ window.CommentsWidget = {
         return html;
     },
     
-    /**
-     * Rendu d'une réponse
-     */
     renderReply(reply, articleId) {
         const replyId = reply.reponse_id;
         const prenom = reply.prenom_acteur || 'Utilisateur';
@@ -290,7 +259,6 @@ window.CommentsWidget = {
         const date = reply.date_created;
         const initials = this.getInitials(prenom, nom);
         
-        // 🔥 UTILISER acteur_id pour identifier le propriétaire
         const isMyReply = this.currentUser && this.currentUser.id === reply.acteur_id;
         const isAdmin = this.userProfile && this.userProfile.role === 'admin';
         const canModify = isMyReply || isAdmin;
@@ -302,11 +270,10 @@ window.CommentsWidget = {
                     <div class="reply-header">
                         <span class="reply-author">${this.escapeHtml(prenom)} ${this.escapeHtml(nom)}</span>
                         <span class="reply-date">${this.formatDate(date)}</span>
-                        ${isAdmin && !isMyReply ? '<span class="admin-badge">Admin</span>' : ''}
+                        ${isAdmin && !isMyReply ? '<span class="admin-badge">ADMIN</span>' : ''}
                     </div>
                     <div class="reply-text" id="reply-text-${replyId}">${this.escapeHtml(texte)}</div>
                     
-                    <!-- Zone d'édition (cachée par défaut) -->
                     <div id="reply-edit-${replyId}" class="reply-edit-box" style="display: none;">
                         <textarea id="reply-edit-input-${replyId}" class="reply-edit-input">${this.escapeHtml(texte)}</textarea>
                         <div class="reply-edit-actions">
@@ -335,12 +302,9 @@ window.CommentsWidget = {
     },
     
     // ============================================================================
-    // ACTIONS UTILISATEUR - COMMENTAIRES
+    // ACTIONS - COMMENTAIRES
     // ============================================================================
     
-    /**
-     * Soumettre un commentaire
-     */
     async submitComment(articleId) {
         if (!this.currentUser || !this.userProfile) {
             this.showToast('Connexion requise', 'error');
@@ -356,8 +320,6 @@ window.CommentsWidget = {
         }
         
         try {
-            console.log('📤 [CommentsWidget] Envoi commentaire...');
-            
             const { error } = await this.supabaseInstance
                 .from('sessions_commentaires')
                 .insert([{
@@ -370,41 +332,27 @@ window.CommentsWidget = {
             
             input.value = '';
             this.showToast('Commentaire publié', 'success');
-            console.log('✅ [CommentsWidget] Commentaire envoyé');
             
             const container = document.getElementById(`comments-${articleId}`);
-            if (container) {
-                this.loadComments(articleId, container);
-            }
+            if (container) this.loadComments(articleId, container);
             
         } catch (error) {
-            console.error('❌ [CommentsWidget] Erreur envoi commentaire:', error);
+            console.error('❌ Erreur:', error);
             this.showToast('Erreur lors de l\'envoi', 'error');
         }
     },
     
-    /**
-     * Éditer un commentaire
-     */
     editComment(commentId) {
-        // Cacher le texte, afficher l'éditeur
         const textDiv = document.getElementById(`comment-text-${commentId}`);
         const editDiv = document.getElementById(`comment-edit-${commentId}`);
         
         if (textDiv && editDiv) {
             textDiv.style.display = 'none';
             editDiv.style.display = 'block';
-            
-            const input = document.getElementById(`comment-edit-input-${commentId}`);
-            if (input) input.focus();
-            
-            this.editingCommentId = commentId;
+            document.getElementById(`comment-edit-input-${commentId}`)?.focus();
         }
     },
     
-    /**
-     * Sauvegarder l'édition d'un commentaire
-     */
     async saveCommentEdit(commentId, articleId) {
         const input = document.getElementById(`comment-edit-input-${commentId}`);
         const texte = input.value.trim();
@@ -415,8 +363,6 @@ window.CommentsWidget = {
         }
         
         try {
-            console.log('💾 [CommentsWidget] Sauvegarde modification commentaire...');
-            
             const { error } = await this.supabaseInstance
                 .from('sessions_commentaires')
                 .update({ texte: texte })
@@ -425,22 +371,15 @@ window.CommentsWidget = {
             if (error) throw error;
             
             this.showToast('Commentaire modifié', 'success');
-            console.log('✅ [CommentsWidget] Commentaire modifié');
-            
             const container = document.getElementById(`comments-${articleId}`);
-            if (container) {
-                this.loadComments(articleId, container);
-            }
+            if (container) this.loadComments(articleId, container);
             
         } catch (error) {
-            console.error('❌ [CommentsWidget] Erreur modification:', error);
+            console.error('❌ Erreur:', error);
             this.showToast('Erreur lors de la modification', 'error');
         }
     },
     
-    /**
-     * Annuler l'édition d'un commentaire
-     */
     cancelCommentEdit(commentId) {
         const textDiv = document.getElementById(`comment-text-${commentId}`);
         const editDiv = document.getElementById(`comment-edit-${commentId}`);
@@ -448,19 +387,13 @@ window.CommentsWidget = {
         if (textDiv && editDiv) {
             textDiv.style.display = 'block';
             editDiv.style.display = 'none';
-            this.editingCommentId = null;
         }
     },
     
-    /**
-     * Supprimer un commentaire
-     */
     async deleteComment(commentId, articleId) {
         if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
         
         try {
-            console.log('🗑️ [CommentsWidget] Suppression commentaire...');
-            
             const { error } = await this.supabaseInstance
                 .from('sessions_commentaires')
                 .delete()
@@ -469,26 +402,19 @@ window.CommentsWidget = {
             if (error) throw error;
             
             this.showToast('Commentaire supprimé', 'success');
-            console.log('✅ [CommentsWidget] Commentaire supprimé');
-            
             const container = document.getElementById(`comments-${articleId}`);
-            if (container) {
-                this.loadComments(articleId, container);
-            }
+            if (container) this.loadComments(articleId, container);
             
         } catch (error) {
-            console.error('❌ [CommentsWidget] Erreur suppression:', error);
-            this.showToast('Erreur lors de la suppression', 'error');
+            console.error('❌ Erreur:', error);
+            this.showToast('Erreur', 'error');
         }
     },
     
     // ============================================================================
-    // ACTIONS UTILISATEUR - RÉPONSES
+    // ACTIONS - RÉPONSES
     // ============================================================================
     
-    /**
-     * Soumettre une réponse
-     */
     async submitReply(parentId, articleId) {
         if (!this.currentUser || !this.userProfile) {
             this.showToast('Connexion requise', 'error');
@@ -504,8 +430,6 @@ window.CommentsWidget = {
         }
         
         try {
-            console.log('📤 [CommentsWidget] Envoi réponse...');
-            
             const { error } = await this.supabaseInstance
                 .from('session_reponses')
                 .insert([{
@@ -519,22 +443,16 @@ window.CommentsWidget = {
             input.value = '';
             this.toggleReplyBox(parentId);
             this.showToast('Réponse publiée', 'success');
-            console.log('✅ [CommentsWidget] Réponse envoyée');
             
             const container = document.getElementById(`comments-${articleId}`);
-            if (container) {
-                this.loadComments(articleId, container);
-            }
+            if (container) this.loadComments(articleId, container);
             
         } catch (error) {
-            console.error('❌ [CommentsWidget] Erreur envoi réponse:', error);
-            this.showToast('Erreur lors de l\'envoi', 'error');
+            console.error('❌ Erreur:', error);
+            this.showToast('Erreur', 'error');
         }
     },
     
-    /**
-     * Éditer une réponse
-     */
     editReply(replyId) {
         const textDiv = document.getElementById(`reply-text-${replyId}`);
         const editDiv = document.getElementById(`reply-edit-${replyId}`);
@@ -542,17 +460,10 @@ window.CommentsWidget = {
         if (textDiv && editDiv) {
             textDiv.style.display = 'none';
             editDiv.style.display = 'block';
-            
-            const input = document.getElementById(`reply-edit-input-${replyId}`);
-            if (input) input.focus();
-            
-            this.editingReplyId = replyId;
+            document.getElementById(`reply-edit-input-${replyId}`)?.focus();
         }
     },
     
-    /**
-     * Sauvegarder l'édition d'une réponse
-     */
     async saveReplyEdit(replyId, articleId) {
         const input = document.getElementById(`reply-edit-input-${replyId}`);
         const texte = input.value.trim();
@@ -563,8 +474,6 @@ window.CommentsWidget = {
         }
         
         try {
-            console.log('💾 [CommentsWidget] Sauvegarde modification réponse...');
-            
             const { error } = await this.supabaseInstance
                 .from('session_reponses')
                 .update({ texte: texte })
@@ -573,22 +482,15 @@ window.CommentsWidget = {
             if (error) throw error;
             
             this.showToast('Réponse modifiée', 'success');
-            console.log('✅ [CommentsWidget] Réponse modifiée');
-            
             const container = document.getElementById(`comments-${articleId}`);
-            if (container) {
-                this.loadComments(articleId, container);
-            }
+            if (container) this.loadComments(articleId, container);
             
         } catch (error) {
-            console.error('❌ [CommentsWidget] Erreur modification:', error);
-            this.showToast('Erreur lors de la modification', 'error');
+            console.error('❌ Erreur:', error);
+            this.showToast('Erreur', 'error');
         }
     },
     
-    /**
-     * Annuler l'édition d'une réponse
-     */
     cancelReplyEdit(replyId) {
         const textDiv = document.getElementById(`reply-text-${replyId}`);
         const editDiv = document.getElementById(`reply-edit-${replyId}`);
@@ -596,20 +498,14 @@ window.CommentsWidget = {
         if (textDiv && editDiv) {
             textDiv.style.display = 'block';
             editDiv.style.display = 'none';
-            this.editingReplyId = null;
         }
     },
     
-    /**
-     * Supprimer une réponse
-     */
     async deleteReply(replyId, articleId) {
         if (!confirm("Voulez-vous vraiment supprimer cette réponse ?")) return;
         
         try {
-            console.log('🗑️ [CommentsWidget] Suppression réponse...');
-            
-            const { error} = await this.supabaseInstance
+            const { error } = await this.supabaseInstance
                 .from('session_reponses')
                 .delete()
                 .eq('reponse_id', replyId);
@@ -617,32 +513,21 @@ window.CommentsWidget = {
             if (error) throw error;
             
             this.showToast('Réponse supprimée', 'success');
-            console.log('✅ [CommentsWidget] Réponse supprimée');
-            
             const container = document.getElementById(`comments-${articleId}`);
-            if (container) {
-                this.loadComments(articleId, container);
-            }
+            if (container) this.loadComments(articleId, container);
             
         } catch (error) {
-            console.error('❌ [CommentsWidget] Erreur suppression:', error);
-            this.showToast('Erreur lors de la suppression', 'error');
+            console.error('❌ Erreur:', error);
+            this.showToast('Erreur', 'error');
         }
     },
     
-    /**
-     * Toggle boîte de réponse
-     */
     toggleReplyBox(commentId) {
         const box = document.getElementById(`reply-box-${commentId}`);
         if (box) {
             const isVisible = box.style.display !== 'none';
             box.style.display = isVisible ? 'none' : 'block';
-            
-            if (!isVisible) {
-                const input = document.getElementById(`reply-input-${commentId}`);
-                if (input) input.focus();
-            }
+            if (!isVisible) document.getElementById(`reply-input-${commentId}`)?.focus();
         }
     },
     
@@ -650,15 +535,10 @@ window.CommentsWidget = {
     // TEMPS RÉEL
     // ============================================================================
     
-    /**
-     * Activer les mises à jour en temps réel
-     */
     setupRealtime(articleId, container) {
         if (this.realtimeChannels.has(articleId)) {
             this.supabaseInstance.removeChannel(this.realtimeChannels.get(articleId));
         }
-        
-        console.log('🔄 [CommentsWidget] Activation temps réel:', articleId);
         
         const channel = this.supabaseInstance
             .channel(`comments:${articleId}`)
@@ -667,23 +547,13 @@ window.CommentsWidget = {
                 schema: 'public',
                 table: 'sessions_commentaires',
                 filter: `article_id=eq.${articleId}`
-            }, (payload) => {
-                console.log('📩 [CommentsWidget] Changement commentaire:', payload);
-                this.loadComments(articleId, container);
-            })
+            }, () => this.loadComments(articleId, container))
             .on('postgres_changes', {
                 event: '*',
                 schema: 'public',
                 table: 'session_reponses'
-            }, (payload) => {
-                console.log('📩 [CommentsWidget] Changement réponse:', payload);
-                this.loadComments(articleId, container);
-            })
-            .subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('✅ [CommentsWidget] Temps réel activé');
-                }
-            });
+            }, () => this.loadComments(articleId, container))
+            .subscribe();
         
         this.realtimeChannels.set(articleId, channel);
     },
@@ -693,32 +563,17 @@ window.CommentsWidget = {
     // ============================================================================
     
     getInitials(prenom, nom) {
-        const p = (prenom || 'U')[0].toUpperCase();
-        const n = (nom || '')[0]?.toUpperCase() || '';
-        return p + n;
+        return ((prenom || 'U')[0] + (nom || '')[0]).toUpperCase();
     },
     
     formatDate(dateString) {
         const date = new Date(dateString);
-        const now = new Date();
-        const diff = now - date;
-        
+        const diff = Date.now() - date;
         if (diff < 60000) return 'À l\'instant';
-        if (diff < 3600000) {
-            const minutes = Math.floor(diff / 60000);
-            return `Il y a ${minutes} min`;
-        }
-        if (diff < 86400000) {
-            const hours = Math.floor(diff / 3600000);
-            return `Il y a ${hours}h`;
-        }
-        if (diff < 604800000) {
-            const days = Math.floor(diff / 86400000);
-            return `Il y a ${days}j`;
-        }
-        
-        const options = { day: 'numeric', month: 'short', year: 'numeric' };
-        return date.toLocaleDateString('fr-FR', options);
+        if (diff < 3600000) return `Il y a ${Math.floor(diff / 60000)} min`;
+        if (diff < 86400000) return `Il y a ${Math.floor(diff / 3600000)}h`;
+        if (diff < 604800000) return `Il y a ${Math.floor(diff / 86400000)}j`;
+        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
     },
     
     escapeHtml(text) {
@@ -732,524 +587,93 @@ window.CommentsWidget = {
         if (window.ToastManager) {
             window.ToastManager[type]('Commentaires', message);
         } else {
-            console.log(`[CommentsWidget] ${type.toUpperCase()}: ${message}`);
+            console.log(`[${type.toUpperCase()}] ${message}`);
         }
     },
     
-    /**
-     * Injecter les styles CSS
-     */
     injectStyles() {
         if (document.getElementById('comments-widget-styles')) return;
         
         const style = document.createElement('style');
         style.id = 'comments-widget-styles';
         style.textContent = `
-            .comments-widget {
-                padding: 20px;
-                background: var(--bg-secondary);
-            }
-            
-            .comments-header {
-                margin-bottom: 20px;
-                padding-bottom: 16px;
-                border-bottom: 2px solid var(--border-color);
-            }
-            
-            .comments-title {
-                font-size: 18px;
-                font-weight: 700;
-                color: var(--text-primary);
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            .comments-title i {
-                color: var(--accent-blue);
-            }
-            
-            .admin-badge {
-                background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-                color: white;
-                padding: 2px 8px;
-                border-radius: 10px;
-                font-size: 11px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-left: 8px;
-            }
-            
-            .comments-login-prompt {
-                text-align: center;
-                padding: 40px 20px;
-                background: var(--bg-primary);
-                border-radius: 16px;
-                margin-bottom: 20px;
-            }
-            
-            .comments-login-prompt i {
-                font-size: 48px;
-                color: var(--text-tertiary);
-                margin-bottom: 16px;
-            }
-            
-            .comments-login-prompt p {
-                color: var(--text-secondary);
-                margin-bottom: 20px;
-                font-size: 15px;
-            }
-            
-            .login-btn {
-                padding: 12px 24px;
-                background: var(--accent-kaki);
-                color: white;
-                border: none;
-                border-radius: 12px;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 15px;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 12px rgba(107, 114, 73, 0.3);
-            }
-            
-            .login-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(107, 114, 73, 0.5);
-            }
-            
-            .comment-input-box, .reply-input-box {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 24px;
-                padding: 16px;
-                background: var(--bg-primary);
-                border-radius: 16px;
-            }
-            
-            .comment-input-avatar, .reply-input-avatar {
-                width: 48px;
-                height: 48px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: 700;
-                font-size: 18px;
-                flex-shrink: 0;
-            }
-            
-            .reply-input-avatar {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
-            }
-            
-            .comment-input-wrapper, .reply-input-wrapper {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .comment-input, .reply-input {
-                width: 100%;
-                padding: 12px 16px;
-                border: 2px solid var(--border-color);
-                border-radius: 12px;
-                font-family: inherit;
-                font-size: 14px;
-                color: var(--text-primary);
-                background: var(--bg-secondary);
-                resize: vertical;
-                transition: all 0.3s ease;
-            }
-            
-            .comment-input:focus, .reply-input:focus {
-                outline: none;
-                border-color: var(--accent-blue);
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-            }
-            
-            .comment-submit-btn, .reply-submit-btn {
-                align-self: flex-end;
-                padding: 10px 20px;
-                background: var(--accent-kaki);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 14px;
-                transition: all 0.3s ease;
-                box-shadow: 0 3px 10px rgba(107, 114, 73, 0.3);
-            }
-            
-            .comment-submit-btn:hover, .reply-submit-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(107, 114, 73, 0.5);
-            }
-            
-            .comments-empty {
-                text-align: center;
-                padding: 60px 20px;
-                color: var(--text-tertiary);
-            }
-            
-            .comments-empty i {
-                font-size: 64px;
-                margin-bottom: 16px;
-                opacity: 0.5;
-            }
-            
-            .comments-list {
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-            }
-            
-            .comment-item {
-                padding: 16px;
-                background: var(--bg-primary);
-                border-radius: 16px;
-                border-left: 4px solid var(--accent-blue);
-                transition: all 0.3s ease;
-            }
-            
-            .comment-item:hover {
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-                transform: translateX(4px);
-            }
-            
-            .comment-main {
-                display: flex;
-                gap: 12px;
-            }
-            
-            .comment-avatar {
-                width: 48px;
-                height: 48px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: 700;
-                font-size: 18px;
-                flex-shrink: 0;
-            }
-            
-            .comment-content {
-                flex: 1;
-                min-width: 0;
-            }
-            
-            .comment-header {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 8px;
-                flex-wrap: wrap;
-            }
-            
-            .comment-author {
-                font-weight: 700;
-                font-size: 15px;
-                color: var(--text-primary);
-            }
-            
-            .comment-date {
-                font-size: 13px;
-                color: var(--text-tertiary);
-            }
-            
-            .comment-text {
-                color: var(--text-primary);
-                line-height: 1.6;
-                font-size: 14px;
-                margin-bottom: 10px;
-                word-wrap: break-word;
-            }
-            
-            .comment-edit-box, .reply-edit-box {
-                margin-bottom: 10px;
-            }
-            
-            .comment-edit-input, .reply-edit-input {
-                width: 100%;
-                padding: 12px 16px;
-                border: 2px solid var(--accent-blue);
-                border-radius: 12px;
-                font-family: inherit;
-                font-size: 14px;
-                color: var(--text-primary);
-                background: var(--bg-secondary);
-                resize: vertical;
-                min-height: 80px;
-                transition: all 0.3s ease;
-            }
-            
-            .comment-edit-input:focus, .reply-edit-input:focus {
-                outline: none;
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-            }
-            
-            .comment-edit-actions, .reply-edit-actions {
-                display: flex;
-                gap: 10px;
-                margin-top: 10px;
-            }
-            
-            .save-edit-btn {
-                padding: 8px 16px;
-                background: var(--accent-green);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 13px;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            
-            .save-edit-btn:hover {
-                background: #059669;
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-            }
-            
-            .cancel-edit-btn {
-                padding: 8px 16px;
-                background: var(--text-tertiary);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 13px;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            
-            .cancel-edit-btn:hover {
-                background: var(--text-secondary);
-                transform: translateY(-2px);
-            }
-            
-            .comment-actions, .reply-actions {
-                display: flex;
-                gap: 16px;
-                flex-wrap: wrap;
-            }
-            
-            .comment-action-btn, .reply-action-btn {
-                background: none;
-                border: none;
-                color: var(--accent-blue);
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 600;
-                padding: 6px 0;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-            }
-            
-            .comment-action-btn:hover, .reply-action-btn:hover {
-                color: var(--accent-cyan);
-                transform: scale(1.05);
-            }
-            
-            .comment-action-btn.edit-btn, .reply-action-btn.edit-btn {
-                color: var(--accent-orange);
-            }
-            
-            .comment-action-btn.edit-btn:hover, .reply-action-btn.edit-btn:hover {
-                color: #ea580c;
-            }
-            
-            .comment-action-btn.delete-btn, .reply-action-btn.delete-btn {
-                color: var(--accent-red);
-            }
-            
-            .comment-action-btn.delete-btn:hover, .reply-action-btn.delete-btn:hover {
-                color: #dc2626;
-            }
-            
-            .reply-input-box {
-                margin: 12px 0 0 60px;
-                padding: 12px;
-            }
-            
-            .replies-list {
-                margin-top: 16px;
-                margin-left: 60px;
-                padding-left: 20px;
-                border-left: 3px solid var(--border-color);
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-            }
-            
-            .reply-item {
-                display: flex;
-                gap: 10px;
-                padding: 12px;
-                background: var(--bg-secondary);
-                border-radius: 12px;
-                transition: all 0.3s ease;
-            }
-            
-            .reply-item:hover {
-                background: var(--bg-primary);
-                transform: translateX(4px);
-            }
-            
-            .reply-avatar {
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: 700;
-                font-size: 14px;
-                flex-shrink: 0;
-            }
-            
-            .reply-content {
-                flex: 1;
-                min-width: 0;
-            }
-            
-            .reply-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-bottom: 6px;
-                flex-wrap: wrap;
-            }
-            
-            .reply-author {
-                font-weight: 600;
-                font-size: 14px;
-                color: var(--text-primary);
-            }
-            
-            .reply-date {
-                font-size: 12px;
-                color: var(--text-tertiary);
-            }
-            
-            .reply-text {
-                color: var(--text-primary);
-                line-height: 1.5;
-                font-size: 13px;
-                word-wrap: break-word;
-                margin-bottom: 8px;
-            }
-            
-            .reply-actions {
-                display: flex;
-                gap: 12px;
-                margin-top: 6px;
-            }
-            
-            .comments-loader {
-                text-align: center;
-                padding: 40px;
-            }
-            
-            .comments-error {
-                text-align: center;
-                padding: 40px 20px;
-                color: var(--text-tertiary);
-            }
-            
-            .comments-error i {
-                font-size: 48px;
-                color: var(--accent-red);
-                margin-bottom: 16px;
-            }
-            
-            .retry-btn {
-                margin-top: 16px;
-                padding: 10px 20px;
-                background: var(--accent-kaki);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-                font-weight: 600;
-                transition: all 0.3s ease;
-            }
-            
-            .retry-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(107, 114, 73, 0.4);
-            }
-            
-            @media (max-width: 768px) {
-                .comment-item {
-                    padding: 12px;
-                }
-                
-                .replies-list {
-                    margin-left: 40px;
-                    padding-left: 12px;
-                }
-                
-                .reply-input-box {
-                    margin-left: 40px;
-                }
-                
-                .comment-avatar {
-                    width: 40px;
-                    height: 40px;
-                    font-size: 16px;
-                }
-                
-                .reply-avatar {
-                    width: 32px;
-                    height: 32px;
-                    font-size: 13px;
-                }
-                
-                .comment-input-avatar, .reply-input-avatar {
-                    width: 40px;
-                    height: 40px;
-                    font-size: 16px;
-                }
-            }
+.comments-widget{padding:20px;background:var(--bg-secondary)}
+.comments-header{margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid var(--border-color)}
+.comments-title{font-size:18px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:10px}
+.comments-title i{color:var(--accent-blue)}
+.admin-badge{background:linear-gradient(135deg,var(--accent-purple),var(--accent-pink));color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;margin-left:8px}
+.comments-login-prompt{text-align:center;padding:40px 20px;background:var(--bg-primary);border-radius:16px;margin-bottom:20px}
+.comments-login-prompt i{font-size:48px;color:var(--text-tertiary);margin-bottom:16px}
+.comments-login-prompt p{color:var(--text-secondary);margin-bottom:20px;font-size:15px}
+.login-btn{padding:12px 24px;background:var(--accent-kaki);color:#fff;border:none;border-radius:12px;cursor:pointer;font-weight:600;font-size:15px;transition:all .3s;box-shadow:0 4px 12px rgba(107,114,73,.3)}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(107,114,73,.5)}
+.comment-input-box,.reply-input-box{display:flex;gap:12px;margin-bottom:24px;padding:16px;background:var(--bg-primary);border-radius:16px}
+.comment-input-avatar,.reply-input-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;flex-shrink:0}
+.reply-input-avatar{width:40px;height:40px;font-size:16px}
+.comment-input-wrapper,.reply-input-wrapper{flex:1;display:flex;flex-direction:column;gap:10px}
+.comment-input,.reply-input{width:100%;padding:12px 16px;border:2px solid var(--border-color);border-radius:12px;font-family:inherit;font-size:14px;color:var(--text-primary);background:var(--bg-secondary);resize:vertical;transition:all .3s}
+.comment-input:focus,.reply-input:focus{outline:0;border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.comment-submit-btn,.reply-submit-btn{align-self:flex-end;padding:10px 20px;background:var(--accent-kaki);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;transition:all .3s;box-shadow:0 3px 10px rgba(107,114,73,.3)}
+.comment-submit-btn:hover,.reply-submit-btn:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(107,114,73,.5)}
+.comments-empty{text-align:center;padding:60px 20px;color:var(--text-tertiary)}
+.comments-empty i{font-size:64px;margin-bottom:16px;opacity:.5}
+.comments-list{display:flex;flex-direction:column;gap:16px}
+.comment-item{padding:16px;background:var(--bg-primary);border-radius:16px;border-left:4px solid var(--accent-blue);transition:all .3s}
+.comment-item:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateX(4px)}
+.comment-main{display:flex;gap:12px}
+.comment-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;flex-shrink:0}
+.comment-content{flex:1;min-width:0}
+.comment-header{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.comment-author{font-weight:700;font-size:15px;color:var(--text-primary)}
+.comment-date{font-size:13px;color:var(--text-tertiary)}
+.comment-text{color:var(--text-primary);line-height:1.6;font-size:14px;margin-bottom:10px;word-wrap:break-word}
+.comment-edit-box,.reply-edit-box{margin-bottom:10px}
+.comment-edit-input,.reply-edit-input{width:100%;padding:12px 16px;border:2px solid var(--accent-blue);border-radius:12px;font-family:inherit;font-size:14px;color:var(--text-primary);background:var(--bg-secondary);resize:vertical;min-height:80px;transition:all .3s}
+.comment-edit-input:focus,.reply-edit-input:focus{outline:0;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.comment-edit-actions,.reply-edit-actions{display:flex;gap:10px;margin-top:10px}
+.save-edit-btn{padding:8px 16px;background:var(--accent-green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:all .3s;display:flex;align-items:center;gap:6px}
+.save-edit-btn:hover{background:#059669;transform:translateY(-2px);box-shadow:0 4px 12px rgba(16,185,129,.4)}
+.cancel-edit-btn{padding:8px 16px;background:var(--text-tertiary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:all .3s;display:flex;align-items:center;gap:6px}
+.cancel-edit-btn:hover{background:var(--text-secondary);transform:translateY(-2px)}
+.comment-actions,.reply-actions{display:flex;gap:16px;flex-wrap:wrap}
+.comment-action-btn,.reply-action-btn{background:0 0;border:none;color:var(--accent-blue);cursor:pointer;font-size:13px;font-weight:600;padding:6px 0;transition:all .3s;display:flex;align-items:center;gap:5px}
+.comment-action-btn:hover,.reply-action-btn:hover{color:var(--accent-cyan);transform:scale(1.05)}
+.comment-action-btn.edit-btn,.reply-action-btn.edit-btn{color:var(--accent-orange)}
+.comment-action-btn.edit-btn:hover,.reply-action-btn.edit-btn:hover{color:#ea580c}
+.comment-action-btn.delete-btn,.reply-action-btn.delete-btn{color:var(--accent-red)}
+.comment-action-btn.delete-btn:hover,.reply-action-btn.delete-btn:hover{color:#dc2626}
+.reply-input-box{margin:12px 0 0 60px;padding:12px}
+.replies-list{margin-top:16px;margin-left:60px;padding-left:20px;border-left:3px solid var(--border-color);display:flex;flex-direction:column;gap:12px}
+.reply-item{display:flex;gap:10px;padding:12px;background:var(--bg-secondary);border-radius:12px;transition:all .3s}
+.reply-item:hover{background:var(--bg-primary);transform:translateX(4px)}
+.reply-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent-purple),var(--accent-pink));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0}
+.reply-content{flex:1;min-width:0}
+.reply-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.reply-author{font-weight:600;font-size:14px;color:var(--text-primary)}
+.reply-date{font-size:12px;color:var(--text-tertiary)}
+.reply-text{color:var(--text-primary);line-height:1.5;font-size:13px;word-wrap:break-word;margin-bottom:8px}
+.reply-actions{display:flex;gap:12px;margin-top:6px}
+.comments-loader{text-align:center;padding:40px}
+.comments-error{text-align:center;padding:40px 20px;color:var(--text-tertiary)}
+.comments-error i{font-size:48px;color:var(--accent-red);margin-bottom:16px}
+.retry-btn{margin-top:16px;padding:10px 20px;background:var(--accent-kaki);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;transition:all .3s}
+.retry-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(107,114,73,.4)}
+@media (max-width:768px){
+.comment-item{padding:12px}
+.replies-list{margin-left:40px;padding-left:12px}
+.reply-input-box{margin-left:40px}
+.comment-avatar{width:40px;height:40px;font-size:16px}
+.reply-avatar{width:32px;height:32px;font-size:13px}
+.comment-input-avatar,.reply-input-avatar{width:40px;height:40px;font-size:16px}
+}
         `;
-        
         document.head.appendChild(style);
     },
     
-    // ============================================================================
-    // NETTOYAGE
-    // ============================================================================
-    
     cleanup() {
-        console.log('🧹 [CommentsWidget] Nettoyage...');
-        
-        this.realtimeChannels.forEach((channel, articleId) => {
+        this.realtimeChannels.forEach((channel) => {
             this.supabaseInstance.removeChannel(channel);
-            console.log(`✅ [CommentsWidget] Canal ${articleId} fermé`);
         });
-        
         this.realtimeChannels.clear();
     }
 };
@@ -1260,19 +684,13 @@ window.CommentsWidget = {
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.supabaseClient) {
-            window.CommentsWidget.init();
-        }
+        if (window.supabaseClient) window.CommentsWidget.init();
     });
 } else {
-    if (window.supabaseClient) {
-        window.CommentsWidget.init();
-    }
+    if (window.supabaseClient) window.CommentsWidget.init();
 }
 
-window.addEventListener('beforeunload', () => {
-    window.CommentsWidget.cleanup();
-});
+window.addEventListener('beforeunload', () => window.CommentsWidget.cleanup());
 
 console.log('✅ [CommentsWidget] Module chargé - Version 3.0.0 PRO');
 
@@ -1281,74 +699,49 @@ console.log('✅ [CommentsWidget] Module chargé - Version 3.0.0 PRO');
 // ============================================================================
 
 if (!window.loadComments) {
-    window.loadComments = (articleId, container) => {
-        window.CommentsWidget.loadComments(articleId, container);
-    };
+    window.loadComments = (articleId, container) => window.CommentsWidget.loadComments(articleId, container);
 }
 
 if (!window.submitComment) {
-    window.submitComment = (articleId) => {
-        window.CommentsWidget.submitComment(articleId);
-    };
+    window.submitComment = (articleId) => window.CommentsWidget.submitComment(articleId);
 }
 
 if (!window.submitReply) {
-    window.submitReply = (parentId, articleId) => {
-        window.CommentsWidget.submitReply(parentId, articleId);
-    };
+    window.submitReply = (parentId, articleId) => window.CommentsWidget.submitReply(parentId, articleId);
 }
 
 if (!window.deleteComment) {
-    window.deleteComment = (commentId, articleId) => {
-        window.CommentsWidget.deleteComment(commentId, articleId);
-    };
+    window.deleteComment = (commentId, articleId) => window.CommentsWidget.deleteComment(commentId, articleId);
 }
 
 if (!window.toggleReplyBox) {
-    window.toggleReplyBox = (commentId) => {
-        window.CommentsWidget.toggleReplyBox(commentId);
-    };
+    window.toggleReplyBox = (commentId) => window.CommentsWidget.toggleReplyBox(commentId);
 }
 
-// ✅ NOUVEAUX EXPORTS POUR ÉDITION
 if (!window.editComment) {
-    window.editComment = (commentId) => {
-        window.CommentsWidget.editComment(commentId);
-    };
+    window.editComment = (commentId) => window.CommentsWidget.editComment(commentId);
 }
 
 if (!window.saveCommentEdit) {
-    window.saveCommentEdit = (commentId, articleId) => {
-        window.CommentsWidget.saveCommentEdit(commentId, articleId);
-    };
+    window.saveCommentEdit = (commentId, articleId) => window.CommentsWidget.saveCommentEdit(commentId, articleId);
 }
 
 if (!window.cancelCommentEdit) {
-    window.cancelCommentEdit = (commentId) => {
-        window.CommentsWidget.cancelCommentEdit(commentId);
-    };
+    window.cancelCommentEdit = (commentId) => window.CommentsWidget.cancelCommentEdit(commentId);
 }
 
 if (!window.editReply) {
-    window.editReply = (replyId) => {
-        window.CommentsWidget.editReply(replyId);
-    };
+    window.editReply = (replyId) => window.CommentsWidget.editReply(replyId);
 }
 
 if (!window.saveReplyEdit) {
-    window.saveReplyEdit = (replyId, articleId) => {
-        window.CommentsWidget.saveReplyEdit(replyId, articleId);
-    };
+    window.saveReplyEdit = (replyId, articleId) => window.CommentsWidget.saveReplyEdit(replyId, articleId);
 }
 
 if (!window.cancelReplyEdit) {
-    window.cancelReplyEdit = (replyId) => {
-        window.CommentsWidget.cancelReplyEdit(replyId);
-    };
+    window.cancelReplyEdit = (replyId) => window.CommentsWidget.cancelReplyEdit(replyId);
 }
 
 if (!window.deleteReply) {
-    window.deleteReply = (replyId, articleId) => {
-        window.CommentsWidget.deleteReply(replyId, articleId);
-    };
+    window.deleteReply = (replyId, articleId) => window.CommentsWidget.deleteReply(replyId, articleId);
 }
