@@ -51,34 +51,6 @@
         <div class="recording-text">🎤 Enregistrement vocal en cours...<br>Cliquez à nouveau pour arrêter</div>
     </div>
 
-    <!-- ✅ POPUP DE SAISIE FLOTTANTE -->
-    <div class="compose-popup" id="compose-popup">
-        <div class="compose-popup-header">
-            <h3>✍️ Nouveau message</h3>
-            <button class="compose-close-btn" onclick="closeComposePopup()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="compose-popup-body">
-            <textarea 
-                class="compose-textarea" 
-                id="compose-textarea" 
-                placeholder="Écrivez votre message..."
-                oninput="handleComposeInput()"
-            ></textarea>
-        </div>
-        <div class="compose-popup-footer">
-            <button class="compose-emoji-btn" onclick="insertEmojiInCompose()">
-                😊
-            </button>
-            <div class="compose-char-count" id="compose-char-count">0</div>
-            <button class="compose-send-btn" id="compose-send-btn" onclick="sendFromCompose()" disabled>
-                <i class="fas fa-paper-plane"></i>
-                <span>Envoyer</span>
-            </button>
-        </div>
-    </div>
-
     <!-- Modal Conversations -->
     <div class="modal" id="conversations-modal">
         <div class="modal-content">
@@ -837,17 +809,47 @@
                     ${isAdmin ? `<button class="voice-btn" id="voice-btn" onclick="toggleVoiceRecording()" title="Enregistrement vocal">
                         <i class="fas fa-microphone"></i>
                     </button>` : ''}
-                    <div class="input-wrapper">
-                        <textarea class="message-input" id="message-input" placeholder="Aa" rows="1" oninput="handleInputChange()" onkeydown="handleKeyDown(event)" onfocus="openComposePopup()"></textarea>
-                        <button class="emoji-btn" onclick="insertEmoji()" title="Emoji">
-                            😊
-                        </button>
+                    <div class="input-wrapper" onclick="openMessagePopup()">
+                        <div class="message-input-placeholder">
+                            Aa
+                        </div>
                     </div>
-                    <button class="send-btn" onclick="sendMessage()" id="send-btn" disabled>
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
                 </div>
             `;
+
+            // ✅ Ajouter le popup de saisie
+            const popupHTML = `
+                <div class="message-popup-overlay" id="message-popup-overlay" onclick="closeMessagePopup()">
+                    <div class="message-popup" id="message-popup" onclick="event.stopPropagation()">
+                        <div class="message-popup-header">
+                            <h4>Nouveau message</h4>
+                            <button class="popup-close-btn" onclick="closeMessagePopup()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="message-popup-body">
+                            <textarea 
+                                class="message-popup-input" 
+                                id="message-popup-input" 
+                                placeholder="Écrivez votre message..."
+                                oninput="handlePopupInputChange()"
+                                onkeydown="handlePopupKeyDown(event)"
+                            ></textarea>
+                        </div>
+                        <div class="message-popup-footer">
+                            <button class="popup-emoji-btn" onclick="insertEmojiPopup()" title="Emoji">
+                                😊
+                            </button>
+                            <button class="popup-send-btn" id="popup-send-btn" onclick="sendMessageFromPopup()" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                                <span>Envoyer</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatArea.insertAdjacentHTML('beforeend', popupHTML);
 
             loadMessages(user.user_id);
             markMessagesAsRead(user.user_id);
@@ -1432,10 +1434,12 @@
             
             if (!input || !sendBtn) return;
             
-            // ✅ Au lieu d'ajuster la hauteur, on ouvre la popup
-            if (input.value.length > 0 && document.activeElement === input) {
-                // Ne rien faire ici, la popup s'ouvre avec le focus
-            }
+            // ✅ Réinitialiser la hauteur pour calculer la vraie hauteur nécessaire
+            input.style.height = 'auto';
+            
+            // ✅ Calculer la nouvelle hauteur (min 24px, max 180px)
+            const newHeight = Math.max(24, Math.min(input.scrollHeight, 180));
+            input.style.height = newHeight + 'px';
             
             const hasContent = input.value.trim().length > 0 || selectedImage !== null || selectedFile !== null;
             sendBtn.disabled = !hasContent;
@@ -1450,112 +1454,122 @@
             }, 2000);
         }
 
-        // ✅ GESTION DE LA POPUP DE SAISIE
-        function openComposePopup() {
-            const popup = document.getElementById('compose-popup');
-            const mainInput = document.getElementById('message-input');
-            const composeTextarea = document.getElementById('compose-textarea');
+        // ==================== POPUP DE SAISIE ====================
+        function openMessagePopup() {
+            const overlay = document.getElementById('message-popup-overlay');
+            const input = document.getElementById('message-popup-input');
             
-            if (!popup || !composeTextarea) return;
-            
-            // Copier le contenu de l'input principal vers la popup
-            composeTextarea.value = mainInput ? mainInput.value : '';
-            
-            // Afficher la popup
-            popup.classList.add('show');
-            
-            // Focus sur le textarea de la popup
-            setTimeout(() => {
-                composeTextarea.focus();
-                handleComposeInput();
-            }, 100);
+            if (overlay && input) {
+                overlay.classList.add('show');
+                setTimeout(() => {
+                    input.focus();
+                }, 100);
+            }
         }
 
-        function closeComposePopup() {
-            const popup = document.getElementById('compose-popup');
-            const mainInput = document.getElementById('message-input');
-            const composeTextarea = document.getElementById('compose-textarea');
+        function closeMessagePopup() {
+            const overlay = document.getElementById('message-popup-overlay');
+            const input = document.getElementById('message-popup-input');
+            const sendBtn = document.getElementById('popup-send-btn');
             
-            if (!popup) return;
-            
-            // Copier le contenu de la popup vers l'input principal
-            if (mainInput && composeTextarea) {
-                mainInput.value = composeTextarea.value;
-                handleInputChange();
+            if (overlay) {
+                overlay.classList.remove('show');
             }
             
-            popup.classList.remove('show');
+            if (input) {
+                input.value = '';
+                input.style.height = 'auto';
+            }
+            
+            if (sendBtn) {
+                sendBtn.disabled = true;
+            }
+            
+            updateTypingStatus(false);
         }
 
-        function handleComposeInput() {
-            const textarea = document.getElementById('compose-textarea');
-            const sendBtn = document.getElementById('compose-send-btn');
-            const charCount = document.getElementById('compose-char-count');
+        function handlePopupInputChange() {
+            const input = document.getElementById('message-popup-input');
+            const sendBtn = document.getElementById('popup-send-btn');
             
-            if (!textarea || !sendBtn || !charCount) return;
+            if (!input || !sendBtn) return;
             
-            // Ajuster la hauteur automatiquement
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 400) + 'px';
+            // ✅ Auto-resize du textarea
+            input.style.height = 'auto';
+            input.style.height = Math.min(input.scrollHeight, 400) + 'px';
             
-            // Mettre à jour le compteur de caractères
-            charCount.textContent = textarea.value.length;
-            
-            // Activer/désactiver le bouton d'envoi
-            const hasContent = textarea.value.trim().length > 0 || selectedImage !== null || selectedFile !== null;
+            const hasContent = input.value.trim().length > 0;
             sendBtn.disabled = !hasContent;
+            
+            if (hasContent && !isTyping) {
+                updateTypingStatus(true);
+            }
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                updateTypingStatus(false);
+            }, 2000);
         }
 
-        function insertEmojiInCompose() {
-            const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🔥', '😍', '🤔', '👏', '🙏'];
-            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-            const textarea = document.getElementById('compose-textarea');
-            
-            if (textarea) {
-                const cursorPos = textarea.selectionStart;
-                const textBefore = textarea.value.substring(0, cursorPos);
-                const textAfter = textarea.value.substring(cursorPos);
-                textarea.value = textBefore + emoji + textAfter;
-                textarea.selectionStart = textarea.selectionEnd = cursorPos + emoji.length;
-                textarea.focus();
-                handleComposeInput();
+        function handlePopupKeyDown(event) {
+            // Ctrl/Cmd + Enter pour envoyer
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                sendMessageFromPopup();
             }
         }
 
-        async function sendFromCompose() {
-            const composeTextarea = document.getElementById('compose-textarea');
-            const mainInput = document.getElementById('message-input');
-            
-            if (!composeTextarea) return;
-            
-            // Copier le texte vers l'input principal
-            if (mainInput) {
-                mainInput.value = composeTextarea.value;
+        async function sendMessageFromPopup() {
+            const input = document.getElementById('message-popup-input');
+            const sendBtn = document.getElementById('popup-send-btn');
+            const texte = input ? input.value.trim() : '';
+
+            if (!texte) return;
+
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Envoi...</span>';
             }
-            
-            // Fermer la popup
-            closeComposePopup();
-            
-            // Envoyer le message
-            await sendMessage();
-            
-            // Vider la popup
-            composeTextarea.value = '';
-            handleComposeInput();
+
+            updateTypingStatus(false);
+
+            try {
+                const { data: messageData, error: insertError } = await supabaseInstance
+                    .from('messages')
+                    .insert({
+                        sender_id: currentUser.id,
+                        receiver_id: currentChatUser.user_id,
+                        texte: texte,
+                        image_url: null,
+                        delivery_status: 'sent'
+                    })
+                    .select()
+                    .single();
+
+                if (insertError) throw insertError;
+
+                // Fermer le popup
+                closeMessagePopup();
+                
+            } catch (error) {
+                console.error('Erreur envoi message:', error);
+                alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
+                
+                if (sendBtn) {
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Envoyer</span>';
+                    sendBtn.disabled = false;
+                }
+            }
         }
 
-        function handleKeyDown(event) {
-            // Enter = nouvelle ligne (comportement par défaut)
-        }
-
-        function insertEmoji() {
+        function insertEmojiPopup() {
             const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🔥', '😍', '🤔', '👏', '🙏'];
             const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-            const input = document.getElementById('message-input');
+            const input = document.getElementById('message-popup-input');
             if (input) {
                 input.value += emoji;
                 input.focus();
-                handleInputChange();
+                handlePopupInputChange();
             }
         }
 
