@@ -1457,4 +1457,4 @@ if (!window.toggleReplyBox) {
     window.toggleReplyBox = (commentId) => {
         window.CommentsWidget.toggleReplyBox(commentId);
     };
-                }
+}
