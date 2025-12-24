@@ -3,2013 +3,1686 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World Connect - Réseau Social Professionnel</title>
-    
-    <!-- PWA Configuration -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#6b7249">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="connect_pro.png">
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="World Connect - Créez votre présence digitale professionnelle. Partagez, connectez et développez votre réseau.">
-    <meta name="keywords" content="réseau social, professionnel, networking, connexion">
-    
-    <!-- External Resources -->
+    <title>World Connect - Messages</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Lien vers le fichier CSS externe -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="messages.css">
 </head>
 <body>
-    <div id="canvas-container"></div>
-
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <p style="font-size: 16px; font-weight: 600;">Chargement...</p>
-        </div>
-    </div>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <!-- Offline Indicator -->
-    <div class="offline-indicator" id="offline-indicator">
-        <i class="fas fa-wifi-slash"></i>
-        <span>Vous êtes hors ligne</span>
-    </div>
-
-    <!-- Welcome Popup -->
-    <div class="welcome-popup-overlay" id="welcome-overlay"></div>
-    <div class="welcome-popup" id="welcome-popup">
-        <div class="welcome-popup-emoji">👋</div>
-        <div class="welcome-popup-title">Bienvenue sur World Connect</div>
-        <div class="welcome-popup-name" id="welcome-name"></div>
-        <div class="welcome-popup-subtitle">Nous sommes disponibles à tous vos Services. Laissez-nous votre numéro en Messages</div>
-    </div>
-
-    <!-- Menu Toggle Button -->
-    <button class="menu-toggle-btn" id="menu-toggle-btn">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
-
-    <!-- Navigation Bar -->
-    <nav class="navbar" id="navbar">
-        <div class="navbar-header">
-            <button class="theme-toggle-mini" id="theme-toggle-mini">
-                <i class="fas fa-moon" id="theme-icon-mini"></i>
-            </button>
-            <div class="navbar-left">
-                World Connect 
-            </div>
-        </div>
-
-        <div class="navbar-content">
-            <div class="nav-item active" data-page="home" data-title="Accueil">
-                <i class="fas fa-home"></i>
-                <span>Accueil</span>
-            </div>
-            <div class="nav-item" data-page="messages" data-title="Messages">
-                <i class="fas fa-envelope"></i>
-                <span>Messages</span>
-                <span class="badge" id="message-badge" style="display: none;">0</span>
-            </div>
-            <div class="nav-item" data-page="notifications" data-title="Notifications">
-                <i class="fas fa-bell"></i>
-                <span>Notifications</span>
-                <span class="badge" id="notif-badge" style="display: none;">0</span>
-            </div>
-            <div class="nav-item" data-page="plus" data-title="Connect Ultra">
-                <i class="fas fa-plus-circle"></i>
-                <span>World Connect</span>
-            </div>
-            
-            <div class="nav-item" data-page="game" data-title="Jeu de Course 3D">
-                <i class="fas fa-gamepad"></i>
-                <span>Jeu 3D</span>
-            </div>
-
-            <div class="menu-divider"></div>
-
-            <div class="menu-item" id="login-item" onclick="window.location.href='connexion.html'">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Connexion</span>
-            </div>
-            <div class="menu-item" id="profile-item" style="display: none;">
-                <i class="fas fa-user"></i>
-                <span id="user-name">Mon Profil</span>
-            </div>
-            <div class="menu-item" id="administration-item" style="display: none;" onclick="window.location.href='publier.html'">
-                <i class="fas fa-edit"></i>
-                <span>Administration</span>
-            </div>
-            <div class="menu-item" id="settings-item" onclick="window.location.href='parametre.html'">
-                <i class="fas fa-cog"></i>
-                <span>Paramètres</span>
-            </div>
-
-            <div class="menu-divider"></div>
-
-            <div class="menu-item logout" id="logout-item" style="display: none;">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Déconnexion</span>
-            </div>
-        </div>
-
-        <div class="navbar-footer">
-            <button class="theme-toggle" id="theme-toggle">
-                <i class="fas fa-moon" id="theme-icon"></i>
-                <span id="theme-text">Mode Sombre</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Search Button -->
-    <button class="search-toggle-btn" id="search-toggle-btn">
-        <i class="fas fa-search"></i>
-        <span>Recherche</span>
-    </button>
-
-    <!-- Search Panel -->
-    <div class="search-panel" id="search-panel">
-        <h3>
-            <i class="fas fa-search"></i>
-            Rechercher des articles
-        </h3>
-        <div class="search-input-container">
-            <input type="text" class="search-input" id="search-input" placeholder="Mots-clés...">
-            <button class="search-btn" id="search-btn">
-                <i class="fas fa-search"></i>
-                Rechercher
-            </button>
-        </div>
-        <div class="search-results-info" id="search-results-info" style="display: none;">
-            Résultats: <span id="search-results-count">0</span> article(s) trouvé(s)
-        </div>
-    </div>
-
-    <!-- Page Title -->
-    <div class="page-title" id="page-title">Accueil</div>
-
-    <!-- SPA Container -->
-    <div class="spa-container">
-        <div id="home-page" class="spa-page active">
-            <div id="loader" class="loader">
-                <div class="spinner"></div>
-                <p style="margin-top: 20px; color: var(--text-tertiary);">Chargement...</p>
-            </div>
-            <div id="articles-container"></div>
-            <div id="empty-state" class="empty-state" style="display: none;">
-                <i class="fas fa-newspaper"></i>
-                <h3>Aucun article</h3>
-                <p>Revenez plus tard</p>
-            </div>
-        </div>
-
-        <div id="messages-page" class="spa-page">
-            <div class="iframe-container">
-                <div class="iframe-loader">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="notifications-page" class="spa-page">
-            <div class="iframe-container">
-                <div class="iframe-loader">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="plus-page" class="spa-page">
-            <div class="iframe-container">
-                <div class="iframe-loader">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div id="game-page" class="spa-page">
-            <div class="iframe-container">
-                <div class="iframe-loader">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts externes - ORDRE IMPORTANT -->
-    <script src="supabaseClient.js"></script>
-    <script src="optimistic-sync.js"></script>
-    <script src="commentaires.js"></script>
+    <canvas id="three-canvas"></canvas>
     
-    <!-- Script principal intégré -->
+    <div class="messages-wrapper">
+        <div class="messages-header">
+            <h1><i class="fas fa-globe"></i> <span id="header-title">World Connect</span></h1>
+            <div class="header-actions">
+                <button class="action-btn secondary" onclick="openConversationsModal()">
+                    <i class="fas fa-list"></i>
+                    <span>Conversations</span>
+                </button>
+                <button class="action-btn" onclick="openContactsModal()">
+                    <i class="fas fa-user-plus"></i>
+                    <span id="contacts-btn-text">Contacts</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="messages-container">
+            <div class="chat-area" id="chat-area">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <h3>Chargement...</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice recording indicator -->
+    <div class="recording-indicator" id="recording-indicator">
+        <div class="recording-wave">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+        </div>
+        <div class="recording-time" id="recording-time">00:00</div>
+        <div class="recording-text">🎤 Enregistrement vocal en cours...<br>Cliquez à nouveau pour arrêter</div>
+    </div>
+
+    <!-- ✅ POPUP DE SAISIE FLOTTANTE -->
+    <div class="compose-popup" id="compose-popup">
+        <div class="compose-popup-header">
+            <h3>✍️ Nouveau message</h3>
+            <button class="compose-close-btn" onclick="closeComposePopup()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="compose-popup-body">
+            <textarea 
+                class="compose-textarea" 
+                id="compose-textarea" 
+                placeholder="Écrivez votre message..."
+                oninput="handleComposeInput()"
+            ></textarea>
+        </div>
+        <div class="compose-popup-footer">
+            <button class="compose-emoji-btn" onclick="insertEmojiInCompose()">
+                😊
+            </button>
+            <div class="compose-char-count" id="compose-char-count">0</div>
+            <button class="compose-send-btn" id="compose-send-btn" onclick="sendFromCompose()" disabled>
+                <i class="fas fa-paper-plane"></i>
+                <span>Envoyer</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Conversations -->
+    <div class="modal" id="conversations-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-comments"></i> Conversations récentes</h3>
+                <button class="close-modal" onclick="closeConversationsModal()">×</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" placeholder="Rechercher une conversation..." id="search-conversations">
+            </div>
+            <div class="list-container" id="conversations-list"></div>
+        </div>
+    </div>
+
+    <!-- Modal Contacts -->
+    <div class="modal" id="contacts-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-address-book"></i> <span id="contacts-modal-title">Contacts</span></h3>
+                <button class="close-modal" onclick="closeContactsModal()">×</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" placeholder="Rechercher un contact..." id="search-contacts">
+            </div>
+            <div class="list-container" id="contacts-list"></div>
+        </div>
+    </div>
+
+    <script src="supabaseClient.js"></script>
     <script>
-        // Récupération des fonctions depuis supabaseClient.js
-        const supabaseInstance = window.supabaseClient.supabase;
-        const getCurrentUser = window.supabaseClient.getCurrentUser;
-        const getUserProfile = window.supabaseClient.getUserProfile;
+        // ==================== THREE.JS ANIMATION ====================
+        const canvas = document.getElementById('three-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
         
-        // Variables globales
-        let currentUser = null;
-        let userProfile = null;
-        let allArticles = [];
-        let isSearching = false;
-        let currentPage = 'home';
-        let userReactions = {};
-        let scene, camera, renderer, particles;
-        let swRegistration = null; // 🔥 AJOUT POUR NOTIFICATIONS
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        camera.position.z = 50;
 
-        // ============================================================================
-        // TOAST NOTIFICATION SYSTEM
-        // ============================================================================
-        const ToastManager = {
-            container: null,
-            
-            init() {
-                this.container = document.getElementById('toast-container');
-            },
-            
-            show(title, message, type = 'info', duration = 5000) {
-                const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
-                
-                const icons = {
-                    success: 'fa-check-circle',
-                    error: 'fa-exclamation-circle',
-                    warning: 'fa-exclamation-triangle',
-                    info: 'fa-info-circle'
-                };
-                
-                toast.innerHTML = `
-                    <div class="toast-icon">
-                        <i class="fas ${icons[type] || icons.info}"></i>
-                    </div>
-                    <div class="toast-content">
-                        <div class="toast-title">${title}</div>
-                        <div class="toast-message">${message}</div>
-                    </div>
-                    <button class="toast-close">×</button>
-                `;
-                
-                this.container.appendChild(toast);
-                
-                const closeBtn = toast.querySelector('.toast-close');
-                closeBtn.addEventListener('click', () => this.remove(toast));
-                
-                toast.addEventListener('click', () => this.remove(toast));
-                
-                if (duration > 0) {
-                    setTimeout(() => this.remove(toast), duration);
-                }
-                
-                return toast;
-            },
-            
-            remove(toast) {
-                toast.style.animation = 'slideOutRight 0.3s ease';
-                setTimeout(() => {
-                    if (toast.parentNode) {
-                        toast.parentNode.removeChild(toast);
-                    }
-                }, 300);
-            },
-            
-            success(title, message, duration) {
-                return this.show(title, message, 'success', duration);
-            },
-            
-            error(title, message, duration) {
-                return this.show(title, message, 'error', duration);
-            },
-            
-            warning(title, message, duration) {
-                return this.show(title, message, 'warning', duration);
-            },
-            
-            info(title, message, duration) {
-                return this.show(title, message, 'info', duration);
-            }
-        };
+        // Particules
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 3000;
+        const posArray = new Float32Array(particlesCount * 3);
+        
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 150;
+        }
+        
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.3,
+            color: 0x4a90e2,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
 
-        // ============================================================================
-        // LOADING OVERLAY MANAGER
-        // ============================================================================
-        const LoadingManager = {
-            overlay: null,
-            
-            init() {
-                this.overlay = document.getElementById('loading-overlay');
-            },
-            
-            show() {
-                this.overlay.classList.add('show');
-            },
-            
-            hide() {
-                this.overlay.classList.remove('show');
-            }
-        };
-
-        // ============================================================================
-        // OFFLINE DETECTION
-        // ============================================================================
-        const OfflineManager = {
-            indicator: null,
-            isOnline: navigator.onLine,
-            
-            init() {
-                this.indicator = document.getElementById('offline-indicator');
+        // Lignes de connexion
+        const linesGroup = new THREE.Group();
+        scene.add(linesGroup);
+        
+        function createConnectionLines() {
+            for(let i = 0; i < 80; i++) {
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(6);
                 
-                window.addEventListener('online', () => {
-                    this.isOnline = true;
-                    this.indicator.classList.remove('show');
-                    ToastManager.success('Connexion rétablie', 'Vous êtes de nouveau en ligne');
+                positions[0] = (Math.random() - 0.5) * 100;
+                positions[1] = (Math.random() - 0.5) * 100;
+                positions[2] = (Math.random() - 0.5) * 100;
+                positions[3] = (Math.random() - 0.5) * 100;
+                positions[4] = (Math.random() - 0.5) * 100;
+                positions[5] = (Math.random() - 0.5) * 100;
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                
+                const material = new THREE.LineBasicMaterial({
+                    color: 0x3a7bc8,
+                    transparent: true,
+                    opacity: 0.2
                 });
                 
-                window.addEventListener('offline', () => {
-                    this.isOnline = false;
-                    this.indicator.classList.add('show');
-                    ToastManager.warning('Hors ligne', 'Certaines fonctionnalités peuvent être limitées');
-                });
-                
-                if (!this.isOnline) {
-                    this.indicator.classList.add('show');
-                }
-            },
-            
-            checkConnection() {
-                return this.isOnline;
-            }
-        };
-
-        // ============================================================================
-        // SERVICE WORKER & PUSH NOTIFICATIONS - 🔥 VERSION PROFESSIONNELLE
-        // ============================================================================
-        async function initServiceWorker() {
-            if (!('serviceWorker' in navigator)) {
-                console.warn('⚠️ Service Worker non supporté');
-                return;
-            }
-
-            try {
-                swRegistration = await navigator.serviceWorker.register('./service-worker.js');
-                console.log('✅ Service Worker enregistré');
-                
-                // Écouter les messages du Service Worker
-                navigator.serviceWorker.addEventListener('message', handleSWMessage);
-                
-                await navigator.serviceWorker.ready;
-                console.log('✅ Service Worker prêt');
-                
-                // ✅ NE PAS demander les permissions maintenant
-                // On attend que l'utilisateur soit connecté
-                
-            } catch (error) {
-                console.error('❌ Erreur Service Worker:', error);
+                const line = new THREE.Line(geometry, material);
+                linesGroup.add(line);
             }
         }
+        
+        createConnectionLines();
 
-        function handleSWMessage(event) {
-            const { type, version, support } = event.data || {};
-            
-            if (type === 'SW_ACTIVATED') {
-                console.log('🚀 Service Worker activé - Version:', version);
-                console.log('📋 Support navigateur:', support);
-            } else if (type === 'RESUBSCRIBE_PUSH') {
-                ToastManager.warning('Notification', 'Veuillez réactiver les notifications');
-                requestNotificationPermission();
-            } else if (type === 'PLAY_NOTIFICATION_SOUND') {
-                // Optionnel : jouer un son de notification
-                console.log('🔔 Notification reçue:', event.data.notification);
-            }
-        }
+        // Sphère centrale
+        const sphereGeometry = new THREE.SphereGeometry(8, 32, 32);
+        const sphereMaterial = new THREE.MeshBasicMaterial({
+            color: 0x2e5c8a,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.3
+        });
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        scene.add(sphere);
 
-        async function requestNotificationPermission() {
-            // ✅ Vérifier que l'utilisateur est connecté AVANT de demander
-            if (!currentUser || !userProfile) {
-                console.warn('⚠️ Utilisateur non connecté, demande de notification annulée');
-                return false;
-            }
-
-            // ✅ Vérifier si déjà demandé précédemment
-            const notificationAsked = localStorage.getItem('notificationAsked');
-            if (notificationAsked === 'true' && Notification.permission !== 'default') {
-                console.log('ℹ️ Notification déjà demandée précédemment');
-                
-                // Si permission accordée, vérifier l'abonnement
-                if (Notification.permission === 'granted') {
-                    await ensureSubscriptionExists();
-                }
-                return false;
-            }
-
-            try {
-                // ✅ Message contextuel AVANT de demander la permission
-                ToastManager.info(
-                    '🔔 Restez informé', 
-                    'Activez les notifications pour ne rien manquer des nouveautés !',
-                    8000
-                );
-
-                // ✅ Attendre 1.5 secondes pour que l'utilisateur lise le message
-                await new Promise(resolve => setTimeout(resolve, 1500));
-
-                const permission = await Notification.requestPermission();
-                
-                // ✅ Marquer comme déjà demandé
-                localStorage.setItem('notificationAsked', 'true');
-                localStorage.setItem('notificationAskedDate', new Date().toISOString());
-                
-                if (permission === 'granted') {
-                    await subscribeToPushNotifications();
-                    ToastManager.success(
-                        '✅ Notifications activées', 
-                        'Vous recevrez désormais nos actualités en temps réel !',
-                        6000
-                    );
-                    return true;
-                } else if (permission === 'denied') {
-                    ToastManager.warning(
-                        '🔕 Notifications désactivées', 
-                        'Vous pouvez les réactiver à tout moment dans les paramètres',
-                        6000
-                    );
-                    return false;
-                } else {
-                    console.log('ℹ️ Permission de notification ignorée');
-                    return false;
-                }
-            } catch (error) {
-                console.error('❌ Erreur permission:', error);
-                return false;
-            }
-        }
-
-        // ✅ NOUVELLE FONCTION : Vérifier et créer l'abonnement si nécessaire
-        async function ensureSubscriptionExists() {
-            if (!swRegistration || !currentUser) return;
-
-            try {
-                const existingSubscription = await swRegistration.pushManager.getSubscription();
-                
-                if (!existingSubscription) {
-                    console.log('🔔 Pas d\'abonnement, création...');
-                    await subscribeToPushNotifications();
-                } else {
-                    console.log('✅ Abonnement push déjà existant');
-                    
-                    // ✅ Vérifier si l'abonnement est en base de données
-                    await saveSubscriptionToDatabase(existingSubscription);
-                }
-            } catch (error) {
-                console.warn('⚠️ Erreur vérification abonnement:', error);
-            }
-        }
-
-        // ✅ NOUVELLE FONCTION : Demander les notifications après un délai (non intrusif)
-        async function requestNotificationAfterDelay() {
-            // ✅ Vérifications de sécurité
-            if (!currentUser || !userProfile) {
-                console.log('ℹ️ Pas d\'utilisateur, pas de demande de notification');
-                return;
-            }
-
-            if (!('Notification' in window) || !('PushManager' in window)) {
-                console.warn('⚠️ Notifications non supportées');
-                return;
-            }
-
-            // ✅ Ne pas redemander si déjà répondu (accordé ou refusé)
-            const notificationAsked = localStorage.getItem('notificationAsked');
-            if (notificationAsked === 'true' && Notification.permission !== 'default') {
-                console.log('ℹ️ Permission déjà gérée:', Notification.permission);
-                
-                // Si accordée, vérifier l'abonnement
-                if (Notification.permission === 'granted') {
-                    await ensureSubscriptionExists();
-                }
-                return;
-            }
-
-            // ✅ Attendre 3 secondes après connexion (non intrusif)
-            setTimeout(async () => {
-                // Double vérification que l'utilisateur est toujours connecté
-                if (currentUser && userProfile) {
-                    await requestNotificationPermission();
-                }
-            }, 3000);
-        }
-
-        async function subscribeToPushNotifications() {
-            if (!swRegistration) return;
-            
-            try {
-                // 🔥 CLÉ VAPID SYNCHRONISÉE AVEC LE SERVICE WORKER v5.0.2
-                const vapidPublicKey = 'BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA';
-                const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-                
-                const subscription = await swRegistration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: convertedVapidKey
-                });
-                
-                console.log('✅ Abonnement push créé');
-                await saveSubscriptionToDatabase(subscription);
-                
-            } catch (error) {
-                console.error('❌ Erreur abonnement push:', error);
-                ToastManager.error('Erreur', 'Impossible de s\'abonner aux notifications');
-            }
-        }
-
-        function urlBase64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-            for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray;
-        }
-
-        async function saveSubscriptionToDatabase(subscription) {
-            try {
-                // ✅ VÉRIFICATION CRITIQUE : Utilisateur connecté
-                if (!currentUser) {
-                    console.warn('⚠️ Pas d\'utilisateur connecté, abonnement non sauvegardé');
-                    return;
-                }
-
-                // ✅ VÉRIFICATION : Profil chargé
-                if (!userProfile) {
-                    console.warn('⚠️ Profil utilisateur non chargé, abonnement non sauvegardé');
-                    return;
-                }
-                
-                const subscriptionData = {
-                    user_id: currentUser.id,
-                    endpoint: subscription.endpoint,
-                    p256dh_key: arrayBufferToBase64(subscription.getKey('p256dh')),
-                    auth_key: arrayBufferToBase64(subscription.getKey('auth')),
-                    user_agent: navigator.userAgent,
-                    device_type: 'web',
-                    created_at: new Date().toISOString()
-                };
-                
-                // 🔥 UTILISATION DE supabaseInstance
-                const { data, error } = await supabaseInstance
-                    .from('subscriptions')
-                    .upsert(subscriptionData, {
-                        onConflict: 'user_id,endpoint'
-                    });
-                
-                if (error) {
-                    console.error('❌ Erreur sauvegarde subscription:', error);
-                    return;
-                }
-                
-                console.log('✅ Subscription enregistrée en base de données pour', userProfile.prenom, userProfile.nom);
-                console.log('📱 Endpoint:', subscription.endpoint.substring(0, 50) + '...');
-                
-            } catch (error) {
-                console.error('❌ Erreur critique sauvegarde subscription:', error);
-            }
-        }
-
-        function arrayBufferToBase64(buffer) {
-            const bytes = new Uint8Array(buffer);
-            let binary = '';
-            for (let i = 0; i < bytes.byteLength; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            return window.btoa(binary);
-        }
-
-        // ============================================================================
-        // THREE.JS ANIMATION BACKGROUND
-        // ============================================================================
-        function initThreeJS() {
-            const container = document.getElementById('canvas-container');
-            
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 50;
-
-            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0x000000, 0);
-            container.appendChild(renderer.domElement);
-
-            const geometry = new THREE.BufferGeometry();
-            const particleCount = 800;
-            const positions = new Float32Array(particleCount * 3);
-            const colors = new Float32Array(particleCount * 3);
-
-            const color1 = new THREE.Color(0x2563eb);
-            const color2 = new THREE.Color(0x06b6d4);
-
-            for (let i = 0; i < particleCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 200;
-                positions[i + 1] = (Math.random() - 0.5) * 200;
-                positions[i + 2] = (Math.random() - 0.5) * 200;
-
-                const mixedColor = color1.clone().lerp(color2, Math.random());
-                colors[i] = mixedColor.r;
-                colors[i + 1] = mixedColor.g;
-                colors[i + 2] = mixedColor.b;
-            }
-
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-            const material = new THREE.PointsMaterial({
-                size: 2,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.8,
-                blending: THREE.AdditiveBlending
-            });
-
-            particles = new THREE.Points(geometry, material);
-            scene.add(particles);
-
-            animate();
-            
-            window.addEventListener('resize', onWindowResize);
-        }
-
+        // Animation
+        let time = 0;
         function animate() {
             requestAnimationFrame(animate);
-
-            particles.rotation.x += 0.0005;
-            particles.rotation.y += 0.001;
-
-            const positions = particles.geometry.attributes.position.array;
-            for (let i = 1; i < positions.length; i += 3) {
-                positions[i] += Math.sin(Date.now() * 0.001 + i) * 0.01;
-            }
-            particles.geometry.attributes.position.needsUpdate = true;
-
+            time += 0.001;
+            
+            particlesMesh.rotation.y = time * 0.3;
+            particlesMesh.rotation.x = time * 0.2;
+            sphere.rotation.y = time * 0.5;
+            sphere.rotation.x = time * 0.3;
+            linesGroup.rotation.y = time * 0.2;
+            linesGroup.rotation.z = time * 0.1;
+            particlesMaterial.opacity = 0.5 + Math.sin(time * 2) * 0.3;
+            
             renderer.render(scene, camera);
         }
+        
+        animate();
 
-        function onWindowResize() {
+        window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+        });
 
-        // ============================================================================
-        // GESTION DU THÈME
-        // ============================================================================
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        const themeToggleMini = document.getElementById('theme-toggle-mini');
-        const themeIconMini = document.getElementById('theme-icon-mini');
-        const themeText = document.getElementById('theme-text');
-        const body = document.body;
+        // ==================== VARIABLES GLOBALES ====================
+        let supabaseInstance, getCurrentUser, getUserProfile, redirectByRole;
+        let currentUser = null;
+        let userProfile = null;
+        let currentChatUser = null;
+        let messageSubscription = null;
+        let typingSubscription = null;
+        let deliverySubscription = null;
+        let conversationsCache = [];
+        let contactsCache = [];
+        let typingTimeout = null;
+        let isTyping = false;
+        let selectedImage = null;
+        let selectedFile = null;
+        let messagesCache = [];
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordingStartTime = null;
+        let recordingTimer = null;
 
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        if (savedTheme === 'dark') {
-            body.classList.add('dark-mode');
-            themeIcon.classList.replace('fa-moon', 'fa-sun');
-            themeIconMini.classList.replace('fa-moon', 'fa-sun');
-            themeText.textContent = 'Mode Clair';
-        }
-
-        function toggleTheme() {
-            body.classList.toggle('dark-mode');
-            if (body.classList.contains('dark-mode')) {
-                themeIcon.classList.replace('fa-moon', 'fa-sun');
-                themeIconMini.classList.replace('fa-moon', 'fa-sun');
-                themeText.textContent = 'Mode Clair';
-                localStorage.setItem('theme', 'dark');
+        // ==================== INITIALISATION ====================
+        function initializeApp() {
+            if (window.supabaseClient && window.supabaseClient.supabase) {
+                supabaseInstance = window.supabaseClient.supabase;
+                getCurrentUser = window.supabaseClient.getCurrentUser;
+                getUserProfile = window.supabaseClient.getUserProfile;
+                redirectByRole = window.supabaseClient.redirectByRole;
+                
+                // ✅ Vérification critique
+                console.log('✅ Supabase initialisé:', !!supabaseInstance);
+                console.log('✅ URL:', supabaseInstance?.supabaseUrl);
+                console.log('✅ Auth disponible:', !!supabaseInstance?.auth);
+                
+                initApp();
             } else {
-                themeIcon.classList.replace('fa-sun', 'fa-moon');
-                themeIconMini.classList.replace('fa-sun', 'fa-moon');
-                themeText.textContent = 'Mode Sombre';
-                localStorage.setItem('theme', 'light');
+                console.warn('⏳ En attente de supabaseClient...');
+                setTimeout(initializeApp, 100);
             }
         }
 
-        themeToggle.addEventListener('click', toggleTheme);
-        themeToggleMini.addEventListener('click', toggleTheme);
-
-        // ============================================================================
-        // GESTION DU MENU
-        // ============================================================================
-        const menuToggleBtn = document.getElementById('menu-toggle-btn');
-        const navbar = document.getElementById('navbar');
-        let menuTimeout;
-
-        menuToggleBtn.addEventListener('click', () => {
-            navbar.classList.toggle('show');
-            menuToggleBtn.classList.toggle('active');
-            clearTimeout(menuTimeout);
-            if (navbar.classList.contains('show')) {
-                startMenuTimeout();
-            }
-        });
-
-        function startMenuTimeout() {
-            clearTimeout(menuTimeout);
-            menuTimeout = setTimeout(() => {
-                navbar.classList.remove('show');
-                menuToggleBtn.classList.remove('active');
-            }, 5000);
-        }
-
-        navbar.addEventListener('mouseenter', () => {
-            clearTimeout(menuTimeout);
-        });
-
-        navbar.addEventListener('mouseleave', () => {
-            if (navbar.classList.contains('show')) {
-                startMenuTimeout();
-            }
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!navbar.contains(e.target) && !menuToggleBtn.contains(e.target)) {
-                navbar.classList.remove('show');
-                menuToggleBtn.classList.remove('active');
-                clearTimeout(menuTimeout);
-            }
-        });
-
-        function showWelcomePopup() {
-            if (!userProfile) return;
-
-            const welcomeShown = sessionStorage.getItem('welcomeShown');
-            if (welcomeShown === 'true') return;
-
-            sessionStorage.setItem('welcomeShown', 'true');
-
-            const welcomeName = document.getElementById('welcome-name');
-            const welcomePopup = document.getElementById('welcome-popup');
-            const welcomeOverlay = document.getElementById('welcome-overlay');
-
-            const fullName = `${userProfile.prenom} ${userProfile.nom}`.trim();
-            welcomeName.textContent = fullName;
-
-            setTimeout(() => {
-                welcomeOverlay.classList.add('show');
-                welcomePopup.classList.add('show');
-            }, 500);
-
-            setTimeout(() => {
-                welcomePopup.classList.remove('show');
-                welcomeOverlay.classList.remove('show');
-            }, 3500);
-        }
-
-        function updateMenu() {
-            if (currentUser && userProfile) {
-                document.getElementById('login-item').style.display = 'none';
-                document.getElementById('profile-item').style.display = 'flex';
-                document.getElementById('logout-item').style.display = 'flex';
-                document.getElementById('user-name').textContent = `${userProfile.prenom} ${userProfile.nom}`;
-                
-                if (userProfile.role === 'admin') {
-                    document.getElementById('administration-item').style.display = 'flex';
-                } else {
-                    document.getElementById('administration-item').style.display = 'none';
-                }
-            }
-        }
-
-        // ============================================================================
-        // GESTION DE LA RECHERCHE
-        // ============================================================================
-        const searchToggleBtn = document.getElementById('search-toggle-btn');
-        const searchPanel = document.getElementById('search-panel');
-        const searchInput = document.getElementById('search-input');
-        const searchBtn = document.getElementById('search-btn');
-
-        searchToggleBtn.addEventListener('click', () => {
-            searchPanel.classList.toggle('show');
-            searchToggleBtn.classList.toggle('active');
-            if (searchPanel.classList.contains('show')) {
-                searchInput.focus();
-            }
-        });
-
-        searchBtn.addEventListener('click', performSearch);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') performSearch();
-        });
-
-        async function performSearch() {
-            const query = searchInput.value.trim().toLowerCase();
-            if (!query) {
-                displayArticles(allArticles);
-                document.getElementById('search-results-info').style.display = 'none';
-                isSearching = false;
-                return;
-            }
-            isSearching = true;
-            const filteredArticles = allArticles.filter(article => {
-                const text = article.texte.toLowerCase();
-                const authorName = `${article.users_profile.prenom} ${article.users_profile.nom}`.toLowerCase();
-                return text.includes(query) || authorName.includes(query);
-            });
-            document.getElementById('search-results-count').textContent = filteredArticles.length;
-            document.getElementById('search-results-info').style.display = 'block';
-            displayArticles(filteredArticles);
-            
-            ToastManager.info('Recherche', `${filteredArticles.length} résultat(s) trouvé(s)`);
-            
-            setTimeout(() => {
-                searchPanel.classList.remove('show');
-                searchToggleBtn.classList.remove('active');
-            }, 500);
-        }
-
-        // ============================================================================
-        // GESTION DES PAGES
-        // ============================================================================
-        const pageManager = {
-            loadedPages: new Set(['home']),
-            iframes: {},
-            
-            async loadPage(pageName) {
-                if (this.loadedPages.has(pageName)) return;
-                
-                const pageContainer = document.getElementById(`${pageName}-page`);
-                const iframeContainer = pageContainer.querySelector('.iframe-container');
-                if (!iframeContainer) return;
-                
-                const loader = iframeContainer.querySelector('.iframe-loader');
-                if (loader) loader.style.display = 'block';
-                
-                const iframe = document.createElement('iframe');
-                iframe.className = 'page-iframe';
-                iframe.src = pageName === 'game' ? 'offline.html' : `${pageName}.html`;
-                iframe.style.opacity = '0';
-                iframe.style.transition = 'opacity 0.3s';
-                
-                iframe.onload = () => {
-                    if (loader) loader.style.display = 'none';
-                    iframe.style.opacity = '1';
-                    this.loadedPages.add(pageName);
-                };
-                
-                iframe.onerror = () => {
-                    if (loader) loader.innerHTML = '<p style="color: #ef4444;">Erreur de chargement</p>';
-                    ToastManager.error('Erreur', `Impossible de charger la page ${pageName}`);
-                };
-                
-                iframeContainer.appendChild(iframe);
-                this.iframes[pageName] = iframe;
-            },
-            
-            preloadPage(pageName) {
-                if (!this.loadedPages.has(pageName)) {
-                    this.loadPage(pageName);
-                }
-            }
-        };
-
-        function initNavigation() {
-            document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const page = this.getAttribute('data-page');
-                    const title = this.getAttribute('data-title');
-                    navigateToPage(page, title);
-                    navbar.classList.remove('show');
-                    menuToggleBtn.classList.remove('active');
-                    clearTimeout(menuTimeout);
-                });
-            });
-
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.share-menu') && !e.target.closest('.share-btn')) {
-                    document.querySelectorAll('.share-menu.show').forEach(m => m.classList.remove('show'));
-                }
-                if (!e.target.closest('.admin-options')) {
-                    document.querySelectorAll('.options-menu.show').forEach(menu => menu.classList.remove('show'));
-                }
-            });
-
-            document.getElementById('logout-item').addEventListener('click', async function(e) {
-                e.preventDefault();
-                try {
-                    LoadingManager.show();
-                    sessionStorage.removeItem('welcomeShown');
-                    await supabaseInstance.auth.signOut();
-                    sessionStorage.setItem('manualLogout', 'true');
-                    ToastManager.success('Déconnexion', 'À bientôt !');
-                    setTimeout(() => {
-                        window.location.href = 'connexion.html';
-                    }, 1000);
-                } catch (error) {
-                    LoadingManager.hide();
-                    ToastManager.error('Erreur', 'Impossible de se déconnecter');
-                }
-            });
-        }
-
-        function navigateToPage(page, title) {
-            if (page === currentPage) return;
-
-            const targetPage = document.getElementById(`${page}-page`);
-            if (!targetPage) {
-                console.error(`❌ Page ${page}-page introuvable`);
-                ToastManager.error('Erreur', `Page ${page} non disponible`);
+        async function initApp() {
+            // ✅ Double vérification de l'authentification
+            if (!supabaseInstance) {
+                console.error('❌ supabaseInstance non initialisé');
+                alert('Erreur: Client Supabase non initialisé. Rechargez la page.');
                 return;
             }
 
-            document.querySelectorAll('.spa-page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active'));
-            
-            targetPage.classList.add('active');
-            
-            const navItem = document.querySelector(`[data-page="${page}"]`);
-            if (navItem) {
-                navItem.classList.add('active');
+            currentUser = await getCurrentUser();
+            if (!currentUser) {
+                console.warn('❌ Utilisateur non connecté, redirection...');
+                window.location.href = 'connexion.html';
+                return;
             }
-            
-            document.getElementById('page-title').textContent = title;
-            currentPage = page;
 
-            if (page === 'home') {
-                searchToggleBtn.style.display = 'flex';
+            console.log('✅ Utilisateur connecté:', currentUser.id);
+
+            userProfile = await getUserProfile(currentUser.id);
+            if (!userProfile) {
+                console.error('❌ Profil utilisateur introuvable');
+                alert('Erreur: Profil introuvable. Veuillez vous reconnecter.');
+                window.location.href = 'connexion.html';
+                return;
+            }
+
+            console.log('✅ Profil chargé:', userProfile);
+            
+            await initInterface();
+
+            document.getElementById('search-conversations').addEventListener('input', (e) => filterList('conversations', e.target.value));
+            document.getElementById('search-contacts').addEventListener('input', (e) => filterList('contacts', e.target.value));
+            
+            document.addEventListener('click', (e) => {
+                const menu = document.getElementById('attach-menu');
+                const btn = document.getElementById('attach-btn');
+                if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
+                    menu.classList.remove('show');
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', initializeApp);
+
+        async function initInterface() {
+            if (userProfile.role === 'user') {
+                document.getElementById('contacts-btn-text').textContent = 'Admins';
+                document.getElementById('contacts-modal-title').textContent = 'Administrateurs';
+                await initUserChat();
             } else {
-                searchToggleBtn.style.display = 'none';
-                searchPanel.classList.remove('show');
-                searchToggleBtn.classList.remove('active');
-            }
-
-            if (page !== 'home') {
-                pageManager.loadPage(page);
-            }
-            
-            if (page === 'messages') {
-                setTimeout(() => pageManager.preloadPage('notifications'), 1000);
-            } else if (page === 'notifications') {
-                setTimeout(() => pageManager.preloadPage('messages'), 1000);
+                document.getElementById('contacts-btn-text').textContent = 'Contacts';
+                document.getElementById('contacts-modal-title').textContent = 'Tous les contacts';
+                await initAdminChat();
             }
         }
 
-        // ============================================================================
-        // GESTION DES RÉACTIONS UTILISATEUR
-        // ============================================================================
-        async function loadUserReactions() {
-            if (!currentUser) return;
-            try {
+        async function initUserChat() {
+            const storedAdminId = localStorage.getItem(`default_admin_${currentUser.id}`);
+            let defaultAdmin = null;
+
+            if (storedAdminId) {
                 const { data } = await supabaseInstance
-                    .from('article_reactions')
-                    .select('article_id, reaction_type')
-                    .eq('user_id', currentUser.id);
-                
-                if (!data) return;
-                
-                userReactions = {};
-                data.forEach(reaction => {
-                    if (!userReactions[reaction.article_id]) {
-                        userReactions[reaction.article_id] = [];
-                    }
-                    userReactions[reaction.article_id].push(reaction.reaction_type);
-                });
-            } catch (error) {
-                console.warn('⚠️ Erreur chargement réactions:', error);
+                    .from('users_profile')
+                    .select('*')
+                    .eq('user_id', storedAdminId)
+                    .eq('role', 'admin')
+                    .single();
+                defaultAdmin = data;
+            }
+
+            if (!defaultAdmin) {
+                const { data: admins } = await supabaseInstance
+                    .from('users_profile')
+                    .select('user_id, prenom, nom, role')
+                    .eq('role', 'admin')
+                    .limit(10);
+
+                if (admins && admins.length > 0) {
+                    defaultAdmin = admins[Math.floor(Math.random() * admins.length)];
+                    localStorage.setItem(`default_admin_${currentUser.id}`, defaultAdmin.user_id);
+                }
+            }
+
+            if (defaultAdmin) {
+                openChat(defaultAdmin);
+            } else {
+                showEmptyState('Aucun administrateur disponible', 'Veuillez réessayer plus tard');
+            }
+
+            await loadConversations();
+        }
+
+        async function initAdminChat() {
+            await loadConversations();
+            
+            if (conversationsCache.length > 0) {
+                openChat(conversationsCache[0].user);
+            } else {
+                showEmptyState('Aucune conversation', 'Attendez qu\'un utilisateur vous contacte');
             }
         }
 
-        // ============================================================================
-        // GESTION DES MISES À JOUR EN TEMPS RÉEL
-        // ============================================================================
-        function setupRealTimeUpdates() {
-            if (!currentUser) return;
-
-            supabaseInstance.channel('articles-changes')
-                .on('postgres_changes', { 
-                    event: '*', schema: 'public', table: 'articles' 
-                }, async () => {
-                    console.log('📰 Article modifié');
-                    await loadArticles();
-                })
-                .subscribe();
-
-            supabaseInstance.channel('reactions-changes')
-                .on('postgres_changes', { 
-                    event: '*', schema: 'public', table: 'article_reactions' 
-                }, async () => {
-                    await loadUserReactions();
-                    await loadArticles();
-                })
-                .subscribe();
-
-            supabaseInstance.channel('comments-changes')
-                .on('postgres_changes', { 
-                    event: '*', schema: 'public', table: 'sessions_commentaires' 
-                }, async () => {
-                    await loadArticles();
-                })
-                .subscribe();
-
-            supabaseInstance.channel('notifications-changes')
-                .on('postgres_changes', { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'notifications',
-                    filter: `user_id=eq.${currentUser.id}`
-                }, () => {
-                    loadNotificationCount();
-                })
-                .subscribe();
-
-            supabaseInstance.channel('messages-changes')
-                .on('postgres_changes', { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'messages',
-                    filter: `receiver_id=eq.${currentUser.id}`
-                }, () => {
-                    loadMessageCount();
-                })
-                .subscribe();
-        }
-
-        // ============================================================================
-        // CHARGEMENT DES ARTICLES
-        // ============================================================================
-        async function loadArticles() {
+        // ==================== CHARGEMENT DONNÉES ====================
+        async function loadConversations() {
             try {
-                console.log('🔄 Début du chargement des articles...');
-                
-                if (!OfflineManager.checkConnection()) {
-                    console.warn('⚠️ Mode hors ligne détecté');
-                    throw new Error('Pas de connexion Internet');
-                }
-                
-                const { data: articles, error } = await supabaseInstance
-                    .from('articles')
-                    .select(`
-                        *,
-                        users_profile!articles_user_id_fkey (
-                            prenom,
-                            nom
-                        ),
-                        article_images (
-                            image_url
-                        ),
-                        article_videos (
-                            video_url
-                        )
-                    `)
-                    .order('date_created', { ascending: false });
-                
-                if (error) {
-                    console.error('❌ Erreur Supabase:', error);
-                    throw error;
-                }
-                
-                document.getElementById('loader').style.display = 'none';
-                
-                if (!articles || articles.length === 0) {
-                    console.warn('⚠️ Aucun article trouvé');
-                    document.getElementById('empty-state').style.display = 'block';
-                    document.getElementById('articles-container').innerHTML = '';
-                    allArticles = [];
+                // ✅ Sélectionner uniquement les colonnes nécessaires
+                const [sentMessages, receivedMessages] = await Promise.all([
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, receiver_id, texte, image_url, date_created, read_status, delivery_status')
+                        .eq('sender_id', currentUser.id)
+                        .order('date_created', { ascending: false })
+                        .limit(100),
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, receiver_id, texte, image_url, date_created, read_status, delivery_status')
+                        .eq('receiver_id', currentUser.id)
+                        .order('date_created', { ascending: false })
+                        .limit(100)
+                ]);
+
+                if (sentMessages.error) throw sentMessages.error;
+                if (receivedMessages.error) throw receivedMessages.error;
+
+                // Fusionner et trier les messages
+                const messages = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
+                    .sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
+
+                const userIds = new Set();
+                messages.forEach(msg => {
+                    const otherId = msg.sender_id === currentUser.id ? msg.receiver_id : msg.sender_id;
+                    userIds.add(otherId);
+                });
+
+                if (userIds.size === 0) {
+                    conversationsCache = [];
                     return;
                 }
-                
-                console.log(`✅ ${articles.length} article(s) chargé(s)`);
-                
-                allArticles = articles;
-                document.getElementById('empty-state').style.display = 'none';
-                displayArticles(articles);
-                
-            } catch (error) {
-                console.error('❌ Erreur critique:', error);
-                
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('articles-container').innerHTML = '';
-                
-                if (!OfflineManager.checkConnection()) {
-                    document.getElementById('empty-state').innerHTML = `
-                        <i class="fas fa-wifi-slash"></i>
-                        <h3>Mode hors ligne</h3>
-                        <p>Impossible de charger les articles sans connexion</p>
-                    `;
-                    document.getElementById('empty-state').style.display = 'block';
-                    ToastManager.error('Hors ligne', 'Vérifiez votre connexion Internet');
-                } else {
-                    document.getElementById('empty-state').innerHTML = `
-                        <i class="fas fa-exclamation-triangle" style="color: var(--accent-yellow);"></i>
-                        <h3>Erreur de chargement</h3>
-                        <p>Impossible de charger les articles pour le moment</p>
-                        <button onclick="loadArticles()" style="margin-top: 20px; padding: 12px 24px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(107, 114, 73, 0.3); transition: all 0.3s ease;">
-                            <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>Réessayer
-                        </button>
-                    `;
-                    document.getElementById('empty-state').style.display = 'block';
-                    ToastManager.error('Erreur', 'Une erreur est survenue');
-                }
-            }
-        }
 
-        function displayArticles(articles) {
-            const container = document.getElementById('articles-container');
-            container.innerHTML = '';
-            
-            if (!articles || articles.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-search"></i>
-                        <h3>Aucun article</h3>
-                        <p>Aucun résultat trouvé</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            articles.forEach(article => {
-                try {
-                    const card = createArticleCard(article);
-                    container.appendChild(card);
-                } catch (error) {
-                    console.error('❌ Erreur création carte:', error);
-                }
-            });
-        }
+                const { data: users, error: usersError } = await supabaseInstance
+                    .from('users_profile')
+                    .select('user_id, prenom, nom, role')
+                    .in('user_id', Array.from(userIds));
 
-        function createArticleCard(article) {
-            const card = document.createElement('div');
-            card.className = 'article-card';
-            card.setAttribute('data-article-id', article.article_id);
-            
-            const author = article.users_profile || { prenom: 'Utilisateur', nom: 'Inconnu' };
-            const initials = `${author.prenom[0]}${author.nom[0]}`.toUpperCase();
-            
-            const images = Array.isArray(article.article_images) ? article.article_images : [];
-            const videos = Array.isArray(article.article_videos) ? article.article_videos : [];
-            
-            let imageClass = images.length === 1 ? 'single' : (images.length === 2 ? 'double' : 'multiple');
-            
-            const imagesHTML = images.length > 0 ? `
-                <div class="article-images ${imageClass}">
-                    ${images.map(img => `<img src="${img.image_url || ''}" alt="Image" loading="lazy" onerror="this.style.display='none'">`).join('')}
-                </div>` : '';
-            
-            const videoHTML = videos.length > 0 && videos[0].video_url ? `
-                <div class="article-video">
-                    <video controls playsinline preload="metadata" src="${videos[0].video_url}"></video>
-                </div>` : '';
+                if (usersError) throw usersError;
 
-            const linksHTML = (article.texte_url || article.vente_url || article.whatsapp_url) ? `
-                <div class="article-links">
-                    ${article.texte_url ? `<button class="link-btn" onclick="window.open('${article.texte_url}', '_blank')"><i class="fas fa-link"></i> Lien</button>` : ''}
-                    ${article.vente_url ? `<button class="link-btn" onclick="window.open('${article.vente_url}', '_blank')"><i class="fas fa-shopping-cart"></i> Acheter</button>` : ''}
-                    ${article.whatsapp_url ? `<button class="link-btn" onclick="window.open('${article.whatsapp_url}', '_blank')"><i class="fab fa-whatsapp"></i> WhatsApp</button>` : ''}
-                </div>` : '';
+                const usersMap = {};
+                users.forEach(u => { usersMap[u.user_id] = u; });
 
-            const adminOptionsHTML = (userProfile && userProfile.role === 'admin') ? `
-                <div class="admin-options">
-                    <button class="options-btn" onclick="toggleAdminMenu('options-menu-${article.article_id}')">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div class="options-menu" id="options-menu-${article.article_id}">
-                        <a onclick="editArticle('${article.article_id}')">
-                            <i class="fas fa-edit"></i> Modifier
-                        </a>
-                        <a class="delete" onclick="deleteArticle('${article.article_id}')">
-                            <i class="fas fa-trash"></i> Supprimer
-                        </a>
-                    </div>
-                </div>` : '';
+                const conversations = {};
+                messages.forEach(msg => {
+                    const otherId = msg.sender_id === currentUser.id ? msg.receiver_id : msg.sender_id;
+                    const otherUser = usersMap[otherId];
 
-            const commentCount = article.comment_count || 0;
-            const commentCountBadge = commentCount > 0 ? `<span class="comment-count-badge">${commentCount}</span>` : '';
+                    if (!otherUser) return;
+                    if (userProfile.role === 'user' && otherUser.role !== 'admin') return;
 
-            const userArticleReactions = userReactions[article.article_id] || [];
-            const likeActive = userArticleReactions.includes('like') ? 'active' : '';
-            const loveActive = userArticleReactions.includes('love') ? 'active' : '';
-            const rireActive = userArticleReactions.includes('rire') ? 'active' : '';
-            const colereActive = userArticleReactions.includes('colere') ? 'active' : '';
-            
-            const reactionLike = article.reaction_like || 0;
-            const reactionLove = article.reaction_love || 0;
-            const reactionRire = article.reaction_rire || 0;
-            const reactionColere = article.reaction_colere || 0;
-
-            const formattedDate = new Date(article.date_created).toLocaleDateString('fr-FR', { 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            card.innerHTML = `
-                <div class="article-header">
-                    <div class="avatar">${initials}</div>
-                    <div class="author-info">
-                        <h3>${author.prenom} ${author.nom}</h3>
-                        <p>${formattedDate}</p>
-                    </div>
-                    ${adminOptionsHTML}
-                </div>
-                <div class="article-content">
-                    <div class="article-text">${article.texte}</div>
-                    ${imagesHTML}
-                    ${videoHTML}
-                    ${linksHTML}
-                </div>
-                <div class="reactions">
-                    <button class="reaction-btn ${likeActive}" onclick="handleReaction('${article.article_id}', 'like')">
-                        <i class="fas fa-thumbs-up"></i><span>${reactionLike}</span>
-                    </button>
-                    <button class="reaction-btn ${loveActive}" onclick="handleReaction('${article.article_id}', 'love')">
-                        <i class="fas fa-heart"></i><span>${reactionLove}</span>
-                    </button>
-                    <button class="reaction-btn ${rireActive}" onclick="handleReaction('${article.article_id}', 'rire')">
-                        <i class="fas fa-laugh"></i><span>${reactionRire}</span>
-                    </button>
-                    <button class="reaction-btn ${colereActive}" onclick="handleReaction('${article.article_id}', 'colere')">
-                        <i class="fas fa-angry"></i><span>${reactionColere}</span>
-                    </button>
-                </div>
-                <div class="comments-reactions-section">
-                    <div class="comments-toggle-large" onclick="toggleComments('${article.article_id}')">
-                        <i class="fas fa-comment"></i>
-                        <span>Commentaires</span>
-                        ${commentCountBadge}
-                    </div>
-                    <div class="share-btn" onclick="toggleShareMenu(event, '${article.article_id}')">
-                        <i class="fas fa-share-alt"></i>
-                        <div class="share-menu" id="share-menu-${article.article_id}">
-                            <h4>Partager</h4>
-                            <div class="share-options">
-                                <a class="share-option facebook" onclick="shareToFacebook('${article.article_id}')">
-                                    <i class="fab fa-facebook"></i>
-                                    <span>Facebook</span>
-                                </a>
-                                <a class="share-option twitter" onclick="shareToTwitter('${article.article_id}')">
-                                    <i class="fab fa-twitter"></i>
-                                    <span>Twitter</span>
-                                </a>
-                                <a class="share-option whatsapp" onclick="shareToWhatsApp('${article.article_id}')">
-                                    <i class="fab fa-whatsapp"></i>
-                                    <span>WhatsApp</span>
-                                </a>
-                                <a class="share-option telegram" onclick="shareToTelegram('${article.article_id}')">
-                                    <i class="fab fa-telegram"></i>
-                                    <span>Telegram</span>
-                                </a>
-                                <a class="share-option instagram" onclick="shareToInstagram('${article.article_id}')">
-                                    <i class="fab fa-instagram"></i>
-                                    <span>Instagram</span>
-                                </a>
-                                <a class="share-option tiktok" onclick="shareToTikTok('${article.article_id}')">
-                                    <i class="fab fa-tiktok"></i>
-                                    <span>TikTok</span>
-                                </a>
-                                <a class="share-option more" onclick="shareToMore('${article.article_id}')">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                    <span>Plus</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="user-reactions-btn" onclick="viewUserReactions('${article.article_id}')">
-                        <i class="fas fa-users"></i>
-                    </div>
-                </div>
-                <div class="comments-section" id="comments-${article.article_id}"></div>
-            `;
-            
-            return card;
-        }
-
-        // ============================================================================
-        // GESTION DES RÉACTIONS
-        // ============================================================================
-        async function handleReaction(articleId, reactionType) {
-            if (!currentUser || !userProfile) {
-                ToastManager.warning('Connexion requise', 'Connectez-vous pour réagir');
-                setTimeout(() => {
-                    window.location.href = 'connexion.html';
-                }, 2000);
-                return;
-            }
-            
-            if (!OfflineManager.checkConnection()) {
-                ToastManager.error('Hors ligne', 'Impossible de réagir en mode hors ligne');
-                return;
-            }
-            
-            try {
-                const { data: existing, error: selectError } = await supabaseInstance
-                    .from('article_reactions')
-                    .select('*')
-                    .eq('article_id', articleId)
-                    .eq('user_id', currentUser.id)
-                    .eq('reaction_type', reactionType)
-                    .single();
-                
-                if (selectError && selectError.code !== 'PGRST116') {
-                    throw selectError;
-                }
-                
-                if (existing) {
-                    await supabaseInstance.from('article_reactions').delete().eq('reaction_id', existing.reaction_id);
-                    if (userReactions[articleId]) {
-                        userReactions[articleId] = userReactions[articleId].filter(r => r !== reactionType);
+                    if (!conversations[otherId]) {
+                        conversations[otherId] = {
+                            user: otherUser,
+                            lastMessage: msg,
+                            unread: 0
+                        };
                     }
-                } else {
-                    await supabaseInstance.from('article_reactions').insert({ 
-                        article_id: articleId, 
-                        user_id: currentUser.id, 
-                        reaction_type: reactionType 
-                    });
-                    if (!userReactions[articleId]) {
-                        userReactions[articleId] = [];
+                    if (msg.receiver_id === currentUser.id && !msg.read_status) {
+                        conversations[otherId].unread++;
                     }
-                    userReactions[articleId].push(reactionType);
-                }
-                
-                setTimeout(() => loadArticles(), 300);
-                
-            } catch (error) {
-                console.error('❌ Erreur réaction:', error);
-                ToastManager.error('Erreur', 'Impossible d\'enregistrer votre réaction');
-            }
-        }
-
-        // ============================================================================
-        // GESTION DES COMMENTAIRES
-        // ============================================================================
-        function toggleComments(articleId) {
-            const section = document.getElementById(`comments-${articleId}`);
-            section.classList.toggle('show');
-            if (section.classList.contains('show') && section.innerHTML === '') {
-                loadComments(articleId, section);
-            }
-        }
-
-        async function loadComments(articleId, container) {
-            container.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-            try {
-                const { data: comments, error } = await supabaseInstance
-                    .from('sessions_commentaires')
-                    .select(`*, users_profile(prenom, nom)`)
-                    .eq('article_id', articleId)
-                    .order('date_created', { ascending: false });
-                
-                if (error) throw error;
-                
-                renderComments(container, articleId, comments || []);
-                
-            } catch (error) {
-                console.error('❌ Erreur commentaires:', error);
-                container.innerHTML = '<p style="color: #ef4444; padding: 20px;">Erreur de chargement des commentaires</p>';
-            }
-        }
-
-        function renderComments(container, articleId, comments) {
-            let html = `
-                <div style="padding: 20px; border-top: 1px solid var(--border-color);">
-                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 700;">Commentaires (${comments.length})</h4>
-            `;
-
-            if (!currentUser || !userProfile) {
-                html += `
-                    <div style="text-align: center; padding: 30px; background: var(--bg-primary); border-radius: 12px;">
-                        <i class="fas fa-lock" style="font-size: 32px; color: var(--text-tertiary); margin-bottom: 12px;"></i>
-                        <p style="color: var(--text-secondary); margin-bottom: 16px;">Connectez-vous pour commenter</p>
-                        <button onclick="window.location.href='connexion.html'" style="padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                            Se connecter
-                        </button>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                        <textarea id="comment-input-${articleId}" placeholder="Écrivez votre commentaire..." 
-                            style="flex: 1; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; font-family: inherit; min-height: 60px; resize: vertical; background: var(--bg-primary); color: var(--text-primary);"></textarea>
-                        <button onclick="submitComment('${articleId}')" 
-                            style="padding: 12px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; white-space: nowrap;">
-                            <i class="fas fa-paper-plane"></i> Envoyer
-                        </button>
-                    </div>
-                `;
-            }
-
-            if (comments.length === 0) {
-                html += `<p style="text-align: center; color: var(--text-tertiary); padding: 20px;">Soyez le premier à commenter !</p>`;
-            } else {
-                comments.forEach(comment => {
-                    const author = comment.users_profile || { prenom: 'Utilisateur', nom: '' };
-                    const prenom = author.prenom || 'Utilisateur';
-                    const nom = author.nom || '';
-                    const texte = comment.texte;
-                    const date = comment.date_created;
-                    const initials = `${prenom[0]}${nom ? nom[0] : ''}`.toUpperCase();
-                    const isMyComment = currentUser && currentUser.id === comment.user_id;
-
-                    html += `
-                        <div style="margin-bottom: 16px; padding: 16px; background: var(--bg-primary); border-radius: 12px; border-left: 3px solid var(--accent-blue);">
-                            <div style="display: flex; gap: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0;">
-                                    ${initials}
-                                </div>
-                                <div style="flex: 1;">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                                        <span style="font-weight: 700; font-size: 14px;">${escapeHtml(prenom)} ${escapeHtml(nom)}</span>
-                                        <span style="font-size: 12px; color: var(--text-tertiary);">${formatDate(date)}</span>
-                                    </div>
-                                    <p style="color: var(--text-primary); line-height: 1.5; font-size: 14px;">${escapeHtml(texte)}</p>
-                                    ${isMyComment ? `
-                                        <button onclick="deleteComment('${comment.session_id}', '${articleId}')" 
-                                            style="margin-top: 8px; background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 13px; font-weight: 600;">
-                                            <i class="fas fa-trash"></i> Supprimer
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
                 });
-            }
 
-            html += '</div>';
-            container.innerHTML = html;
+                conversationsCache = Object.values(conversations).sort((a, b) =>
+                    new Date(b.lastMessage.date_created) - new Date(a.lastMessage.date_created)
+                );
+
+            } catch (error) {
+                console.error('Erreur chargement conversations:', error);
+                conversationsCache = [];
+            }
         }
 
-        async function submitComment(articleId) {
-            if (!currentUser || !userProfile) {
-                ToastManager.warning('Connexion requise', 'Connectez-vous pour commenter');
+        async function loadMessages(otherUserId) {
+            try {
+                console.log('🔍 Chargement messages avec:', otherUserId);
+                
+                // ✅ Sélectionner uniquement les colonnes nécessaires (sans audio_url qui n'existe peut-être pas)
+                const [sentMessages, receivedMessages] = await Promise.all([
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, texte, image_url, date_created, delivery_status, read_status')
+                        .eq('sender_id', currentUser.id)
+                        .eq('receiver_id', otherUserId)
+                        .order('date_created', { ascending: true })
+                        .limit(100),
+                    supabaseInstance
+                        .from('messages')
+                        .select('message_id, sender_id, texte, image_url, date_created, delivery_status, read_status')
+                        .eq('sender_id', otherUserId)
+                        .eq('receiver_id', currentUser.id)
+                        .order('date_created', { ascending: true })
+                        .limit(100)
+                ]);
+
+                console.log('📤 Messages envoyés:', sentMessages);
+                console.log('📥 Messages reçus:', receivedMessages);
+
+                if (sentMessages.error) {
+                    console.error('❌ Erreur messages envoyés:', sentMessages.error);
+                    throw sentMessages.error;
+                }
+                if (receivedMessages.error) {
+                    console.error('❌ Erreur messages reçus:', receivedMessages.error);
+                    throw receivedMessages.error;
+                }
+
+                // Fusionner et trier les messages
+                messagesCache = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
+                    .sort((a, b) => new Date(a.date_created) - new Date(b.date_created));
+                
+                console.log('✅ Total messages:', messagesCache.length);
+                
+                if (messagesCache.length > 0) {
+                    const messageIds = messagesCache.map(m => m.message_id);
+                    console.log('🔍 Chargement fichiers pour', messageIds.length, 'messages');
+                    
+                    const { data: files, error: filesError } = await supabaseInstance
+                        .from('message_files')
+                        .select('*')
+                        .in('message_id', messageIds);
+                    
+                    if (filesError) {
+                        console.error('⚠️ Erreur chargement fichiers (non bloquant):', filesError);
+                    } else {
+                        console.log('📎 Fichiers chargés:', files?.length || 0);
+                        if (files) {
+                            messagesCache.forEach(msg => {
+                                msg.files = files.filter(f => f.message_id === msg.message_id);
+                            });
+                        }
+                    }
+                }
+                
+                console.log('✅ Affichage des messages...');
+                displayMessages(messagesCache);
+                
+            } catch (error) {
+                console.error('❌ Erreur complète chargement messages:', error);
+                console.error('Détails:', {
+                    message: error.message,
+                    code: error.code,
+                    details: error.details,
+                    hint: error.hint
+                });
+                messagesCache = [];
+                showEmptyState('Erreur de chargement', 'Impossible de charger les messages');
+            }
+        }
+
+        async function loadContacts() {
+            try {
+                const role = userProfile.role === 'user' ? 'admin' : null;
+                let query = supabaseInstance
+                    .from('users_profile')
+                    .select('user_id, prenom, nom, role')
+                    .neq('user_id', currentUser.id)
+                    .order('prenom')
+                    .limit(100);
+
+                if (role) {
+                    query = query.eq('role', role);
+                }
+
+                const { data, error } = await query;
+                if (error) throw error;
+                contactsCache = data || [];
+            } catch (error) {
+                console.error('Erreur chargement contacts:', error);
+                contactsCache = [];
+            }
+        }
+
+        // ==================== AFFICHAGE ====================
+        function displayConversations(conversations) {
+            const container = document.getElementById('conversations-list');
+
+            if (conversations.length === 0) {
+                container.innerHTML = '<div class="loading"><i class="fas fa-inbox"></i><p>Aucune conversation</p></div>';
                 return;
             }
 
-            const input = document.getElementById(`comment-input-${articleId}`);
-            const texte = input.value.trim();
+            container.innerHTML = '';
+            conversations.forEach(conv => {
+                const initials = `${conv.user.prenom[0]}${conv.user.nom[0]}`.toUpperCase();
+                let lastMsg;
+                
+                // Vérifier les fichiers d'abord
+                if (conv.lastMessage.files && conv.lastMessage.files.length > 0) {
+                    const firstFile = conv.lastMessage.files[0];
+                    if (firstFile.file_type === 'audio') {
+                        lastMsg = '🎵 Message vocal';
+                    } else if (firstFile.file_type === 'video') {
+                        lastMsg = '🎥 Vidéo';
+                    } else if (firstFile.file_type === 'pdf') {
+                        lastMsg = '📄 PDF';
+                    } else {
+                        lastMsg = '📎 Fichier';
+                    }
+                } else if (conv.lastMessage.image_url) {
+                    lastMsg = '📷 Photo';
+                } else {
+                    lastMsg = conv.lastMessage.texte?.substring(0, 50) || '📎 Fichier';
+                }
+                
+                const time = formatTime(conv.lastMessage.date_created);
+                const isUnread = conv.unread > 0;
 
-            if (!texte) return;
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                if (currentChatUser && currentChatUser.user_id === conv.user.user_id) {
+                    div.classList.add('active');
+                }
+                div.onclick = () => {
+                    closeConversationsModal();
+                    openChat(conv.user);
+                };
+                div.innerHTML = `
+                    <div class="item-avatar">${initials}</div>
+                    <div class="item-info">
+                        <div class="item-header">
+                            <span class="item-name">${conv.user.prenom} ${conv.user.nom}</span>
+                            ${conv.user.role === 'admin' ? '<span class="item-role">Admin</span>' : ''}
+                            <span class="item-time">${time}</span>
+                        </div>
+                        <div class="item-preview ${isUnread ? 'unread' : ''}">${lastMsg}</div>
+                    </div>
+                    ${conv.unread > 0 ? `<div class="item-unread">${conv.unread}</div>` : ''}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function displayContacts(contacts) {
+            const container = document.getElementById('contacts-list');
+
+            if (contacts.length === 0) {
+                container.innerHTML = '<div class="loading"><i class="fas fa-user-slash"></i><p>Aucun contact disponible</p></div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            contacts.forEach(user => {
+                // ✅ Vérification de sécurité pour éviter "undefined"
+                const prenom = user.prenom || 'U';
+                const nom = user.nom || 'ser';
+                const initials = `${prenom[0]}${nom[0]}`.toUpperCase();
+                
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.onclick = () => {
+                    closeContactsModal();
+                    openChat(user);
+                };
+                div.innerHTML = `
+                    <div class="item-avatar">${initials}</div>
+                    <div class="item-info">
+                        <div class="item-header">
+                            <span class="item-name">${prenom} ${nom}</span>
+                            ${user.role === 'admin' ? '<span class="item-role">Admin</span>' : ''}
+                        </div>
+                        <div class="item-preview">Démarrer une conversation</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('chat-messages');
+            if (!container) return;
+
+            const shouldScroll = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
+            container.innerHTML = '';
+
+            let currentDate = null;
+            let lastSenderId = null;
+            let messageGroup = [];
+
+            messages.forEach((msg, index) => {
+                const msgDate = new Date(msg.date_created).toDateString();
+                
+                if (msgDate !== currentDate) {
+                    if (messageGroup.length > 0) {
+                        displayMessageGroup(container, messageGroup);
+                        messageGroup = [];
+                    }
+                    
+                    const separator = document.createElement('div');
+                    separator.className = 'date-separator';
+                    separator.innerHTML = `<span>${formatDateSeparator(msg.date_created)}</span>`;
+                    container.appendChild(separator);
+                    currentDate = msgDate;
+                    lastSenderId = null;
+                }
+
+                if (msg.sender_id !== lastSenderId && messageGroup.length > 0) {
+                    displayMessageGroup(container, messageGroup);
+                    messageGroup = [];
+                }
+
+                messageGroup.push(msg);
+                lastSenderId = msg.sender_id;
+
+                if (index === messages.length - 1) {
+                    displayMessageGroup(container, messageGroup);
+                }
+            });
+
+            if (shouldScroll) container.scrollTop = container.scrollHeight;
+        }
+
+        function displayMessageGroup(container, messages) {
+            if (messages.length === 0) return;
+
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'message-group';
+
+            messages.forEach((msg, index) => {
+                const isSent = msg.sender_id === currentUser.id;
+                const div = document.createElement('div');
+                div.className = `message-bubble ${isSent ? 'message-sent' : 'message-received'}`;
+                div.setAttribute('data-message-id', msg.message_id);
+
+                if (messages.length === 1) {
+                } else if (index === 0) {
+                    div.classList.add('first-in-group');
+                } else if (index === messages.length - 1) {
+                    div.classList.add('last-in-group');
+                } else {
+                    div.classList.add('middle-in-group');
+                }
+
+                let content = '';
+                if (msg.texte) content += `<div class="message-text">${escapeHtml(msg.texte)}</div>`;
+                if (msg.image_url) content += `<img src="${msg.image_url}" class="message-image" onclick="openImageFullscreen('${msg.image_url}')">`;
+                
+                // ✅ Afficher les fichiers depuis message_files (pas audio_url)
+                if (msg.files && msg.files.length > 0) {
+                    msg.files.forEach(file => {
+                        if (file.file_type === 'audio') {
+                            content += `
+                                <div class="message-audio">
+                                    <button class="audio-play-btn" onclick="playAudio('${file.file_url}', this)">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <div class="audio-waveform">
+                                        <div class="audio-duration">🎵 Message vocal</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            const fileIcon = getFileIcon(file.file_type);
+                            content += `
+                                <div class="message-file" onclick="downloadFile('${file.file_url}', '${file.file_name}')">
+                                    <div class="file-icon">
+                                        <i class="fas ${fileIcon}"></i>
+                                    </div>
+                                    <div class="file-info">
+                                        <div class="file-name">${escapeHtml(file.file_name)}</div>
+                                        <div class="file-meta">
+                                            <span>${file.file_type}</span>
+                                            <span>${formatFileSize(file.file_size)}</span>
+                                        </div>
+                                    </div>
+                                    <div class="file-download">
+                                        <i class="fas fa-download"></i>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                
+                if (index === messages.length - 1) {
+                    let statusIcon = '';
+                    if (isSent) {
+                        if (msg.read_status) {
+                            statusIcon = '<span class="message-status"><i class="fas fa-check-double" style="color: #8a9b56;"></i></span>';
+                        } else if (msg.delivery_status === 'delivered') {
+                            statusIcon = '<span class="message-status"><i class="fas fa-check-double"></i></span>';
+                        } else if (msg.delivery_status === 'sent') {
+                            statusIcon = '<span class="message-status"><i class="fas fa-check"></i></span>';
+                        }
+                    }
+                    content += `<div class="message-time">${formatMessageTime(msg.date_created)} ${statusIcon}</div>`;
+                }
+
+                content += `
+                    <div class="reaction-picker">
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '❤️', event)">❤️</div>
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '😂', event)">😂</div>
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '😮', event)">😮</div>
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '😢', event)">😢</div>
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '👍', event)">👍</div>
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '👎', event)">👎</div>
+                    </div>
+                `;
+
+                div.innerHTML = content;
+                groupDiv.appendChild(div);
+            });
+
+            container.appendChild(groupDiv);
+        }
+
+        function showEmptyState(title, subtitle = '') {
+            document.getElementById('chat-area').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>${title}</h3>
+                    ${subtitle ? `<p>${subtitle}</p>` : ''}
+                </div>
+            `;
+        }
+
+        // ==================== CHAT ====================
+        function openChat(user) {
+            currentChatUser = user;
+            selectedImage = null;
+            selectedFile = null;
+            const initials = `${user.prenom[0]}${user.nom[0]}`.toUpperCase();
+            const chatArea = document.getElementById('chat-area');
+
+            const isAdmin = userProfile.role === 'admin';
+
+            chatArea.innerHTML = `
+                <div class="chat-header">
+                    <div class="chat-avatar">${initials}</div>
+                    <div class="chat-user-info">
+                        <h3>${user.prenom} ${user.nom}</h3>
+                        <p id="user-status">${user.role === 'admin' ? 'Administrateur' : 'Utilisateur'}</p>
+                    </div>
+                    <div class="chat-header-actions">
+                        <button class="chat-header-btn" onclick="refreshChat()" title="Actualiser">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="image-preview-container" id="image-preview-container">
+                    <div class="image-preview">
+                        <img id="preview-image" src="" alt="Preview">
+                        <button class="remove-preview" onclick="removeImagePreview()">×</button>
+                    </div>
+                </div>
+                <div class="file-preview-container" id="file-preview-container">
+                    <div class="file-preview">
+                        <div class="file-preview-icon" id="file-preview-icon">
+                            <i class="fas fa-file"></i>
+                        </div>
+                        <div class="file-preview-info">
+                            <div class="file-preview-name" id="file-preview-name"></div>
+                            <div class="file-preview-size" id="file-preview-size"></div>
+                        </div>
+                        <button class="remove-file-preview" onclick="removeFilePreview()">×</button>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="file" id="image-input" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+                    <input type="file" id="file-input" accept=".pdf,.zip,.mp3,.mp4,.wav,.doc,.docx,.xls,.xlsx" style="display: none;" onchange="handleFileSelect(event)">
+                    <div style="position: relative;">
+                        <button class="attach-btn" id="attach-btn" onclick="toggleAttachMenu()" title="Joindre un fichier">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <div class="attach-menu" id="attach-menu">
+                            <div class="attach-option" onclick="document.getElementById('image-input').click(); document.getElementById('attach-menu').classList.remove('show');">
+                                <i class="fas fa-image"></i>
+                                <span>Photo</span>
+                            </div>
+                            <div class="attach-option ${!isAdmin ? 'admin-only' : ''}" onclick="${isAdmin ? "document.getElementById('file-input').click(); document.getElementById('attach-menu').classList.remove('show');" : "alert('Seuls les administrateurs peuvent envoyer des fichiers');"}" title="${!isAdmin ? 'Réservé aux admins' : ''}">
+                                <i class="fas fa-file"></i>
+                                <span>Fichier ${!isAdmin ? '🔒' : ''}</span>
+                            </div>
+                            ${isAdmin ? `<div class="attach-option" onclick="toggleVoiceRecording(); document.getElementById('attach-menu').classList.remove('show');" title="Enregistrement vocal">
+                                <i class="fas fa-microphone"></i>
+                                <span>Audio vocal 🔒</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    ${isAdmin ? `<button class="voice-btn" id="voice-btn" onclick="toggleVoiceRecording()" title="Enregistrement vocal">
+                        <i class="fas fa-microphone"></i>
+                    </button>` : ''}
+                    <div class="input-wrapper">
+                        <textarea class="message-input" id="message-input" placeholder="Aa" rows="1" oninput="handleInputChange()" onkeydown="handleKeyDown(event)" onfocus="openComposePopup()"></textarea>
+                        <button class="emoji-btn" onclick="insertEmoji()" title="Emoji">
+                            😊
+                        </button>
+                    </div>
+                    <button class="send-btn" onclick="sendMessage()" id="send-btn" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            `;
+
+            loadMessages(user.user_id);
+            markMessagesAsRead(user.user_id);
+            subscribeToMessages(user.user_id);
+            subscribeToTypingStatus(user.user_id);
+            subscribeToDeliveryStatus(user.user_id);
+            
+            const input = document.getElementById('message-input');
+            if (input) input.focus();
+        }
+
+        // ==================== ENVOI MESSAGES ====================
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            const texte = input ? input.value.trim() : '';
+
+            if (!texte && !selectedImage && !selectedFile) return;
+
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+
+            updateTypingStatus(false);
 
             try {
-                const { error } = await supabaseInstance
-                    .from('sessions_commentaires')
-                    .insert([{
-                        article_id: articleId,
-                        user_id: currentUser.id,
-                        texte: texte
-                    }]);
+                let imageUrl = null;
+                let messageId = null;
 
-                if (error) throw error;
+                if (selectedImage) {
+                    const fileName = `${Date.now()}_${selectedImage.name}`;
+                    const { error: uploadError } = await supabaseInstance.storage
+                        .from('messages-images')
+                        .upload(fileName, selectedImage, {
+                            contentType: selectedImage.type,
+                            upsert: false
+                        });
 
-                input.value = '';
-                ToastManager.success('Commentaire publié', 'Votre commentaire a été ajouté');
+                    if (uploadError) throw uploadError;
+                    const { data } = supabaseInstance.storage.from('messages-images').getPublicUrl(fileName);
+                    imageUrl = data.publicUrl;
+                }
+
+                const { data: messageData, error: insertError } = await supabaseInstance
+                    .from('messages')
+                    .insert({
+                        sender_id: currentUser.id,
+                        receiver_id: currentChatUser.user_id,
+                        texte: texte || null,
+                        image_url: imageUrl,
+                        delivery_status: 'sent'
+                    })
+                    .select()
+                    .single();
+
+                if (insertError) throw insertError;
+                messageId = messageData.message_id;
+
+                if (selectedFile && userProfile.role === 'admin') {
+                    const fileName = `${Date.now()}_${selectedFile.name}`;
+                    
+                    const { error: fileUploadError } = await supabaseInstance.storage
+                        .from('messages-files')
+                        .upload(fileName, selectedFile, {
+                            contentType: selectedFile.type,
+                            upsert: false
+                        });
+
+                    if (fileUploadError) throw fileUploadError;
+                    
+                    const { data: fileUrlData } = supabaseInstance.storage
+                        .from('messages-files')
+                        .getPublicUrl(fileName);
+                    
+                    const fileType = getFileTypeFromMime(selectedFile.type, selectedFile.name);
+                    
+                    const { error: fileMetaError } = await supabaseInstance
+                        .from('message_files')
+                        .insert({
+                            message_id: messageId,
+                            file_url: fileUrlData.publicUrl,
+                            file_name: selectedFile.name,
+                            file_type: fileType,
+                            file_size: selectedFile.size,
+                            mime_type: selectedFile.type
+                        });
+
+                    if (fileMetaError) throw fileMetaError;
+                }
+
+                if (input) {
+                    input.value = '';
+                    input.style.height = 'auto';
+                    input.focus();
+                }
                 
-                const container = document.getElementById(`comments-${articleId}`);
-                loadComments(articleId, container);
-
+                removeImagePreview();
+                removeFilePreview();
+                
             } catch (error) {
-                console.error('❌ Erreur envoi commentaire:', error);
-                ToastManager.error('Erreur', 'Impossible d\'envoyer le commentaire');
+                console.error('Erreur envoi message:', error);
+                alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
+            } finally {
+                if (sendBtn) {
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                    handleInputChange();
+                }
             }
         }
 
-        async function deleteComment(commentId, articleId) {
-            if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
-
+        async function markMessagesAsRead(otherUserId) {
             try {
-                const { error } = await supabaseInstance
-                    .from('sessions_commentaires')
-                    .delete()
-                    .eq('session_id', commentId)
-                    .eq('user_id', currentUser.id);
-
-                if (error) throw error;
-
-                ToastManager.success('Commentaire supprimé', 'Le commentaire a été supprimé');
-                
-                const container = document.getElementById(`comments-${articleId}`);
-                loadComments(articleId, container);
-
+                await supabaseInstance
+                    .from('messages')
+                    .update({ 
+                        read_status: true, 
+                        delivery_status: 'read',
+                        read_at: new Date().toISOString()
+                    })
+                    .eq('sender_id', otherUserId)
+                    .eq('receiver_id', currentUser.id)
+                    .eq('read_status', false);
+                    
+                await loadConversations();
             } catch (error) {
-                console.error('❌ Erreur suppression:', error);
-                ToastManager.error('Erreur', 'Impossible de supprimer');
+                console.error('Erreur marquage lu:', error);
             }
         }
 
-        function formatDate(dateString) {
-            const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
-            return new Date(dateString).toLocaleDateString('fr-FR', options);
+        // ==================== ENREGISTREMENT VOCAL ====================
+        async function toggleVoiceRecording() {
+            if (userProfile.role !== 'admin') {
+                alert('Seuls les administrateurs peuvent envoyer des messages vocaux');
+                return;
+            }
+
+            if (!isRecording) {
+                await startVoiceRecording();
+            } else {
+                await stopVoiceRecording();
+            }
         }
 
+        async function startVoiceRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    await uploadVoiceMessage(audioBlob);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                recordingStartTime = Date.now();
+                
+                const voiceBtn = document.getElementById('voice-btn');
+                if (voiceBtn) {
+                    voiceBtn.classList.add('recording');
+                    voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                }
+
+                document.getElementById('recording-indicator').classList.add('show');
+                recordingTimer = setInterval(updateRecordingTime, 1000);
+                
+            } catch (error) {
+                console.error('Erreur accès microphone:', error);
+                alert('Impossible d\'accéder au microphone. Vérifiez les permissions.');
+            }
+        }
+
+        async function stopVoiceRecording() {
+            if (!mediaRecorder || !isRecording) return;
+
+            mediaRecorder.stop();
+            isRecording = false;
+            
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
+            }
+
+            const voiceBtn = document.getElementById('voice-btn');
+            if (voiceBtn) {
+                voiceBtn.classList.remove('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            }
+
+            document.getElementById('recording-indicator').classList.remove('show');
+        }
+
+        function updateRecordingTime() {
+            if (!recordingStartTime) return;
+            
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            const timeDisplay = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('recording-time').textContent = timeDisplay;
+        }
+
+        async function uploadVoiceMessage(audioBlob) {
+            try {
+                // ✅ Vérification de l'authentification
+                const { data: { session } } = await supabaseInstance.auth.getSession();
+                if (!session) {
+                    throw new Error('Vous devez être connecté pour envoyer un message vocal');
+                }
+
+                console.log('🎤 Début upload message vocal...');
+                console.log('📊 Taille audio:', audioBlob.size, 'bytes');
+                
+                // 1. Créer le message SANS audio_url
+                const { data: messageData, error: insertError } = await supabaseInstance
+                    .from('messages')
+                    .insert({
+                        sender_id: currentUser.id,
+                        receiver_id: currentChatUser.user_id,
+                        texte: null,
+                        image_url: null,
+                        delivery_status: 'sent'
+                    })
+                    .select()
+                    .single();
+
+                if (insertError) {
+                    console.error('❌ Erreur création message:', insertError);
+                    throw insertError;
+                }
+                
+                const messageId = messageData.message_id;
+                console.log('✅ Message créé:', messageId);
+                
+                // 2. Upload l'audio dans Storage
+                const fileName = `voice_${Date.now()}_${currentUser.id}.wav`;
+                console.log('📤 Upload fichier:', fileName);
+                
+                const { data: uploadData, error: uploadError } = await supabaseInstance.storage
+                    .from('messages-files')
+                    .upload(fileName, audioBlob, {
+                        contentType: 'audio/wav',
+                        upsert: false
+                    });
+
+                if (uploadError) {
+                    console.error('❌ Erreur Storage upload:', uploadError);
+                    console.error('Détails:', {
+                        message: uploadError.message,
+                        statusCode: uploadError.statusCode,
+                        error: uploadError.error
+                    });
+                    throw new Error(`Erreur Storage: ${uploadError.message}`);
+                }
+                
+                console.log('✅ Fichier uploadé:', uploadData);
+                
+                const { data: audioUrlData } = supabaseInstance.storage
+                    .from('messages-files')
+                    .getPublicUrl(fileName);
+
+                console.log('🔗 URL publique:', audioUrlData.publicUrl);
+
+                // 3. ✅ Insérer dans message_files
+                const { error: fileMetaError } = await supabaseInstance
+                    .from('message_files')
+                    .insert({
+                        message_id: messageId,
+                        file_url: audioUrlData.publicUrl,
+                        file_name: fileName,
+                        file_type: 'audio',
+                        file_size: audioBlob.size,
+                        mime_type: 'audio/wav'
+                    });
+
+                if (fileMetaError) {
+                    console.error('❌ Erreur insertion message_files:', fileMetaError);
+                    throw fileMetaError;
+                }
+                
+                console.log('✅ Message vocal envoyé avec succès');
+                
+            } catch (error) {
+                console.error('❌ Erreur complète:', error);
+                alert('Erreur lors de l\'envoi du message vocal: ' + (error.message || 'Erreur inconnue'));
+            }
+        }
+
+        // ==================== SUBSCRIPTIONS ====================
+        function subscribeToMessages(otherUserId) {
+            if (messageSubscription) supabaseInstance.removeChannel(messageSubscription);
+
+            messageSubscription = supabaseInstance.channel(`chat-${currentUser.id}-${otherUserId}`)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages'
+                }, async (payload) => {
+                    if ((payload.new.sender_id === otherUserId && payload.new.receiver_id === currentUser.id) ||
+                        (payload.new.sender_id === currentUser.id && payload.new.receiver_id === otherUserId)) {
+                        
+                        const { data: files } = await supabaseInstance
+                            .from('message_files')
+                            .select('*')
+                            .eq('message_id', payload.new.message_id);
+                        
+                        payload.new.files = files || [];
+                        messagesCache.push(payload.new);
+                        displayMessages(messagesCache);
+                        
+                        if (payload.new.receiver_id === currentUser.id) {
+                            markMessagesAsRead(otherUserId);
+                        }
+                        
+                        loadConversations();
+                    }
+                })
+                .subscribe();
+        }
+
+        async function updateTypingStatus(typing) {
+            if (!currentChatUser) return;
+            isTyping = typing;
+            
+            try {
+                if (typing) {
+                    await supabaseInstance
+                        .from('typing_status')
+                        .upsert({
+                            user_id: currentUser.id,
+                            chat_with_user_id: currentChatUser.user_id,
+                            is_typing: true
+                        });
+                } else {
+                    await supabaseInstance
+                        .from('typing_status')
+                        .delete()
+                        .eq('user_id', currentUser.id)
+                        .eq('chat_with_user_id', currentChatUser.user_id);
+                }
+            } catch (error) {
+                console.error('Erreur typing status:', error);
+            }
+        }
+
+        function subscribeToTypingStatus(otherUserId) {
+            if (typingSubscription) supabaseInstance.removeChannel(typingSubscription);
+
+            typingSubscription = supabaseInstance.channel(`typing-${currentUser.id}-${otherUserId}`)
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'typing_status',
+                    filter: `user_id=eq.${otherUserId}`
+                }, (payload) => {
+                    const statusEl = document.getElementById('user-status');
+                    if (!statusEl) return;
+                    
+                    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                        if (payload.new.is_typing && payload.new.chat_with_user_id === currentUser.id) {
+                            statusEl.innerHTML = '<span class="typing-indicator">En train d\'écrire<span class="dot"></span><span class="dot"></span><span class="dot"></span></span>';
+                        }
+                    } else if (payload.eventType === 'DELETE') {
+                        statusEl.textContent = currentChatUser.role === 'admin' ? 'Administrateur' : 'Utilisateur';
+                    }
+                })
+                .subscribe();
+        }
+
+        function subscribeToDeliveryStatus(otherUserId) {
+            if (deliverySubscription) supabaseInstance.removeChannel(deliverySubscription);
+
+            deliverySubscription = supabaseInstance.channel(`delivery-${currentUser.id}-${otherUserId}`)
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `sender_id=eq.${currentUser.id}`
+                }, (payload) => {
+                    updateMessageStatus(payload.new.message_id, payload.new.delivery_status, payload.new.read_status);
+                })
+                .subscribe();
+        }
+
+        function updateMessageStatus(messageId, deliveryStatus, readStatus) {
+            const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (!messageEl) return;
+
+            const statusEl = messageEl.querySelector('.message-status');
+            if (!statusEl) return;
+
+            if (readStatus) {
+                statusEl.innerHTML = '<i class="fas fa-check-double" style="color: #8a9b56;"></i>';
+            } else if (deliveryStatus === 'delivered') {
+                statusEl.innerHTML = '<i class="fas fa-check-double"></i>';
+            } else if (deliveryStatus === 'sent') {
+                statusEl.innerHTML = '<i class="fas fa-check"></i>';
+            }
+        }
+
+        // ==================== GESTION FICHIERS ====================
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5000000) {
+                alert('L\'image est trop volumineuse (max 5MB)');
+                return;
+            }
+
+            selectedImage = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewContainer = document.getElementById('image-preview-container');
+                const previewImage = document.getElementById('preview-image');
+                if (previewContainer && previewImage) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                    handleInputChange();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImagePreview() {
+            selectedImage = null;
+            const previewContainer = document.getElementById('image-preview-container');
+            const imageInput = document.getElementById('image-input');
+            if (previewContainer) previewContainer.style.display = 'none';
+            if (imageInput) imageInput.value = '';
+            handleInputChange();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (userProfile.role !== 'admin') {
+                alert('Seuls les administrateurs peuvent envoyer des fichiers');
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > 50000000) {
+                alert('Le fichier est trop volumineux (max 50MB)');
+                return;
+            }
+
+            selectedFile = file;
+            
+            const previewContainer = document.getElementById('file-preview-container');
+            const previewName = document.getElementById('file-preview-name');
+            const previewSize = document.getElementById('file-preview-size');
+            const previewIcon = document.getElementById('file-preview-icon');
+            
+            if (previewName) previewName.textContent = file.name;
+            if (previewSize) previewSize.textContent = formatFileSize(file.size);
+            
+            const fileType = getFileTypeFromMime(file.type, file.name);
+            const iconClass = getFileIcon(fileType);
+            if (previewIcon) previewIcon.innerHTML = `<i class="fas ${iconClass}"></i>`;
+            
+            if (previewContainer) previewContainer.style.display = 'block';
+            handleInputChange();
+        }
+
+        function removeFilePreview() {
+            selectedFile = null;
+            const previewContainer = document.getElementById('file-preview-container');
+            const fileInput = document.getElementById('file-input');
+            if (previewContainer) previewContainer.style.display = 'none';
+            if (fileInput) fileInput.value = '';
+            handleInputChange();
+        }
+
+        function playAudio(audioUrl, button) {
+            const audio = new Audio(audioUrl);
+            const icon = button.querySelector('i');
+            
+            if (!icon) return;
+            
+            icon.className = 'fas fa-spinner fa-spin';
+            
+            audio.onloadeddata = () => {
+                icon.className = 'fas fa-pause';
+                audio.play();
+            };
+            
+            audio.onended = () => {
+                icon.className = 'fas fa-play';
+            };
+            
+            audio.onerror = () => {
+                icon.className = 'fas fa-exclamation-triangle';
+                alert('Erreur lors de la lecture du message vocal');
+            };
+            
+            if (!audio.paused) {
+                audio.pause();
+                icon.className = 'fas fa-play';
+            }
+        }
+
+        async function downloadFile(fileUrl, fileName) {
+            try {
+                const response = await fetch(fileUrl);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error('Erreur téléchargement fichier:', error);
+                alert('Erreur lors du téléchargement du fichier');
+            }
+        }
+
+        // ==================== MODALES ====================
+        function openConversationsModal() {
+            displayConversations(conversationsCache);
+            document.getElementById('conversations-modal').classList.add('show');
+        }
+
+        function closeConversationsModal() {
+            document.getElementById('conversations-modal').classList.remove('show');
+        }
+
+        async function openContactsModal() {
+            if (contactsCache.length === 0) {
+                document.getElementById('contacts-list').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
+                document.getElementById('contacts-modal').classList.add('show');
+                await loadContacts();
+                displayContacts(contactsCache);
+            } else {
+                displayContacts(contactsCache);
+                document.getElementById('contacts-modal').classList.add('show');
+            }
+        }
+
+        function closeContactsModal() {
+            document.getElementById('contacts-modal').classList.remove('show');
+        }
+
+        function filterList(type, query) {
+            const data = type === 'conversations' ? conversationsCache : contactsCache;
+            const filtered = data.filter(item => {
+                const user = item.user || item;
+                return `${user.prenom} ${user.nom}`.toLowerCase().includes(query.toLowerCase());
+            });
+
+            if (type === 'conversations') {
+                displayConversations(filtered);
+            } else {
+                displayContacts(filtered);
+            }
+        }
+
+        // ==================== INPUT HANDLERS ====================
+        function toggleAttachMenu() {
+            const menu = document.getElementById('attach-menu');
+            if (menu) {
+                menu.classList.toggle('show');
+            }
+        }
+
+        function handleInputChange() {
+            const input = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            
+            if (!input || !sendBtn) return;
+            
+            // ✅ Au lieu d'ajuster la hauteur, on ouvre la popup
+            if (input.value.length > 0 && document.activeElement === input) {
+                // Ne rien faire ici, la popup s'ouvre avec le focus
+            }
+            
+            const hasContent = input.value.trim().length > 0 || selectedImage !== null || selectedFile !== null;
+            sendBtn.disabled = !hasContent;
+            
+            if (input.value.trim().length > 0 && !isTyping) {
+                updateTypingStatus(true);
+            }
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                updateTypingStatus(false);
+            }, 2000);
+        }
+
+        // ✅ GESTION DE LA POPUP DE SAISIE
+        function openComposePopup() {
+            const popup = document.getElementById('compose-popup');
+            const mainInput = document.getElementById('message-input');
+            const composeTextarea = document.getElementById('compose-textarea');
+            
+            if (!popup || !composeTextarea) return;
+            
+            // Copier le contenu de l'input principal vers la popup
+            composeTextarea.value = mainInput ? mainInput.value : '';
+            
+            // Afficher la popup
+            popup.classList.add('show');
+            
+            // Focus sur le textarea de la popup
+            setTimeout(() => {
+                composeTextarea.focus();
+                handleComposeInput();
+            }, 100);
+        }
+
+        function closeComposePopup() {
+            const popup = document.getElementById('compose-popup');
+            const mainInput = document.getElementById('message-input');
+            const composeTextarea = document.getElementById('compose-textarea');
+            
+            if (!popup) return;
+            
+            // Copier le contenu de la popup vers l'input principal
+            if (mainInput && composeTextarea) {
+                mainInput.value = composeTextarea.value;
+                handleInputChange();
+            }
+            
+            popup.classList.remove('show');
+        }
+
+        function handleComposeInput() {
+            const textarea = document.getElementById('compose-textarea');
+            const sendBtn = document.getElementById('compose-send-btn');
+            const charCount = document.getElementById('compose-char-count');
+            
+            if (!textarea || !sendBtn || !charCount) return;
+            
+            // Ajuster la hauteur automatiquement
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 400) + 'px';
+            
+            // Mettre à jour le compteur de caractères
+            charCount.textContent = textarea.value.length;
+            
+            // Activer/désactiver le bouton d'envoi
+            const hasContent = textarea.value.trim().length > 0 || selectedImage !== null || selectedFile !== null;
+            sendBtn.disabled = !hasContent;
+        }
+
+        function insertEmojiInCompose() {
+            const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🔥', '😍', '🤔', '👏', '🙏'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            const textarea = document.getElementById('compose-textarea');
+            
+            if (textarea) {
+                const cursorPos = textarea.selectionStart;
+                const textBefore = textarea.value.substring(0, cursorPos);
+                const textAfter = textarea.value.substring(cursorPos);
+                textarea.value = textBefore + emoji + textAfter;
+                textarea.selectionStart = textarea.selectionEnd = cursorPos + emoji.length;
+                textarea.focus();
+                handleComposeInput();
+            }
+        }
+
+        async function sendFromCompose() {
+            const composeTextarea = document.getElementById('compose-textarea');
+            const mainInput = document.getElementById('message-input');
+            
+            if (!composeTextarea) return;
+            
+            // Copier le texte vers l'input principal
+            if (mainInput) {
+                mainInput.value = composeTextarea.value;
+            }
+            
+            // Fermer la popup
+            closeComposePopup();
+            
+            // Envoyer le message
+            await sendMessage();
+            
+            // Vider la popup
+            composeTextarea.value = '';
+            handleComposeInput();
+        }
+
+        function handleKeyDown(event) {
+            // Enter = nouvelle ligne (comportement par défaut)
+        }
+
+        function insertEmoji() {
+            const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🔥', '😍', '🤔', '👏', '🙏'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            const input = document.getElementById('message-input');
+            if (input) {
+                input.value += emoji;
+                input.focus();
+                handleInputChange();
+            }
+        }
+
+        function openImageFullscreen(imageUrl) {
+            window.open(imageUrl, '_blank');
+        }
+
+        async function addReaction(messageId, emoji, event) {
+            event.stopPropagation();
+            console.log('Réaction ajoutée:', emoji, 'au message', messageId);
+        }
+
+        function refreshChat() {
+            if (currentChatUser) {
+                loadMessages(currentChatUser.user_id);
+                loadConversations();
+            }
+        }
+
+        // ==================== UTILITAIRES ====================
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
-            return div.innerHTML;
+            return div.innerHTML.replace(/\n/g, '<br>');
         }
 
-        // ============================================================================
-        // PARTAGE SOCIAL
-        // ============================================================================
-        function toggleShareMenu(event, articleId) {
-            event.stopPropagation();
-            const menu = document.getElementById(`share-menu-${articleId}`);
-            document.querySelectorAll('.share-menu.show').forEach(m => {
-                if (m.id !== `share-menu-${articleId}`) {
-                    m.classList.remove('show');
-                }
-            });
-            menu.classList.toggle('show');
+        function formatFileSize(bytes) {
+            if (!bytes) return 'Taille inconnue';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
         }
 
-        function getArticleShareUrl(articleId) {
-            return `${window.location.origin}${window.location.pathname}?article=${articleId}`;
+        function getFileIcon(fileType) {
+            const icons = {
+                'video': 'fa-file-video',
+                'audio': 'fa-file-audio',
+                'pdf': 'fa-file-pdf',
+                'zip': 'fa-file-archive',
+                'document': 'fa-file-word',
+                'other': 'fa-file'
+            };
+            return icons[fileType] || 'fa-file';
         }
 
-        function getArticleShareText(articleId) {
-            const article = allArticles.find(a => a.article_id === articleId);
-            if (!article) return 'Découvrez World Connect';
-            const preview = article.texte.substring(0, 100) + (article.texte.length > 100 ? '...' : '');
-            return `${preview} - World Connect`;
+        function getFileTypeFromMime(mimeType, fileName) {
+            if (mimeType.startsWith('video/')) return 'video';
+            if (mimeType.startsWith('audio/')) return 'audio';
+            if (mimeType === 'application/pdf') return 'pdf';
+            if (mimeType === 'application/zip' || mimeType === 'application/x-zip-compressed') return 'zip';
+            if (mimeType.includes('word') || fileName.endsWith('.doc') || fileName.endsWith('.docx')) return 'document';
+            if (mimeType.includes('excel') || fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) return 'document';
+            return 'other';
         }
 
-        function shareToFacebook(articleId) {
-            const url = encodeURIComponent(getArticleShareUrl(articleId));
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
-        }
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
 
-        function shareToTwitter(articleId) {
-            const url = encodeURIComponent(getArticleShareUrl(articleId));
-            const text = encodeURIComponent(getArticleShareText(articleId));
-            window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
-        }
-
-        function shareToWhatsApp(articleId) {
-            const text = encodeURIComponent(`${getArticleShareText(articleId)} ${getArticleShareUrl(articleId)}`);
-            window.open(`https://wa.me/?text=${text}`, '_blank');
-        }
-
-        function shareToTelegram(articleId) {
-            const url = encodeURIComponent(getArticleShareUrl(articleId));
-            const text = encodeURIComponent(getArticleShareText(articleId));
-            window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
-        }
-
-        function shareToInstagram(articleId) {
-            ToastManager.info('Partage Instagram', 'Lien copié dans le presse-papier');
-            copyArticleLink(articleId);
-        }
-
-        function shareToTikTok(articleId) {
-            ToastManager.info('Partage TikTok', 'Lien copié dans le presse-papier');
-            copyArticleLink(articleId);
-        }
-
-        function shareToMore(articleId) {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'World Connect',
-                    text: getArticleShareText(articleId),
-                    url: getArticleShareUrl(articleId)
-                }).then(() => {
-                    ToastManager.success('Partage réussi', 'Article partagé avec succès');
-                }).catch(err => {
-                    if (err.name !== 'AbortError') {
-                        copyArticleLink(articleId);
-                        ToastManager.info('Lien copié', 'Collez-le où vous voulez');
-                    }
-                });
-            } else {
-                copyArticleLink(articleId);
-                ToastManager.success('Lien copié', 'Partagez-le où vous voulez');
+            if (diff < 60000) return 'À l\'instant';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} min`;
+            if (date.toDateString() === now.toDateString()) {
+                return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             }
+            
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) {
+                return 'Hier';
+            }
+            
+            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
         }
 
-        function copyArticleLink(articleId) {
-            const url = getArticleShareUrl(articleId);
-            navigator.clipboard.writeText(url).then(() => {
-                console.log('✅ Lien copié');
-            }).catch(err => {
-                console.error('❌ Erreur copie:', err);
+        function formatMessageTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatDateSeparator(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            
+            if (date.toDateString() === now.toDateString()) {
+                return 'Aujourd\'hui';
+            }
+            
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) {
+                return 'Hier';
+            }
+            
+            return date.toLocaleDateString('fr-FR', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
             });
         }
 
-        // ============================================================================
-        // GESTION ADMIN
-        // ============================================================================
-        function toggleAdminMenu(menuId) {
-            document.querySelectorAll('.options-menu.show').forEach(menu => {
-                if (menu.id !== menuId) {
-                    menu.classList.remove('show');
-                }
-            });
-            document.getElementById(menuId)?.classList.toggle('show');
-        }
-
-        function editArticle(articleId) {
-            window.location.href = `edit-article.html?id=${articleId}`;
-        }
-
-        async function deleteArticle(articleId) {
-            if (!confirm("Voulez-vous vraiment supprimer cet article ?")) return;
-            
-            try {
-                LoadingManager.show();
-                
-                const { error } = await supabaseInstance.from('articles').delete().eq('article_id', articleId);
-                
-                if (error) throw error;
-                
-                ToastManager.success('Suppression réussie', 'Article supprimé avec succès');
-                await loadArticles();
-                
-            } catch (error) {
-                console.error('❌ Erreur suppression:', error);
-                ToastManager.error('Erreur', 'Impossible de supprimer l\'article');
-            } finally {
-                LoadingManager.hide();
-            }
-        }
-
-        function viewUserReactions(articleId) {
-            if (!currentUser || !userProfile) {
-                ToastManager.warning('Connexion requise', 'Connectez-vous pour voir les réactions');
-                setTimeout(() => {
-                    window.location.href = 'connexion.html';
-                }, 2000);
-                return;
-            }
-            window.location.href = `usereact.html?article_id=${articleId}`;
-        }
-
-        // ============================================================================
-        // COMPTEURS DE NOTIFICATIONS ET MESSAGES
-        // ============================================================================
-        async function loadNotificationCount() {
-            if (!currentUser) return;
-            try {
-                const { count } = await supabaseInstance
-                    .from('notifications')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', currentUser.id)
-                    .eq('read_status', false);
-                
-                const badge = document.getElementById('notif-badge');
-                if (count > 0) {
-                    badge.textContent = count;
-                    badge.style.display = 'block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('❌ Erreur compteur notifications:', error);
-            }
-        }
-
-        async function loadMessageCount() {
-            if (!currentUser) return;
-            try {
-                const { count } = await supabaseInstance
-                    .from('messages')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('receiver_id', currentUser.id)
-                    .eq('read_status', false);
-                
-                const badge = document.getElementById('message-badge');
-                if (count > 0) {
-                    badge.textContent = count;
-                    badge.style.display = 'block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('❌ Erreur compteur messages:', error);
-            }
-        }
-
-        // ============================================================================
-        // INITIALISATION PRINCIPALE - 🔥 ORDRE OPTIMISÉ
-        // ============================================================================
-        window.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 Initialisation de l\'application World Connect...');
-            console.log('📅', new Date().toLocaleString('fr-FR'));
-            
-            // ============================================================================
-            // ÉTAPE 1 : INITIALISER LES MANAGERS
-            // ============================================================================
-            ToastManager.init();
-            LoadingManager.init();
-            OfflineManager.init();
-            console.log('✅ Managers initialisés');
-            
-            // ============================================================================
-            // ÉTAPE 2 : INITIALISER THREE.JS (Visuel)
-            // ============================================================================
-            initThreeJS();
-            console.log('✅ Three.js initialisé');
-            
-            // ============================================================================
-            // ÉTAPE 3 : ENREGISTRER LE SERVICE WORKER (Sans demander de permission)
-            // ============================================================================
-            await initServiceWorker();
-            console.log('✅ Service Worker enregistré');
-            
-            // ============================================================================
-            // ÉTAPE 4 : VÉRIFIER LA DÉCONNEXION MANUELLE
-            // ============================================================================
-            const manualLogout = sessionStorage.getItem('manualLogout');
-            if (manualLogout === 'true') {
-                sessionStorage.removeItem('manualLogout');
-                console.log('ℹ️ Déconnexion manuelle détectée, arrêt de l\'initialisation');
-                return;
-            }
-
-            try {
-                LoadingManager.show();
-                
-                // ============================================================================
-                // ÉTAPE 5 : RÉCUPÉRER L'UTILISATEUR ACTUEL
-                // ============================================================================
-                console.log('🔍 Récupération de l\'utilisateur...');
-                currentUser = await getCurrentUser();
-                
-                if (currentUser) {
-                    console.log('✅ Utilisateur connecté:', currentUser.id);
-                    
-                    try {
-                        // ============================================================================
-                        // ÉTAPE 6 : CHARGER LE PROFIL UTILISATEUR
-                        // ============================================================================
-                        console.log('🔍 Chargement du profil...');
-                        userProfile = await getUserProfile(currentUser.id);
-                        
-                        if (userProfile) {
-                            console.log('✅ Profil chargé:', userProfile.prenom, userProfile.nom);
-                            
-                            // ============================================================================
-                            // ÉTAPE 7 : CONFIGURER L'INTERFACE UTILISATEUR
-                            // ============================================================================
-                            updateMenu();
-                            showWelcomePopup();
-                            console.log('✅ Interface mise à jour');
-                            
-                            // ============================================================================
-                            // ÉTAPE 8 : CHARGER LES DONNÉES UTILISATEUR
-                            // ============================================================================
-                            await loadUserReactions();
-                            console.log('✅ Réactions chargées');
-                            
-                            setupRealTimeUpdates();
-                            console.log('✅ Temps réel activé');
-                            
-                            loadNotificationCount();
-                            loadMessageCount();
-                            console.log('✅ Compteurs chargés');
-                            
-                            // ============================================================================
-                            // ÉTAPE 9 : 🔥 DEMANDER LES NOTIFICATIONS (MAINTENANT !)
-                            // ============================================================================
-                            console.log('🔔 Vérification des notifications...');
-                            
-                            // ✅ Vérifier si les notifications sont déjà accordées
-                            if ('Notification' in window && Notification.permission === 'granted') {
-                                console.log('✅ Permission de notification déjà accordée');
-                                await ensureSubscriptionExists();
-                            } 
-                            // ✅ Si pas encore demandé, demander après un délai
-                            else if (Notification.permission === 'default') {
-                                console.log('🔔 Demande de notification programmée...');
-                                await requestNotificationAfterDelay();
-                            }
-                            // ✅ Si refusé, ne rien faire
-                            else {
-                                console.log('🔕 Notifications refusées par l\'utilisateur');
-                            }
-                        } else {
-                            console.warn('⚠️ Profil utilisateur introuvable');
-                        }
-                    } catch (profileError) {
-                        console.warn('⚠️ Erreur profil:', profileError);
-                        ToastManager.warning('Attention', 'Impossible de charger votre profil');
-                    }
-                } else {
-                    console.log('ℹ️ Aucun utilisateur connecté');
-                }
-            } catch (error) {
-                console.error('⚠️ Erreur initialisation:', error);
-            } finally {
-                LoadingManager.hide();
-            }
-            
-            // ============================================================================
-            // ÉTAPE 10 : CHARGER LES ARTICLES
-            // ============================================================================
-            await loadArticles();
-            console.log('✅ Articles chargés');
-            
-            // ============================================================================
-            // ÉTAPE 11 : INITIALISER LA NAVIGATION
-            // ============================================================================
-            initNavigation();
-            console.log('✅ Navigation initialisée');
-            
-            // ============================================================================
-            // ÉTAPE 12 : DÉMARRER LES INTERVALLES
-            // ============================================================================
-            setInterval(() => {
-                if (currentUser) {
-                    loadNotificationCount();
-                    loadMessageCount();
-                }
-            }, 30000);
-            console.log('✅ Intervalles démarrés (30s)');
-            
-            // ============================================================================
-            // ÉTAPE 13 : ÉCOUTER LES ÉVÉNEMENTS
-            // ============================================================================
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden && currentUser) {
-                    loadNotificationCount();
-                    loadMessageCount();
-                    loadArticles();
-                }
-            });
-            console.log('✅ Événements configurés');
-            
-            // ============================================================================
-            // INITIALISATION TERMINÉE
-            // ============================================================================
-            console.log('═══════════════════════════════════════════════════');
-            console.log('✅ APPLICATION WORLD CONNECT INITIALISÉE AVEC SUCCÈS');
-            console.log('═══════════════════════════════════════════════════');
-            console.log('📱 Version: 5.0.2 PRO');
-            console.log('🔔 Système de notifications: OPTIMISÉ');
-            console.log('🔑 Clé VAPID: BH3HWUJHOVhPrzNe... (synchronisée)');
-            console.log('👤 Utilisateur:', currentUser ? `${userProfile?.prenom} ${userProfile?.nom}` : 'Non connecté');
-            console.log('🔔 Notifications:', Notification.permission);
-            console.log('═══════════════════════════════════════════════════');
+        // ==================== EVENT LISTENERS ====================
+        document.getElementById('conversations-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeConversationsModal();
         });
 
-        // ============================================================================
-        // EXPORTS GLOBAUX + FONCTION POUR RÉACTIVER LES NOTIFICATIONS
-        // ============================================================================
-        
-        // ✅ NOUVELLE FONCTION : Réactiver les notifications manuellement (pour les paramètres)
-        async function enableNotifications() {
-            if (!currentUser || !userProfile) {
-                ToastManager.warning(
-                    'Connexion requise', 
-                    'Veuillez vous connecter pour activer les notifications'
-                );
-                setTimeout(() => {
-                    window.location.href = 'connexion.html';
-                }, 2000);
-                return;
+        document.getElementById('contacts-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeContactsModal();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            updateTypingStatus(false);
+            if (mediaRecorder && isRecording) {
+                stopVoiceRecording();
             }
+            if (messageSubscription) supabaseInstance.removeChannel(messageSubscription);
+            if (typingSubscription) supabaseInstance.removeChannel(typingSubscription);
+            if (deliverySubscription) supabaseInstance.removeChannel(deliverySubscription);
+        });
 
-            if (!('Notification' in window) || !('PushManager' in window)) {
-                ToastManager.error(
-                    'Non supporté', 
-                    'Votre navigateur ne supporte pas les notifications'
-                );
-                return;
+        setInterval(() => {
+            if (!document.hidden && currentUser) {
+                loadConversations();
             }
-
-            if (Notification.permission === 'denied') {
-                ToastManager.error(
-                    'Permission refusée', 
-                    'Vous avez bloqué les notifications. Réactivez-les dans les paramètres de votre navigateur.'
-                );
-                return;
-            }
-
-            if (Notification.permission === 'granted') {
-                ToastManager.info(
-                    'Déjà activées', 
-                    'Les notifications sont déjà activées sur cet appareil'
-                );
-                await ensureSubscriptionExists();
-                return;
-            }
-
-            // Forcer la demande même si déjà demandé avant
-            localStorage.removeItem('notificationAsked');
-            await requestNotificationPermission();
-        }
-
-        // ✅ NOUVELLE FONCTION : Désactiver les notifications
-        async function disableNotifications() {
-            if (!swRegistration) {
-                ToastManager.info('Aucune notification', 'Aucun abonnement actif');
-                return;
-            }
-
-            try {
-                const subscription = await swRegistration.pushManager.getSubscription();
-                
-                if (subscription) {
-                    await subscription.unsubscribe();
-                    console.log('✅ Abonnement push supprimé');
-                    
-                    // Supprimer de la base de données
-                    if (currentUser && supabaseInstance) {
-                        await supabaseInstance
-                            .from('subscriptions')
-                            .delete()
-                            .eq('user_id', currentUser.id)
-                            .eq('endpoint', subscription.endpoint);
-                        
-                        console.log('✅ Abonnement supprimé de la base de données');
-                    }
-                    
-                    ToastManager.success(
-                        'Notifications désactivées', 
-                        'Vous ne recevrez plus de notifications sur cet appareil'
-                    );
-                } else {
-                    ToastManager.info(
-                        'Aucune notification', 
-                        'Aucun abonnement actif à désactiver'
-                    );
-                }
-            } catch (error) {
-                console.error('❌ Erreur désactivation:', error);
-                ToastManager.error(
-                    'Erreur', 
-                    'Impossible de désactiver les notifications'
-                );
-            }
-        }
-
-        // ✅ NOUVELLE FONCTION : Vérifier le statut des notifications
-        async function getNotificationStatus() {
-            const status = {
-                supported: 'Notification' in window && 'PushManager' in window,
-                permission: Notification.permission,
-                subscribed: false,
-                endpoint: null
-            };
-
-            if (swRegistration) {
-                try {
-                    const subscription = await swRegistration.pushManager.getSubscription();
-                    if (subscription) {
-                        status.subscribed = true;
-                        status.endpoint = subscription.endpoint;
-                    }
-                } catch (error) {
-                    console.error('❌ Erreur vérification statut:', error);
-                }
-            }
-
-            return status;
-        }
-
-        window.loadArticles = loadArticles;
-        window.handleReaction = handleReaction;
-        window.toggleComments = toggleComments;
-        window.submitComment = submitComment;
-        window.deleteComment = deleteComment;
-        window.toggleShareMenu = toggleShareMenu;
-        window.shareToFacebook = shareToFacebook;
-        window.shareToTwitter = shareToTwitter;
-        window.shareToWhatsApp = shareToWhatsApp;
-        window.shareToTelegram = shareToTelegram;
-        window.shareToInstagram = shareToInstagram;
-        window.shareToTikTok = shareToTikTok;
-        window.shareToMore = shareToMore;
-        window.viewUserReactions = viewUserReactions;
-        window.toggleAdminMenu = toggleAdminMenu;
-        window.editArticle = editArticle;
-        window.deleteArticle = deleteArticle;
-        window.ToastManager = ToastManager;
-        window.LoadingManager = LoadingManager;
-        window.OfflineManager = OfflineManager;
-        
-        // ✅ EXPORTS DES NOUVELLES FONCTIONS DE GESTION DES NOTIFICATIONS
-        window.enableNotifications = enableNotifications;
-        window.disableNotifications = disableNotifications;
-        window.getNotificationStatus = getNotificationStatus;
-        window.requestNotificationPermission = requestNotificationPermission;
-
-        console.log('🎉 World Connect - Script chargé avec succès !');
-        console.log('📱 Version: 5.0.2 PRO - Notifications après connexion');
-        console.log('🔥 Toutes les fonctionnalités sont opérationnelles');
-        console.log('');
-        console.log('💡 FONCTIONS DISPONIBLES :');
-        console.log('   - enableNotifications() : Activer les notifications');
-        console.log('   - disableNotifications() : Désactiver les notifications');
-        console.log('   - getNotificationStatus() : Vérifier le statut');
+        }, 30000);
     </script>
 </body>
     </html>
