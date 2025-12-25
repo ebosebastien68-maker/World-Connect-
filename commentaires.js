@@ -1,8 +1,8 @@
-Voici le **fichier `commentaires.js` corrigé et simplifié** qui fonctionnera avec votre HTML actuel :
-
-```javascript
 // ============================================================================
-// WIDGET COMMENTAIRES - WORLD CONNECT v3.0 - VERSION CORRIGÉE
+// WIDGET COMMENTAIRES - WORLD CONNECT v3.0
+// ============================================================================
+// Version: 3.0.0 - Édition complète + Admin + Modal + Vue SQL
+// Compatible avec index.html et pages standalone
 // ============================================================================
 
 'use strict';
@@ -17,14 +17,19 @@ window.CommentsWidget = {
     // INITIALISATION
     // ============================================================================
     
+    /**
+     * Initialiser le widget
+     */
     async init() {
         console.log('🔄 [CommentsWidget v3.0] Initialisation...');
         
+        // Vérifier que supabaseClient est disponible
         if (!window.supabaseClient) {
             console.error('❌ [CommentsWidget] supabaseClient non disponible');
             return false;
         }
         
+        // ✅ UTILISER supabaseInstance au lieu de supabase
         this.supabaseInstance = window.supabaseClient.supabase;
         this.currentUser = await window.supabaseClient.getCurrentUser();
         
@@ -37,18 +42,18 @@ window.CommentsWidget = {
             });
         }
         
-        // ✅ Injecter les styles et la modal immédiatement
-        this.injectStyles();
-        this.injectModal();
-        
         console.log('✅ [CommentsWidget] Initialisé');
+        
         return true;
     },
     
     // ============================================================================
-    // CHARGEMENT ET AFFICHAGE DES COMMENTAIRES
+    // RENDU DES COMMENTAIRES
     // ============================================================================
     
+    /**
+     * Charger et afficher les commentaires pour un article
+     */
     async loadComments(articleId, container) {
         if (!this.supabaseInstance) {
             await this.init();
@@ -59,7 +64,7 @@ window.CommentsWidget = {
         try {
             console.log('📥 [CommentsWidget] Chargement commentaires:', articleId);
             
-            // Récupérer les commentaires
+            // Récupérer les commentaires via la vue SQL
             const { data: comments, error: commentError } = await this.supabaseInstance
                 .from('comments_with_actor_info')
                 .select('*')
@@ -68,7 +73,7 @@ window.CommentsWidget = {
             
             if (commentError) throw commentError;
             
-            // Récupérer les réponses
+            // Récupérer TOUTES les réponses
             const { data: allReplies, error: replyError } = await this.supabaseInstance
                 .from('replies_with_actor_info')
                 .select('*')
@@ -77,8 +82,8 @@ window.CommentsWidget = {
             if (replyError) throw replyError;
             
             // Filtrer les réponses qui appartiennent aux commentaires de cet article
-            const commentIds = (comments || []).map(c => c.session_id);
-            const replies = (allReplies || []).filter(r => commentIds.includes(r.session_id));
+            const commentIds = comments.map(c => c.session_id);
+            const replies = allReplies.filter(r => commentIds.includes(r.session_id));
             
             console.log('✅ [CommentsWidget] Données chargées:', {
                 comments: comments?.length || 0,
@@ -94,11 +99,11 @@ window.CommentsWidget = {
         } catch (error) {
             console.error('❌ [CommentsWidget] Erreur chargement:', error);
             container.innerHTML = `
-                <div class="comments-error" style="padding: 20px; text-align: center; color: var(--text-tertiary);">
-                    <i class="fas fa-exclamation-circle" style="font-size: 32px; margin-bottom: 12px;"></i>
+                <div class="comments-error">
+                    <i class="fas fa-exclamation-circle"></i>
                     <p>Erreur de chargement des commentaires</p>
                     <button onclick="CommentsWidget.loadComments('${articleId}', document.getElementById('comments-${articleId}'))" 
-                        style="margin-top: 12px; padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        class="retry-btn">
                         <i class="fas fa-sync-alt"></i> Réessayer
                     </button>
                 </div>
@@ -106,8 +111,11 @@ window.CommentsWidget = {
         }
     },
     
+    /**
+     * Rendu HTML des commentaires
+     */
     renderComments(container, articleId, comments, allReplies) {
-        // Grouper les réponses par commentaire parent
+        // Grouper les réponses par session_id (commentaire parent)
         const repliesByComment = {};
         allReplies.forEach(reply => {
             const parentId = reply.session_id;
@@ -116,10 +124,10 @@ window.CommentsWidget = {
         });
         
         let html = `
-            <div class="comments-widget" style="padding: 20px; border-top: 1px solid var(--border-color);">
-                <div class="comments-header" style="margin-bottom: 20px;">
-                    <h4 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--text-primary);">
-                        <i class="fas fa-comments" style="color: var(--accent-blue);"></i>
+            <div class="comments-widget">
+                <div class="comments-header">
+                    <h4 class="comments-title">
+                        <i class="fas fa-comments"></i>
                         Commentaires (${comments.length})
                     </h4>
                 </div>
@@ -128,11 +136,10 @@ window.CommentsWidget = {
         // Section d'ajout de commentaire
         if (!this.currentUser || !this.userProfile) {
             html += `
-                <div style="text-align: center; padding: 30px; background: var(--bg-primary); border-radius: 12px; margin-bottom: 20px;">
-                    <i class="fas fa-lock" style="font-size: 32px; color: var(--text-tertiary); margin-bottom: 12px;"></i>
-                    <p style="color: var(--text-secondary); margin-bottom: 16px;">Connectez-vous pour commenter</p>
-                    <button onclick="window.location.href='connexion.html'" 
-                        style="padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                <div class="comments-login-prompt">
+                    <i class="fas fa-lock"></i>
+                    <p>Connectez-vous pour commenter</p>
+                    <button onclick="window.location.href='connexion.html'" class="login-btn">
                         <i class="fas fa-sign-in-alt"></i> Se connecter
                     </button>
                 </div>
@@ -140,19 +147,17 @@ window.CommentsWidget = {
         } else {
             const initials = this.getInitials(this.userProfile.prenom, this.userProfile.nom);
             html += `
-                <div style="display: flex; gap: 12px; margin-bottom: 20px; padding: 16px; background: var(--bg-primary); border-radius: 12px;">
-                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; flex-shrink: 0;">
-                        ${initials}
-                    </div>
-                    <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                <div class="comment-input-box">
+                    <div class="comment-input-avatar">${initials}</div>
+                    <div class="comment-input-wrapper">
                         <textarea 
                             id="comment-input-${articleId}" 
+                            class="comment-input"
                             placeholder="Écrivez votre commentaire..."
-                            style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 12px; font-family: inherit; font-size: 14px; color: var(--text-primary); background: var(--bg-secondary); resize: vertical; min-height: 60px;"
                             rows="3"></textarea>
                         <button 
                             onclick="CommentsWidget.submitComment('${articleId}')" 
-                            style="align-self: flex-end; padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 3px 10px rgba(107, 114, 73, 0.3);">
+                            class="comment-submit-btn">
                             <i class="fas fa-paper-plane"></i> Envoyer
                         </button>
                     </div>
@@ -163,13 +168,13 @@ window.CommentsWidget = {
         // Liste des commentaires
         if (comments.length === 0) {
             html += `
-                <div style="text-align: center; padding: 40px; color: var(--text-tertiary);">
-                    <i class="fas fa-comment-slash" style="font-size: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+                <div class="comments-empty">
+                    <i class="fas fa-comment-slash"></i>
                     <p>Soyez le premier à commenter !</p>
                 </div>
             `;
         } else {
-            html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
+            html += '<div class="comments-list">';
             
             comments.forEach(comment => {
                 html += this.renderComment(comment, repliesByComment[comment.session_id] || [], articleId);
@@ -180,9 +185,16 @@ window.CommentsWidget = {
         
         html += '</div>';
         
+        // Injecter le CSS + Modal si ce n'est pas déjà fait
+        this.injectStyles();
+        this.injectModal();
+        
         container.innerHTML = html;
     },
     
+    /**
+     * Rendu d'un commentaire individuel
+     */
     renderComment(comment, replies, articleId) {
         const commentId = comment.session_id;
         const prenom = comment.prenom_acteur || 'Utilisateur';
@@ -199,35 +211,28 @@ window.CommentsWidget = {
         const canDelete = isMyComment || isAdmin;
         
         let html = `
-            <div style="padding: 16px; background: var(--bg-primary); border-radius: 12px; border-left: 4px solid var(--accent-blue);" id="comment-${commentId}">
-                <div style="display: flex; gap: 12px;">
-                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; flex-shrink: 0;">
-                        ${initials}
-                    </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                            <span style="font-weight: 700; font-size: 15px; color: var(--text-primary);">${this.escapeHtml(prenom)} ${this.escapeHtml(nom)}</span>
-                            <span style="font-size: 13px; color: var(--text-tertiary);">${this.formatDate(date)}</span>
+            <div class="comment-item" id="comment-${commentId}" data-comment-id="${commentId}">
+                <div class="comment-main">
+                    <div class="comment-avatar">${initials}</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <span class="comment-author">${this.escapeHtml(prenom)} ${this.escapeHtml(nom)}</span>
+                            <span class="comment-date">${this.formatDate(date)}</span>
                         </div>
-                        <div style="color: var(--text-primary); line-height: 1.6; font-size: 14px; margin-bottom: 10px; word-wrap: break-word;">
-                            ${this.escapeHtml(texte)}
-                        </div>
-                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <div class="comment-text">${this.escapeHtml(texte)}</div>
+                        <div class="comment-actions">
                             ${this.currentUser ? `
-                                <button onclick="CommentsWidget.toggleReplyBox('${commentId}')" 
-                                    style="background: none; border: none; color: var(--accent-blue); cursor: pointer; font-size: 13px; font-weight: 600; padding: 6px 0;">
+                                <button class="comment-action-btn" onclick="CommentsWidget.toggleReplyBox('${commentId}')">
                                     <i class="fas fa-reply"></i> Répondre
                                 </button>
                             ` : ''}
                             ${canModify ? `
-                                <button onclick="CommentsWidget.openEditModal('comment', '${commentId}', '${articleId}')" 
-                                    style="background: none; border: none; color: var(--accent-purple); cursor: pointer; font-size: 13px; font-weight: 600; padding: 6px 0;">
+                                <button class="comment-action-btn edit-btn" onclick="CommentsWidget.openEditModal('comment', '${commentId}', '${articleId}')">
                                     <i class="fas fa-edit"></i> Modifier
                                 </button>
                             ` : ''}
                             ${canDelete ? `
-                                <button onclick="CommentsWidget.deleteComment('${commentId}', '${articleId}')" 
-                                    style="background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 13px; font-weight: 600; padding: 6px 0;">
+                                <button class="comment-action-btn delete-btn" onclick="CommentsWidget.deleteComment('${commentId}', '${articleId}')">
                                     <i class="fas fa-trash"></i> Supprimer
                                 </button>
                             ` : ''}
@@ -236,28 +241,25 @@ window.CommentsWidget = {
                 </div>
                 
                 ${this.currentUser ? `
-                    <div id="reply-box-${commentId}" style="display: none; margin: 12px 0 0 60px; padding: 12px; background: var(--bg-secondary); border-radius: 12px;">
-                        <div style="display: flex; gap: 10px;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; flex-shrink: 0;">
-                                ${this.getInitials(this.userProfile.prenom, this.userProfile.nom)}
-                            </div>
-                            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
-                                <textarea 
-                                    id="reply-input-${commentId}" 
-                                    placeholder="Votre réponse..."
-                                    style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; font-family: inherit; font-size: 13px; color: var(--text-primary); background: var(--bg-primary); resize: vertical; min-height: 50px;"
-                                    rows="2"></textarea>
-                                <button onclick="CommentsWidget.submitReply('${commentId}', '${articleId}')" 
-                                    style="align-self: flex-end; padding: 8px 16px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">
-                                    <i class="fas fa-paper-plane"></i> Répondre
-                                </button>
-                            </div>
+                    <div id="reply-box-${commentId}" class="reply-input-box" style="display: none;">
+                        <div class="reply-input-avatar">
+                            ${this.getInitials(this.userProfile.prenom, this.userProfile.nom)}
+                        </div>
+                        <div class="reply-input-wrapper">
+                            <textarea 
+                                id="reply-input-${commentId}" 
+                                class="reply-input"
+                                placeholder="Votre réponse..."
+                                rows="2"></textarea>
+                            <button onclick="CommentsWidget.submitReply('${commentId}', '${articleId}')" class="reply-submit-btn">
+                                <i class="fas fa-paper-plane"></i> Répondre
+                            </button>
                         </div>
                     </div>
                 ` : ''}
                 
                 ${replies.length > 0 ? `
-                    <div style="margin-top: 16px; margin-left: 60px; padding-left: 20px; border-left: 3px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;">
+                    <div class="replies-list">
                         ${replies.map(reply => this.renderReply(reply, articleId)).join('')}
                     </div>
                 ` : ''}
@@ -267,6 +269,9 @@ window.CommentsWidget = {
         return html;
     },
     
+    /**
+     * Rendu d'une réponse
+     */
     renderReply(reply, articleId) {
         const replyId = reply.reponse_id;
         const prenom = reply.prenom_acteur || 'Utilisateur';
@@ -276,36 +281,30 @@ window.CommentsWidget = {
         const acteurId = reply.acteur_id;
         const initials = this.getInitials(prenom, nom);
         
-        // ✅ Vérification propriétaire OU admin
+        // ✅ Vérification propriétaire OU admin pour les réponses aussi
         const isMyReply = this.currentUser && this.currentUser.id === acteurId;
         const isAdmin = this.userProfile && this.userProfile.role === 'admin';
         const canModify = isMyReply;
         const canDelete = isMyReply || isAdmin;
         
         return `
-            <div id="reply-${replyId}" style="display: flex; gap: 10px; padding: 12px; background: var(--bg-secondary); border-radius: 12px;">
-                <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; flex-shrink: 0;">
-                    ${initials}
-                </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${this.escapeHtml(prenom)} ${this.escapeHtml(nom)}</span>
-                        <span style="font-size: 12px; color: var(--text-tertiary);">${this.formatDate(date)}</span>
+            <div class="reply-item" id="reply-${replyId}">
+                <div class="reply-avatar">${initials}</div>
+                <div class="reply-content">
+                    <div class="reply-header">
+                        <span class="reply-author">${this.escapeHtml(prenom)} ${this.escapeHtml(nom)}</span>
+                        <span class="reply-date">${this.formatDate(date)}</span>
                     </div>
-                    <div style="color: var(--text-primary); line-height: 1.5; font-size: 13px; word-wrap: break-word; margin-bottom: 8px;">
-                        ${this.escapeHtml(texte)}
-                    </div>
+                    <div class="reply-text">${this.escapeHtml(texte)}</div>
                     ${(canModify || canDelete) ? `
-                        <div style="display: flex; gap: 12px;">
+                        <div class="reply-actions">
                             ${canModify ? `
-                                <button onclick="CommentsWidget.openEditModal('reply', '${replyId}', '${articleId}')" 
-                                    style="background: none; border: none; color: var(--accent-purple); cursor: pointer; font-size: 12px; font-weight: 600; padding: 4px 0;">
+                                <button class="reply-action-btn edit-btn" onclick="CommentsWidget.openEditModal('reply', '${replyId}', '${articleId}')">
                                     <i class="fas fa-edit"></i> Modifier
                                 </button>
                             ` : ''}
                             ${canDelete ? `
-                                <button onclick="CommentsWidget.deleteReply('${replyId}', '${articleId}')" 
-                                    style="background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 12px; font-weight: 600; padding: 4px 0;">
+                                <button class="reply-action-btn delete-btn" onclick="CommentsWidget.deleteReply('${replyId}', '${articleId}')">
                                     <i class="fas fa-trash"></i> Supprimer
                                 </button>
                             ` : ''}
@@ -317,9 +316,12 @@ window.CommentsWidget = {
     },
     
     // ============================================================================
-    // ACTIONS UTILISATEUR
+    // ACTIONS UTILISATEUR - CRÉATION
     // ============================================================================
     
+    /**
+     * Soumettre un commentaire
+     */
     async submitComment(articleId) {
         if (!this.currentUser || !this.userProfile) {
             this.showToast('Connexion requise', 'error');
@@ -335,6 +337,8 @@ window.CommentsWidget = {
         }
         
         try {
+            console.log('📤 [CommentsWidget] Envoi commentaire...');
+            
             const { error } = await this.supabaseInstance
                 .from('sessions_commentaires')
                 .insert([{
@@ -347,18 +351,23 @@ window.CommentsWidget = {
             
             input.value = '';
             this.showToast('Commentaire publié', 'success');
+            console.log('✅ [CommentsWidget] Commentaire envoyé');
             
+            // Recharger les commentaires
             const container = document.getElementById(`comments-${articleId}`);
             if (container) {
                 this.loadComments(articleId, container);
             }
             
         } catch (error) {
-            console.error('❌ Erreur envoi commentaire:', error);
+            console.error('❌ [CommentsWidget] Erreur envoi commentaire:', error);
             this.showToast('Erreur lors de l\'envoi', 'error');
         }
     },
     
+    /**
+     * Soumettre une réponse
+     */
     async submitReply(parentId, articleId) {
         if (!this.currentUser || !this.userProfile) {
             this.showToast('Connexion requise', 'error');
@@ -374,6 +383,8 @@ window.CommentsWidget = {
         }
         
         try {
+            console.log('📤 [CommentsWidget] Envoi réponse...');
+            
             const { error } = await this.supabaseInstance
                 .from('session_reponses')
                 .insert([{
@@ -387,96 +398,46 @@ window.CommentsWidget = {
             input.value = '';
             this.toggleReplyBox(parentId);
             this.showToast('Réponse publiée', 'success');
+            console.log('✅ [CommentsWidget] Réponse envoyée');
             
+            // Recharger les commentaires
             const container = document.getElementById(`comments-${articleId}`);
             if (container) {
                 this.loadComments(articleId, container);
             }
             
         } catch (error) {
-            console.error('❌ Erreur envoi réponse:', error);
+            console.error('❌ [CommentsWidget] Erreur envoi réponse:', error);
             this.showToast('Erreur lors de l\'envoi', 'error');
         }
     },
     
-    async deleteComment(commentId, articleId) {
-        if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
-        
-        try {
-            const { error } = await this.supabaseInstance
-                .from('sessions_commentaires')
-                .delete()
-                .eq('session_id', commentId);
-            
-            if (error) throw error;
-            
-            this.showToast('Commentaire supprimé', 'success');
-            
-            const container = document.getElementById(`comments-${articleId}`);
-            if (container) {
-                this.loadComments(articleId, container);
-            }
-            
-        } catch (error) {
-            console.error('❌ Erreur suppression:', error);
-            this.showToast('Erreur lors de la suppression', 'error');
-        }
-    },
-    
-    async deleteReply(replyId, articleId) {
-        if (!confirm("Voulez-vous vraiment supprimer cette réponse ?")) return;
-        
-        try {
-            const { error } = await this.supabaseInstance
-                .from('session_reponses')
-                .delete()
-                .eq('reponse_id', replyId);
-            
-            if (error) throw error;
-            
-            this.showToast('Réponse supprimée', 'success');
-            
-            const container = document.getElementById(`comments-${articleId}`);
-            if (container) {
-                this.loadComments(articleId, container);
-            }
-            
-        } catch (error) {
-            console.error('❌ Erreur suppression:', error);
-            this.showToast('Erreur lors de la suppression', 'error');
-        }
-    },
-    
-    toggleReplyBox(commentId) {
-        const box = document.getElementById(`reply-box-${commentId}`);
-        if (box) {
-            const isVisible = box.style.display !== 'none';
-            box.style.display = isVisible ? 'none' : 'block';
-            
-            if (!isVisible) {
-                const input = document.getElementById(`reply-input-${commentId}`);
-                if (input) input.focus();
-            }
-        }
-    },
-    
     // ============================================================================
-    // MODAL D'ÉDITION
+    // ACTIONS UTILISATEUR - MODIFICATION (MODAL)
     // ============================================================================
     
+    /**
+     * Ouvrir la modal d'édition
+     * @param {string} type - 'comment' ou 'reply'
+     * @param {string} id - session_id ou reponse_id
+     * @param {string} articleId - ID de l'article
+     */
     async openEditModal(type, id, articleId) {
+        console.log(`📝 [CommentsWidget] Ouverture modal édition ${type}:`, id);
+        
         const modal = document.getElementById('edit-modal');
         const overlay = document.getElementById('modal-overlay');
         const modalTitle = document.getElementById('modal-title');
         const modalTextarea = document.getElementById('modal-textarea');
         const saveBtn = document.getElementById('modal-save-btn');
         
-        if (!modal || !overlay) {
-            console.error('❌ Modal introuvable');
+        if (!modal || !overlay || !modalTitle || !modalTextarea || !saveBtn) {
+            console.error('❌ [CommentsWidget] Éléments modal introuvables');
             return;
         }
         
         try {
+            // Récupérer le texte actuel
             let currentText = '';
             
             if (type === 'comment') {
@@ -502,19 +463,26 @@ window.CommentsWidget = {
                 modalTitle.textContent = 'Modifier la réponse';
             }
             
+            // Remplir la modal
             modalTextarea.value = currentText;
+            
+            // Configurer le bouton de sauvegarde
             saveBtn.onclick = () => this.saveEdit(type, id, articleId);
             
+            // Afficher la modal
             overlay.classList.add('show');
             modal.classList.add('show');
             modalTextarea.focus();
             
         } catch (error) {
-            console.error('❌ Erreur ouverture modal:', error);
+            console.error('❌ [CommentsWidget] Erreur ouverture modal:', error);
             this.showToast('Erreur de chargement', 'error');
         }
     },
     
+    /**
+     * Fermer la modal d'édition
+     */
     closeEditModal() {
         const modal = document.getElementById('edit-modal');
         const overlay = document.getElementById('modal-overlay');
@@ -525,6 +493,9 @@ window.CommentsWidget = {
         }
     },
     
+    /**
+     * Sauvegarder les modifications
+     */
     async saveEdit(type, id, articleId) {
         const modalTextarea = document.getElementById('modal-textarea');
         const newText = modalTextarea.value.trim();
@@ -535,6 +506,8 @@ window.CommentsWidget = {
         }
         
         try {
+            console.log(`💾 [CommentsWidget] Sauvegarde ${type}:`, id);
+            
             if (type === 'comment') {
                 const { error } = await this.supabaseInstance
                     .from('sessions_commentaires')
@@ -556,16 +529,102 @@ window.CommentsWidget = {
                 this.showToast('Réponse modifiée', 'success');
             }
             
+            // Fermer la modal
             this.closeEditModal();
             
+            // Recharger les commentaires
             const container = document.getElementById(`comments-${articleId}`);
             if (container) {
                 this.loadComments(articleId, container);
             }
             
         } catch (error) {
-            console.error('❌ Erreur sauvegarde:', error);
+            console.error('❌ [CommentsWidget] Erreur sauvegarde:', error);
             this.showToast('Erreur lors de la modification', 'error');
+        }
+    },
+    
+    // ============================================================================
+    // ACTIONS UTILISATEUR - SUPPRESSION
+    // ============================================================================
+    
+    /**
+     * Supprimer un commentaire
+     */
+    async deleteComment(commentId, articleId) {
+        if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
+        
+        try {
+            console.log('🗑️ [CommentsWidget] Suppression commentaire:', commentId);
+            
+            // ✅ La policy RLS gère déjà user_id OU admin
+            const { error } = await this.supabaseInstance
+                .from('sessions_commentaires')
+                .delete()
+                .eq('session_id', commentId);
+            
+            if (error) throw error;
+            
+            this.showToast('Commentaire supprimé', 'success');
+            console.log('✅ [CommentsWidget] Commentaire supprimé');
+            
+            // Recharger les commentaires
+            const container = document.getElementById(`comments-${articleId}`);
+            if (container) {
+                this.loadComments(articleId, container);
+            }
+            
+        } catch (error) {
+            console.error('❌ [CommentsWidget] Erreur suppression:', error);
+            this.showToast('Erreur lors de la suppression', 'error');
+        }
+    },
+    
+    /**
+     * Supprimer une réponse
+     */
+    async deleteReply(replyId, articleId) {
+        if (!confirm("Voulez-vous vraiment supprimer cette réponse ?")) return;
+        
+        try {
+            console.log('🗑️ [CommentsWidget] Suppression réponse:', replyId);
+            
+            // ✅ La policy RLS gère déjà user_id OU admin
+            const { error } = await this.supabaseInstance
+                .from('session_reponses')
+                .delete()
+                .eq('reponse_id', replyId);
+            
+            if (error) throw error;
+            
+            this.showToast('Réponse supprimée', 'success');
+            console.log('✅ [CommentsWidget] Réponse supprimée');
+            
+            // Recharger les commentaires
+            const container = document.getElementById(`comments-${articleId}`);
+            if (container) {
+                this.loadComments(articleId, container);
+            }
+            
+        } catch (error) {
+            console.error('❌ [CommentsWidget] Erreur suppression:', error);
+            this.showToast('Erreur lors de la suppression', 'error');
+        }
+    },
+    
+    /**
+     * Toggle boîte de réponse
+     */
+    toggleReplyBox(commentId) {
+        const box = document.getElementById(`reply-box-${commentId}`);
+        if (box) {
+            const isVisible = box.style.display !== 'none';
+            box.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                const input = document.getElementById(`reply-input-${commentId}`);
+                if (input) input.focus();
+            }
         }
     },
     
@@ -573,10 +632,16 @@ window.CommentsWidget = {
     // TEMPS RÉEL
     // ============================================================================
     
+    /**
+     * Activer les mises à jour en temps réel
+     */
     setupRealtime(articleId, container) {
+        // Nettoyer l'ancien canal si existant
         if (this.realtimeChannels.has(articleId)) {
             this.supabaseInstance.removeChannel(this.realtimeChannels.get(articleId));
         }
+        
+        console.log('🔄 [CommentsWidget] Activation temps réel:', articleId);
         
         const channel = this.supabaseInstance
             .channel(`comments:${articleId}`)
@@ -585,17 +650,23 @@ window.CommentsWidget = {
                 schema: 'public',
                 table: 'sessions_commentaires',
                 filter: `article_id=eq.${articleId}`
-            }, () => {
+            }, (payload) => {
+                console.log('📩 [CommentsWidget] Changement commentaire:', payload);
                 this.loadComments(articleId, container);
             })
             .on('postgres_changes', {
                 event: '*',
                 schema: 'public',
                 table: 'session_reponses'
-            }, () => {
+            }, (payload) => {
+                console.log('📩 [CommentsWidget] Changement réponse:', payload);
                 this.loadComments(articleId, container);
             })
-            .subscribe();
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ [CommentsWidget] Temps réel activé');
+                }
+            });
         
         this.realtimeChannels.set(articleId, channel);
     },
@@ -604,35 +675,52 @@ window.CommentsWidget = {
     // UTILITAIRES
     // ============================================================================
     
+    /**
+     * Obtenir les initiales
+     */
     getInitials(prenom, nom) {
         const p = (prenom || 'U')[0].toUpperCase();
         const n = (nom || '')[0]?.toUpperCase() || '';
         return p + n;
     },
     
+    /**
+     * Formater la date
+     */
     formatDate(dateString) {
         const date = new Date(dateString);
         const now = new Date();
         const diff = now - date;
         
+        // Moins d'1 minute
         if (diff < 60000) return 'À l\'instant';
+        
+        // Moins d'1 heure
         if (diff < 3600000) {
             const minutes = Math.floor(diff / 60000);
             return `Il y a ${minutes} min`;
         }
+        
+        // Moins de 24h
         if (diff < 86400000) {
             const hours = Math.floor(diff / 3600000);
             return `Il y a ${hours}h`;
         }
+        
+        // Moins de 7 jours
         if (diff < 604800000) {
             const days = Math.floor(diff / 86400000);
             return `Il y a ${days}j`;
         }
         
+        // Sinon date complète
         const options = { day: 'numeric', month: 'short', year: 'numeric' };
         return date.toLocaleDateString('fr-FR', options);
     },
     
+    /**
+     * Échapper HTML
+     */
     escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -640,6 +728,9 @@ window.CommentsWidget = {
         return div.innerHTML;
     },
     
+    /**
+     * Afficher une notification
+     */
     showToast(message, type = 'info') {
         if (window.ToastManager) {
             window.ToastManager[type]('Commentaires', message);
@@ -648,32 +739,414 @@ window.CommentsWidget = {
         }
     },
     
+    /**
+     * Injecter les styles CSS
+     */
     injectStyles() {
         if (document.getElementById('comments-widget-styles')) return;
         
         const style = document.createElement('style');
         style.id = 'comments-widget-styles';
-        ```javascript
         style.textContent = `
-            /* STYLES POUR LE WIDGET DE COMMENTAIRES */
+            .comments-widget {
+                padding: 20px;
+                background: var(--bg-secondary);
+            }
+            
+            .comments-header {
+                margin-bottom: 20px;
+                padding-bottom: 16px;
+                border-bottom: 2px solid var(--border-color);
+            }
+            
+            .comments-title {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--text-primary);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .comments-title i {
+                color: var(--accent-blue);
+            }
+            
+            .comments-login-prompt {
+                text-align: center;
+                padding: 40px 20px;
+                background: var(--bg-primary);
+                border-radius: 16px;
+                margin-bottom: 20px;
+            }
+            
+            .comments-login-prompt i {
+                font-size: 48px;
+                color: var(--text-tertiary);
+                margin-bottom: 16px;
+            }
+            
+            .comments-login-prompt p {
+                color: var(--text-secondary);
+                margin-bottom: 20px;
+                font-size: 15px;
+            }
+            
+            .login-btn {
+                padding: 12px 24px;
+                background: var(--accent-kaki);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 15px;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(107, 114, 73, 0.3);
+            }
+            
+            .login-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(107, 114, 73, 0.5);
+            }
+            
+            .comment-input-box, .reply-input-box {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 24px;
+                padding: 16px;
+                background: var(--bg-primary);
+                border-radius: 16px;
+            }
+            
+            .comment-input-avatar, .reply-input-avatar {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 700;
+                font-size: 18px;
+                flex-shrink: 0;
+            }
+            
+            .reply-input-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            
+            .comment-input-wrapper, .reply-input-wrapper {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .comment-input, .reply-input {
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid var(--border-color);
+                border-radius: 12px;
+                font-family: inherit;
+                font-size: 14px;
+                color: var(--text-primary);
+                background: var(--bg-secondary);
+                resize: vertical;
+                transition: all 0.3s ease;
+            }
+            
+            .comment-input:focus, .reply-input:focus {
+                outline: none;
+                border-color: var(--accent-blue);
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            }
+            
+            .comment-submit-btn, .reply-submit-btn {
+                align-self: flex-end;
+                padding: 10px 20px;
+                background: var(--accent-kaki);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                box-shadow: 0 3px 10px rgba(107, 114, 73, 0.3);
+            }
+            
+            .comment-submit-btn:hover, .reply-submit-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(107, 114, 73, 0.5);
+            }
+            
+            .comments-empty {
+                text-align: center;
+                padding: 60px 20px;
+                color: var(--text-tertiary);
+            }
+            
+            .comments-empty i {
+                font-size: 64px;
+                margin-bottom: 16px;
+                opacity: 0.5;
+            }
+            
+            .comments-list {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .comment-item {
+                padding: 16px;
+                background: var(--bg-primary);
+                border-radius: 16px;
+                border-left: 4px solid var(--accent-blue);
+                transition: all 0.3s ease;
+            }
+            
+            .comment-item:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                transform: translateX(4px);
+            }
+            
+            .comment-main {
+                display: flex;
+                gap: 12px;
+            }
+            
+            .comment-avatar {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 700;
+                font-size: 18px;
+                flex-shrink: 0;
+            }
+            
+            .comment-content {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .comment-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .comment-author {
+                font-weight: 700;
+                font-size: 15px;
+                color: var(--text-primary);
+            }
+            
+            .comment-date {
+                font-size: 13px;
+                color: var(--text-tertiary);
+            }
+            
+            .comment-text {
+                color: var(--text-primary);
+                line-height: 1.6;
+                font-size: 14px;
+                margin-bottom: 10px;
+                word-wrap: break-word;
+            }
+            
+            .comment-actions {
+                display: flex;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+            
+            .comment-action-btn {
+                background: none;
+                border: none;
+                color: var(--accent-blue);
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 600;
+                padding: 6px 0;
+                transition: all 0.3s ease;
+            }
+            
+            .comment-action-btn:hover {
+                color: var(--accent-cyan);
+                transform: scale(1.05);
+            }
+            
+            .comment-action-btn.edit-btn {
+                color: var(--accent-purple);
+            }
+            
+            .comment-action-btn.edit-btn:hover {
+                color: var(--accent-pink);
+            }
+            
+            .comment-action-btn.delete-btn {
+                color: var(--accent-red);
+            }
+            
+            .comment-action-btn.delete-btn:hover {
+                color: #dc2626;
+            }
+            
+            .reply-input-box {
+                margin: 12px 0 0 60px;
+                padding: 12px;
+            }
+            
+            .replies-list {
+                margin-top: 16px;
+                margin-left: 60px;
+                padding-left: 20px;
+                border-left: 3px solid var(--border-color);
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .reply-item {
+                display: flex;
+                gap: 10px;
+                padding: 12px;
+                background: var(--bg-secondary);
+                border-radius: 12px;
+                transition: all 0.3s ease;
+            }
+            
+            .reply-item:hover {
+                background: var(--bg-primary);
+                transform: translateX(4px);
+            }
+            
+            .reply-avatar {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 700;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+            
+            .reply-content {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .reply-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 6px;
+            }
+            
+            .reply-author {
+                font-weight: 600;
+                font-size: 14px;
+                color: var(--text-primary);
+            }
+            
+            .reply-date {
+                font-size: 12px;
+                color: var(--text-tertiary);
+            }
+            
+            .reply-text {
+                color: var(--text-primary);
+                line-height: 1.5;
+                font-size: 13px;
+                word-wrap: break-word;
+                margin-bottom: 8px;
+            }
+            
+            .reply-actions {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            
+            .reply-action-btn {
+                background: none;
+                border: none;
+                color: var(--accent-blue);
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                padding: 4px 0;
+                transition: all 0.3s ease;
+            }
+            
+            .reply-action-btn:hover {
+                color: var(--accent-cyan);
+                transform: scale(1.05);
+            }
+            
+            .reply-action-btn.edit-btn {
+                color: var(--accent-purple);
+            }
+            
+            .reply-action-btn.edit-btn:hover {
+                color: var(--accent-pink);
+            }
+            
+            .reply-action-btn.delete-btn {
+                color: var(--accent-red);
+            }
+            
+            .reply-action-btn.delete-btn:hover {
+                color: #dc2626;
+            }
+            
             .comments-loader {
                 text-align: center;
                 padding: 40px;
             }
             
-            .comments-loader .spinner {
-                border: 4px solid var(--border-color);
-                border-top: 4px solid var(--accent-blue);
-                border-radius: 50%;
-                width: 40px;
-                height: 40px;
-                animation: spin 1s linear infinite;
-                margin: 0 auto;
+            .comments-error {
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-tertiary);
             }
             
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
+            .comments-error i {
+                font-size: 48px;
+                color: var(--accent-red);
+                margin-bottom: 16px;
+            }
+            
+            .retry-btn {
+                margin-top: 16px;
+                padding: 10px 20px;
+                background: var(--accent-kaki);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.3s ease;
+            }
+            
+            .retry-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(107, 114, 73, 0.4);
             }
             
             /* MODAL D'ÉDITION */
@@ -711,7 +1184,6 @@ window.CommentsWidget = {
                 display: none;
                 opacity: 0;
                 transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-                border: 2px solid var(--border-color);
             }
             
             .edit-modal.show {
@@ -799,7 +1271,6 @@ window.CommentsWidget = {
                 font-weight: 600;
                 font-size: 15px;
                 transition: all 0.3s ease;
-                font-family: inherit;
             }
             
             .modal-cancel-btn {
@@ -823,6 +1294,37 @@ window.CommentsWidget = {
             }
             
             @media (max-width: 768px) {
+                .comment-item {
+                    padding: 12px;
+                }
+                
+                .replies-list {
+                    margin-left: 40px;
+                    padding-left: 12px;
+                }
+                
+                .reply-input-box {
+                    margin-left: 40px;
+                }
+                
+                .comment-avatar {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 16px;
+                }
+                
+                .reply-avatar {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 13px;
+                }
+                
+                .comment-input-avatar, .reply-input-avatar {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 16px;
+                }
+                
                 .edit-modal {
                     padding: 24px;
                     width: 95%;
@@ -841,6 +1343,9 @@ window.CommentsWidget = {
         document.head.appendChild(style);
     },
     
+    /**
+     * Injecter la modal d'édition dans le DOM
+     */
     injectModal() {
         if (document.getElementById('edit-modal')) return;
         
@@ -876,10 +1381,21 @@ window.CommentsWidget = {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     },
     
+    // ============================================================================
+    // NETTOYAGE
+    // ============================================================================
+    
+    /**
+     * Nettoyer les canaux temps réel
+     */
     cleanup() {
+        console.log('🧹 [CommentsWidget] Nettoyage...');
+        
         this.realtimeChannels.forEach((channel, articleId) => {
             this.supabaseInstance.removeChannel(channel);
+            console.log(`✅ [CommentsWidget] Canal ${articleId} fermé`);
         });
+        
         this.realtimeChannels.clear();
     }
 };
@@ -888,6 +1404,7 @@ window.CommentsWidget = {
 // AUTO-INITIALISATION
 // ============================================================================
 
+// Initialiser automatiquement au chargement si supabaseClient est disponible
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         if (window.supabaseClient) {
@@ -900,36 +1417,44 @@ if (document.readyState === 'loading') {
     }
 }
 
+// Nettoyer avant de quitter la page
 window.addEventListener('beforeunload', () => {
     window.CommentsWidget.cleanup();
 });
 
+console.log('✅ [CommentsWidget v3.0] Module chargé - Édition + Admin + Modal');
+
 // ============================================================================
-// EXPORTS GLOBAUX (pour compatibilité avec l'ancien code)
+// EXPORTS POUR COMPATIBILITÉ
 // ============================================================================
 
-window.loadComments = function(articleId, container) {
-    window.CommentsWidget.loadComments(articleId, container);
-};
+// Alias pour compatibilité avec l'ancien code
+if (!window.loadComments) {
+    window.loadComments = (articleId, container) => {
+        window.CommentsWidget.loadComments(articleId, container);
+    };
+}
 
-window.submitComment = function(articleId) {
-    window.CommentsWidget.submitComment(articleId);
-};
+if (!window.submitComment) {
+    window.submitComment = (articleId) => {
+        window.CommentsWidget.submitComment(articleId);
+    };
+}
 
-window.submitReply = function(parentId, articleId) {
-    window.CommentsWidget.submitReply(parentId, articleId);
-};
+if (!window.submitReply) {
+    window.submitReply = (parentId, articleId) => {
+        window.CommentsWidget.submitReply(parentId, articleId);
+    };
+}
 
-window.deleteComment = function(commentId, articleId) {
-    window.CommentsWidget.deleteComment(commentId, articleId);
-};
+if (!window.deleteComment) {
+    window.deleteComment = (commentId, articleId) => {
+        window.CommentsWidget.deleteComment(commentId, articleId);
+    };
+}
 
-window.deleteReply = function(replyId, articleId) {
-    window.CommentsWidget.deleteReply(replyId, articleId);
-};
-
-window.toggleReplyBox = function(commentId) {
-    window.CommentsWidget.toggleReplyBox(commentId);
-};
-
-console.log('✅ [CommentsWidget v3.0] Module chargé - Version corrigée');
+if (!window.toggleReplyBox) {
+    window.toggleReplyBox = (commentId) => {
+        window.CommentsWidget.toggleReplyBox(commentId);
+    };
+}
