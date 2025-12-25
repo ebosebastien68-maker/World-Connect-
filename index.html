@@ -211,7 +211,7 @@
     <script src="optimistic-sync.js"></script>
     <script src="commentaires.js"></script>
     
-    <!-- Script principal intégré -->
+    <!-- Script principal -->
     <script>
         // Récupération des fonctions depuis supabaseClient.js
         const supabaseInstance = window.supabaseClient.supabase;
@@ -226,7 +226,7 @@
         let currentPage = 'home';
         let userReactions = {};
         let scene, camera, renderer, particles;
-        let swRegistration = null; // 🔥 AJOUT POUR NOTIFICATIONS
+        let swRegistration = null;
 
         // ============================================================================
         // TOAST NOTIFICATION SYSTEM
@@ -352,7 +352,7 @@
         };
 
         // ============================================================================
-        // SERVICE WORKER & PUSH NOTIFICATIONS - 🔥 VERSION PROFESSIONNELLE
+        // SERVICE WORKER & PUSH NOTIFICATIONS
         // ============================================================================
         async function initServiceWorker() {
             if (!('serviceWorker' in navigator)) {
@@ -364,14 +364,10 @@
                 swRegistration = await navigator.serviceWorker.register('./service-worker.js');
                 console.log('✅ Service Worker enregistré');
                 
-                // Écouter les messages du Service Worker
                 navigator.serviceWorker.addEventListener('message', handleSWMessage);
                 
                 await navigator.serviceWorker.ready;
                 console.log('✅ Service Worker prêt');
-                
-                // ✅ NE PAS demander les permissions maintenant
-                // On attend que l'utilisateur soit connecté
                 
             } catch (error) {
                 console.error('❌ Erreur Service Worker:', error);
@@ -388,24 +384,20 @@
                 ToastManager.warning('Notification', 'Veuillez réactiver les notifications');
                 requestNotificationPermission();
             } else if (type === 'PLAY_NOTIFICATION_SOUND') {
-                // Optionnel : jouer un son de notification
                 console.log('🔔 Notification reçue:', event.data.notification);
             }
         }
 
         async function requestNotificationPermission() {
-            // ✅ Vérifier que l'utilisateur est connecté AVANT de demander
             if (!currentUser || !userProfile) {
                 console.warn('⚠️ Utilisateur non connecté, demande de notification annulée');
                 return false;
             }
 
-            // ✅ Vérifier si déjà demandé précédemment
             const notificationAsked = localStorage.getItem('notificationAsked');
             if (notificationAsked === 'true' && Notification.permission !== 'default') {
                 console.log('ℹ️ Notification déjà demandée précédemment');
                 
-                // Si permission accordée, vérifier l'abonnement
                 if (Notification.permission === 'granted') {
                     await ensureSubscriptionExists();
                 }
@@ -413,19 +405,16 @@
             }
 
             try {
-                // ✅ Message contextuel AVANT de demander la permission
                 ToastManager.info(
                     '🔔 Restez informé', 
                     'Activez les notifications pour ne rien manquer des nouveautés !',
                     8000
                 );
 
-                // ✅ Attendre 1.5 secondes pour que l'utilisateur lise le message
                 await new Promise(resolve => setTimeout(resolve, 1500));
 
                 const permission = await Notification.requestPermission();
                 
-                // ✅ Marquer comme déjà demandé
                 localStorage.setItem('notificationAsked', 'true');
                 localStorage.setItem('notificationAskedDate', new Date().toISOString());
                 
@@ -454,7 +443,6 @@
             }
         }
 
-        // ✅ NOUVELLE FONCTION : Vérifier et créer l'abonnement si nécessaire
         async function ensureSubscriptionExists() {
             if (!swRegistration || !currentUser) return;
 
@@ -466,8 +454,6 @@
                     await subscribeToPushNotifications();
                 } else {
                     console.log('✅ Abonnement push déjà existant');
-                    
-                    // ✅ Vérifier si l'abonnement est en base de données
                     await saveSubscriptionToDatabase(existingSubscription);
                 }
             } catch (error) {
@@ -475,9 +461,7 @@
             }
         }
 
-        // ✅ NOUVELLE FONCTION : Demander les notifications après un délai (non intrusif)
         async function requestNotificationAfterDelay() {
-            // ✅ Vérifications de sécurité
             if (!currentUser || !userProfile) {
                 console.log('ℹ️ Pas d\'utilisateur, pas de demande de notification');
                 return;
@@ -488,21 +472,17 @@
                 return;
             }
 
-            // ✅ Ne pas redemander si déjà répondu (accordé ou refusé)
             const notificationAsked = localStorage.getItem('notificationAsked');
             if (notificationAsked === 'true' && Notification.permission !== 'default') {
                 console.log('ℹ️ Permission déjà gérée:', Notification.permission);
                 
-                // Si accordée, vérifier l'abonnement
                 if (Notification.permission === 'granted') {
                     await ensureSubscriptionExists();
                 }
                 return;
             }
 
-            // ✅ Attendre 3 secondes après connexion (non intrusif)
             setTimeout(async () => {
-                // Double vérification que l'utilisateur est toujours connecté
                 if (currentUser && userProfile) {
                     await requestNotificationPermission();
                 }
@@ -513,7 +493,6 @@
             if (!swRegistration) return;
             
             try {
-                // 🔥 CLÉ VAPID SYNCHRONISÉE AVEC LE SERVICE WORKER v5.0.2
                 const vapidPublicKey = 'BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA';
                 const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
                 
@@ -544,13 +523,11 @@
 
         async function saveSubscriptionToDatabase(subscription) {
             try {
-                // ✅ VÉRIFICATION CRITIQUE : Utilisateur connecté
                 if (!currentUser) {
                     console.warn('⚠️ Pas d\'utilisateur connecté, abonnement non sauvegardé');
                     return;
                 }
 
-                // ✅ VÉRIFICATION : Profil chargé
                 if (!userProfile) {
                     console.warn('⚠️ Profil utilisateur non chargé, abonnement non sauvegardé');
                     return;
@@ -566,7 +543,6 @@
                     created_at: new Date().toISOString()
                 };
                 
-                // 🔥 UTILISATION DE supabaseInstance
                 const { data, error } = await supabaseInstance
                     .from('subscriptions')
                     .upsert(subscriptionData, {
@@ -593,6 +569,112 @@
                 binary += String.fromCharCode(bytes[i]);
             }
             return window.btoa(binary);
+        }
+
+        async function enableNotifications() {
+            if (!currentUser || !userProfile) {
+                ToastManager.warning(
+                    'Connexion requise', 
+                    'Veuillez vous connecter pour activer les notifications'
+                );
+                setTimeout(() => {
+                    window.location.href = 'connexion.html';
+                }, 2000);
+                return;
+            }
+
+            if (!('Notification' in window) || !('PushManager' in window)) {
+                ToastManager.error(
+                    'Non supporté', 
+                    'Votre navigateur ne supporte pas les notifications'
+                );
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                ToastManager.error(
+                    'Permission refusée', 
+                    'Vous avez bloqué les notifications. Réactivez-les dans les paramètres de votre navigateur.'
+                );
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                ToastManager.info(
+                    'Déjà activées', 
+                    'Les notifications sont déjà activées sur cet appareil'
+                );
+                await ensureSubscriptionExists();
+                return;
+            }
+
+            localStorage.removeItem('notificationAsked');
+            await requestNotificationPermission();
+        }
+
+        async function disableNotifications() {
+            if (!swRegistration) {
+                ToastManager.info('Aucune notification', 'Aucun abonnement actif');
+                return;
+            }
+
+            try {
+                const subscription = await swRegistration.pushManager.getSubscription();
+                
+                if (subscription) {
+                    await subscription.unsubscribe();
+                    console.log('✅ Abonnement push supprimé');
+                    
+                    if (currentUser && supabaseInstance) {
+                        await supabaseInstance
+                            .from('subscriptions')
+                            .delete()
+                            .eq('user_id', currentUser.id)
+                            .eq('endpoint', subscription.endpoint);
+                        
+                        console.log('✅ Abonnement supprimé de la base de données');
+                    }
+                    
+                    ToastManager.success(
+                        'Notifications désactivées', 
+                        'Vous ne recevrez plus de notifications sur cet appareil'
+                    );
+                } else {
+                    ToastManager.info(
+                        'Aucune notification', 
+                        'Aucun abonnement actif à désactiver'
+                    );
+                }
+            } catch (error) {
+                console.error('❌ Erreur désactivation:', error);
+                ToastManager.error(
+                    'Erreur', 
+                    'Impossible de désactiver les notifications'
+                );
+            }
+        }
+
+        async function getNotificationStatus() {
+            const status = {
+                supported: 'Notification' in window && 'PushManager' in window,
+                permission: Notification.permission,
+                subscribed: false,
+                endpoint: null
+            };
+
+            if (swRegistration) {
+                try {
+                    const subscription = await swRegistration.pushManager.getSubscription();
+                    if (subscription) {
+                        status.subscribed = true;
+                        status.endpoint = subscription.endpoint;
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur vérification statut:', error);
+                }
+            }
+
+            return status;
         }
 
         // ============================================================================
@@ -1236,7 +1318,7 @@
                         <i class="fas fa-heart"></i><span>${reactionLove}</span>
                     </button>
                     <button class="reaction-btn ${rireActive}" onclick="handleReaction('${article.article_id}', 'rire')">
-                        <i class="fas fa-laugh"></i><span>${reactionRire}</span>
+                        <i class="fas fa-laugh"></i><span>${rireActive}</span>
                     </button>
                     <button class="reaction-btn ${colereActive}" onclick="handleReaction('${article.article_id}', 'colere')">
                         <i class="fas fa-angry"></i><span>${reactionColere}</span>
@@ -1350,173 +1432,25 @@
         }
 
         // ============================================================================
-        // GESTION DES COMMENTAIRES
+        // GESTION DES COMMENTAIRES - ✅ VERSION CORRIGÉE AVEC CommentsWidget
         // ============================================================================
         function toggleComments(articleId) {
             const section = document.getElementById(`comments-${articleId}`);
             section.classList.toggle('show');
+            
             if (section.classList.contains('show') && section.innerHTML === '') {
-                loadComments(articleId, section);
+                // ✅ UTILISER CommentsWidget au lieu de l'ancienne fonction
+                if (window.CommentsWidget) {
+                    window.CommentsWidget.loadComments(articleId, section);
+                } else {
+                    console.error('❌ CommentsWidget non disponible');
+                    section.innerHTML = '<p style="color: #ef4444; padding: 20px;">Module commentaires non chargé</p>';
+                }
             }
         }
 
-        async function loadComments(articleId, container) {
-            container.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-            try {
-                const { data: comments, error } = await supabaseInstance
-                    .from('sessions_commentaires')
-                    .select(`*, users_profile(prenom, nom)`)
-                    .eq('article_id', articleId)
-                    .order('date_created', { ascending: false });
-                
-                if (error) throw error;
-                
-                renderComments(container, articleId, comments || []);
-                
-            } catch (error) {
-                console.error('❌ Erreur commentaires:', error);
-                container.innerHTML = '<p style="color: #ef4444; padding: 20px;">Erreur de chargement des commentaires</p>';
-            }
-        }
-
-        function renderComments(container, articleId, comments) {
-            let html = `
-                <div style="padding: 20px; border-top: 1px solid var(--border-color);">
-                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 700;">Commentaires (${comments.length})</h4>
-            `;
-
-            if (!currentUser || !userProfile) {
-                html += `
-                    <div style="text-align: center; padding: 30px; background: var(--bg-primary); border-radius: 12px;">
-                        <i class="fas fa-lock" style="font-size: 32px; color: var(--text-tertiary); margin-bottom: 12px;"></i>
-                        <p style="color: var(--text-secondary); margin-bottom: 16px;">Connectez-vous pour commenter</p>
-                        <button onclick="window.location.href='connexion.html'" style="padding: 10px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                            Se connecter
-                        </button>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                        <textarea id="comment-input-${articleId}" placeholder="Écrivez votre commentaire..." 
-                            style="flex: 1; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; font-family: inherit; min-height: 60px; resize: vertical; background: var(--bg-primary); color: var(--text-primary);"></textarea>
-                        <button onclick="submitComment('${articleId}')" 
-                            style="padding: 12px 20px; background: var(--accent-kaki); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; white-space: nowrap;">
-                            <i class="fas fa-paper-plane"></i> Envoyer
-                        </button>
-                    </div>
-                `;
-            }
-
-            if (comments.length === 0) {
-                html += `<p style="text-align: center; color: var(--text-tertiary); padding: 20px;">Soyez le premier à commenter !</p>`;
-            } else {
-                comments.forEach(comment => {
-                    const author = comment.users_profile || { prenom: 'Utilisateur', nom: '' };
-                    const prenom = author.prenom || 'Utilisateur';
-                    const nom = author.nom || '';
-                    const texte = comment.texte;
-                    const date = comment.date_created;
-                    const initials = `${prenom[0]}${nom ? nom[0] : ''}`.toUpperCase();
-                    const isMyComment = currentUser && currentUser.id === comment.user_id;
-
-                    html += `
-                        <div style="margin-bottom: 16px; padding: 16px; background: var(--bg-primary); border-radius: 12px; border-left: 3px solid var(--accent-blue);">
-                            <div style="display: flex; gap: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0;">
-                                    ${initials}
-                                </div>
-                                <div style="flex: 1;">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                                        <span style="font-weight: 700; font-size: 14px;">${escapeHtml(prenom)} ${escapeHtml(nom)}</span>
-                                        <span style="font-size: 12px; color: var(--text-tertiary);">${formatDate(date)}</span>
-                                    </div>
-                                    <p style="color: var(--text-primary); line-height: 1.5; font-size: 14px;">${escapeHtml(texte)}</p>
-                                    ${isMyComment ? `
-                                        <button onclick="deleteComment('${comment.session_id}', '${articleId}')" 
-                                            style="margin-top: 8px; background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 13px; font-weight: 600;">
-                                            <i class="fas fa-trash"></i> Supprimer
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        async function submitComment(articleId) {
-            if (!currentUser || !userProfile) {
-                ToastManager.warning('Connexion requise', 'Connectez-vous pour commenter');
-                return;
-            }
-
-            const input = document.getElementById(`comment-input-${articleId}`);
-            const texte = input.value.trim();
-
-            if (!texte) return;
-
-            try {
-                const { error } = await supabaseInstance
-                    .from('sessions_commentaires')
-                    .insert([{
-                        article_id: articleId,
-                        user_id: currentUser.id,
-                        texte: texte
-                    }]);
-
-                if (error) throw error;
-
-                input.value = '';
-                ToastManager.success('Commentaire publié', 'Votre commentaire a été ajouté');
-                
-                const container = document.getElementById(`comments-${articleId}`);
-                loadComments(articleId, container);
-
-            } catch (error) {
-                console.error('❌ Erreur envoi commentaire:', error);
-                ToastManager.error('Erreur', 'Impossible d\'envoyer le commentaire');
-            }
-        }
-
-        async function deleteComment(commentId, articleId) {
-            if (!confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
-
-            try {
-                const { error } = await supabaseInstance
-                    .from('sessions_commentaires')
-                    .delete()
-                    .eq('session_id', commentId)
-                    .eq('user_id', currentUser.id);
-
-                if (error) throw error;
-
-                ToastManager.success('Commentaire supprimé', 'Le commentaire a été supprimé');
-                
-                const container = document.getElementById(`comments-${articleId}`);
-                loadComments(articleId, container);
-
-            } catch (error) {
-                console.error('❌ Erreur suppression:', error);
-                ToastManager.error('Erreur', 'Impossible de supprimer');
-            }
-        }
-
-        function formatDate(dateString) {
-            const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
-            return new Date(dateString).toLocaleDateString('fr-FR', options);
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        // ❌ SUPPRIMÉ : Les anciennes fonctions loadComments, renderComments, submitComment, deleteComment
+        // ✅ Ces fonctions sont maintenant gérées par CommentsWidget dans commentaires.js
 
         // ============================================================================
         // PARTAGE SOCIAL
@@ -1698,35 +1632,27 @@
         }
 
         // ============================================================================
-        // INITIALISATION PRINCIPALE - 🔥 ORDRE OPTIMISÉ
+        // INITIALISATION PRINCIPALE
         // ============================================================================
         window.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 Initialisation de l\'application World Connect...');
             console.log('📅', new Date().toLocaleString('fr-FR'));
             
-            // ============================================================================
             // ÉTAPE 1 : INITIALISER LES MANAGERS
-            // ============================================================================
             ToastManager.init();
             LoadingManager.init();
             OfflineManager.init();
             console.log('✅ Managers initialisés');
             
-            // ============================================================================
-            // ÉTAPE 2 : INITIALISER THREE.JS (Visuel)
-            // ============================================================================
+            // ÉTAPE 2 : INITIALISER THREE.JS
             initThreeJS();
             console.log('✅ Three.js initialisé');
             
-            // ============================================================================
-            // ÉTAPE 3 : ENREGISTRER LE SERVICE WORKER (Sans demander de permission)
-            // ============================================================================
+            // ÉTAPE 3 : ENREGISTRER LE SERVICE WORKER
             await initServiceWorker();
             console.log('✅ Service Worker enregistré');
             
-            // ============================================================================
             // ÉTAPE 4 : VÉRIFIER LA DÉCONNEXION MANUELLE
-            // ============================================================================
             const manualLogout = sessionStorage.getItem('manualLogout');
             if (manualLogout === 'true') {
                 sessionStorage.removeItem('manualLogout');
@@ -1737,9 +1663,7 @@
             try {
                 LoadingManager.show();
                 
-                // ============================================================================
                 // ÉTAPE 5 : RÉCUPÉRER L'UTILISATEUR ACTUEL
-                // ============================================================================
                 console.log('🔍 Récupération de l\'utilisateur...');
                 currentUser = await getCurrentUser();
                 
@@ -1747,25 +1671,19 @@
                     console.log('✅ Utilisateur connecté:', currentUser.id);
                     
                     try {
-                        // ============================================================================
                         // ÉTAPE 6 : CHARGER LE PROFIL UTILISATEUR
-                        // ============================================================================
                         console.log('🔍 Chargement du profil...');
                         userProfile = await getUserProfile(currentUser.id);
                         
                         if (userProfile) {
                             console.log('✅ Profil chargé:', userProfile.prenom, userProfile.nom);
                             
-                            // ============================================================================
                             // ÉTAPE 7 : CONFIGURER L'INTERFACE UTILISATEUR
-                            // ============================================================================
                             updateMenu();
                             showWelcomePopup();
                             console.log('✅ Interface mise à jour');
                             
-                            // ============================================================================
                             // ÉTAPE 8 : CHARGER LES DONNÉES UTILISATEUR
-                            // ============================================================================
                             await loadUserReactions();
                             console.log('✅ Réactions chargées');
                             
@@ -1776,23 +1694,16 @@
                             loadMessageCount();
                             console.log('✅ Compteurs chargés');
                             
-                            // ============================================================================
-                            // ÉTAPE 9 : 🔥 DEMANDER LES NOTIFICATIONS (MAINTENANT !)
-                            // ============================================================================
+                            // ÉTAPE 9 : DEMANDER LES NOTIFICATIONS
                             console.log('🔔 Vérification des notifications...');
                             
-                            // ✅ Vérifier si les notifications sont déjà accordées
                             if ('Notification' in window && Notification.permission === 'granted') {
                                 console.log('✅ Permission de notification déjà accordée');
                                 await ensureSubscriptionExists();
-                            } 
-                            // ✅ Si pas encore demandé, demander après un délai
-                            else if (Notification.permission === 'default') {
+                            } else if (Notification.permission === 'default') {
                                 console.log('🔔 Demande de notification programmée...');
                                 await requestNotificationAfterDelay();
-                            }
-                            // ✅ Si refusé, ne rien faire
-                            else {
+                            } else {
                                 console.log('🔕 Notifications refusées par l\'utilisateur');
                             }
                         } else {
@@ -1811,21 +1722,15 @@
                 LoadingManager.hide();
             }
             
-            // ============================================================================
             // ÉTAPE 10 : CHARGER LES ARTICLES
-            // ============================================================================
             await loadArticles();
             console.log('✅ Articles chargés');
             
-            // ============================================================================
             // ÉTAPE 11 : INITIALISER LA NAVIGATION
-            // ============================================================================
             initNavigation();
             console.log('✅ Navigation initialisée');
             
-            // ============================================================================
             // ÉTAPE 12 : DÉMARRER LES INTERVALLES
-            // ============================================================================
             setInterval(() => {
                 if (currentUser) {
                     loadNotificationCount();
@@ -1834,9 +1739,7 @@
             }, 30000);
             console.log('✅ Intervalles démarrés (30s)');
             
-            // ============================================================================
             // ÉTAPE 13 : ÉCOUTER LES ÉVÉNEMENTS
-            // ============================================================================
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden && currentUser) {
                     loadNotificationCount();
@@ -1846,14 +1749,23 @@
             });
             console.log('✅ Événements configurés');
             
-            // ============================================================================
+            // ✅ DIAGNOSTIC COMMENTAIRES
+            console.log('═══════════════════════════════════════');
+            console.log('🔍 DIAGNOSTIC COMMENTAIRES');
+            console.log('═══════════════════════════════════════');
+            console.log('CommentsWidget disponible:', !!window.CommentsWidget);
+            console.log('submitComment disponible:', typeof window.submitComment);
+            console.log('deleteComment disponible:', typeof window.deleteComment);
+            console.log('toggleReplyBox disponible:', typeof window.toggleReplyBox);
+            console.log('═══════════════════════════════════════');
+            
             // INITIALISATION TERMINÉE
-            // ============================================================================
             console.log('═══════════════════════════════════════════════════');
             console.log('✅ APPLICATION WORLD CONNECT INITIALISÉE AVEC SUCCÈS');
             console.log('═══════════════════════════════════════════════════');
-            console.log('📱 Version: 5.0.2 PRO');
+            console.log('📱 Version: 5.0.2 PRO - Commentaires avec Widget');
             console.log('🔔 Système de notifications: OPTIMISÉ');
+            console.log('💬 Système de commentaires: CommentsWidget v3.0');
             console.log('🔑 Clé VAPID: BH3HWUJHOVhPrzNe... (synchronisée)');
             console.log('👤 Utilisateur:', currentUser ? `${userProfile?.prenom} ${userProfile?.nom}` : 'Non connecté');
             console.log('🔔 Notifications:', Notification.permission);
@@ -1861,125 +1773,13 @@
         });
 
         // ============================================================================
-        // EXPORTS GLOBAUX + FONCTION POUR RÉACTIVER LES NOTIFICATIONS
+        // EXPORTS GLOBAUX
         // ============================================================================
-        
-        // ✅ NOUVELLE FONCTION : Réactiver les notifications manuellement (pour les paramètres)
-        async function enableNotifications() {
-            if (!currentUser || !userProfile) {
-                ToastManager.warning(
-                    'Connexion requise', 
-                    'Veuillez vous connecter pour activer les notifications'
-                );
-                setTimeout(() => {
-                    window.location.href = 'connexion.html';
-                }, 2000);
-                return;
-            }
-
-            if (!('Notification' in window) || !('PushManager' in window)) {
-                ToastManager.error(
-                    'Non supporté', 
-                    'Votre navigateur ne supporte pas les notifications'
-                );
-                return;
-            }
-
-            if (Notification.permission === 'denied') {
-                ToastManager.error(
-                    'Permission refusée', 
-                    'Vous avez bloqué les notifications. Réactivez-les dans les paramètres de votre navigateur.'
-                );
-                return;
-            }
-
-            if (Notification.permission === 'granted') {
-                ToastManager.info(
-                    'Déjà activées', 
-                    'Les notifications sont déjà activées sur cet appareil'
-                );
-                await ensureSubscriptionExists();
-                return;
-            }
-
-            // Forcer la demande même si déjà demandé avant
-            localStorage.removeItem('notificationAsked');
-            await requestNotificationPermission();
-        }
-
-        // ✅ NOUVELLE FONCTION : Désactiver les notifications
-        async function disableNotifications() {
-            if (!swRegistration) {
-                ToastManager.info('Aucune notification', 'Aucun abonnement actif');
-                return;
-            }
-
-            try {
-                const subscription = await swRegistration.pushManager.getSubscription();
-                
-                if (subscription) {
-                    await subscription.unsubscribe();
-                    console.log('✅ Abonnement push supprimé');
-                    
-                    // Supprimer de la base de données
-                    if (currentUser && supabaseInstance) {
-                        await supabaseInstance
-                            .from('subscriptions')
-                            .delete()
-                            .eq('user_id', currentUser.id)
-                            .eq('endpoint', subscription.endpoint);
-                        
-                        console.log('✅ Abonnement supprimé de la base de données');
-                    }
-                    
-                    ToastManager.success(
-                        'Notifications désactivées', 
-                        'Vous ne recevrez plus de notifications sur cet appareil'
-                    );
-                } else {
-                    ToastManager.info(
-                        'Aucune notification', 
-                        'Aucun abonnement actif à désactiver'
-                    );
-                }
-            } catch (error) {
-                console.error('❌ Erreur désactivation:', error);
-                ToastManager.error(
-                    'Erreur', 
-                    'Impossible de désactiver les notifications'
-                );
-            }
-        }
-
-        // ✅ NOUVELLE FONCTION : Vérifier le statut des notifications
-        async function getNotificationStatus() {
-            const status = {
-                supported: 'Notification' in window && 'PushManager' in window,
-                permission: Notification.permission,
-                subscribed: false,
-                endpoint: null
-            };
-
-            if (swRegistration) {
-                try {
-                    const subscription = await swRegistration.pushManager.getSubscription();
-                    if (subscription) {
-                        status.subscribed = true;
-                        status.endpoint = subscription.endpoint;
-                    }
-                } catch (error) {
-                    console.error('❌ Erreur vérification statut:', error);
-                }
-            }
-
-            return status;
-        }
-
         window.loadArticles = loadArticles;
         window.handleReaction = handleReaction;
-        window.toggleComments = toggleComments;
-        window.submitComment = submitComment;
-        window.deleteComment = deleteComment;
+        window.toggleComments = toggleComments; // ✅ Version corrigée utilisant CommentsWidget
+        // ❌ SUPPRIMÉ : window.submitComment (déjà exposé par commentaires.js)
+        // ❌ SUPPRIMÉ : window.deleteComment (déjà exposé par commentaires.js)
         window.toggleShareMenu = toggleShareMenu;
         window.shareToFacebook = shareToFacebook;
         window.shareToTwitter = shareToTwitter;
@@ -1995,21 +1795,22 @@
         window.ToastManager = ToastManager;
         window.LoadingManager = LoadingManager;
         window.OfflineManager = OfflineManager;
-        
-        // ✅ EXPORTS DES NOUVELLES FONCTIONS DE GESTION DES NOTIFICATIONS
         window.enableNotifications = enableNotifications;
         window.disableNotifications = disableNotifications;
         window.getNotificationStatus = getNotificationStatus;
         window.requestNotificationPermission = requestNotificationPermission;
 
         console.log('🎉 World Connect - Script chargé avec succès !');
-        console.log('📱 Version: 5.0.2 PRO - Notifications après connexion');
+        console.log('📱 Version: 5.0.2 PRO - Commentaires avec CommentsWidget');
         console.log('🔥 Toutes les fonctionnalités sont opérationnelles');
         console.log('');
         console.log('💡 FONCTIONS DISPONIBLES :');
         console.log('   - enableNotifications() : Activer les notifications');
         console.log('   - disableNotifications() : Désactiver les notifications');
         console.log('   - getNotificationStatus() : Vérifier le statut');
+        console.log('   - CommentsWidget.loadComments() : Charger les commentaires');
+        console.log('   - window.submitComment() : Soumettre un commentaire');
+        console.log('   - window.deleteComment() : Supprimer un commentaire');
     </script>
 </body>
-        </html>
+                </html>
