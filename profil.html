@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Profil - Harmonia</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    /* HEADER PROFIL */
+    .profile-header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 40px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    
+    /* PHOTO DE PROFIL */
+    .avatar-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    
+    .avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      color: white;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    
+    .avatar-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    
+    .avatar-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      backdrop-filter: blur(10px);
+    }
+    
+    .avatar-btn.add {
+      background: rgba(16, 185, 129, 0.3);
+      color: white;
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .avatar-btn.delete {
+      background: rgba(239, 68, 68, 0.3);
+      color: white;
+      border: 1px solid rgba(239, 68, 68, 0.5);
+    }
+    
+    .avatar-btn.delete:hover {
+      background: rgba(239, 68, 68, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+    
+    /* NOM PRÉNOM */
+    .user-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* WALLET */
+    .wallet {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 16px;
+      padding: 20px;
+      display: inline-block;
+      margin-top: 15px;
+    }
+    
+    .wallet-label {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    
+    .wallet-balance {
+      font-size: 32px;
+      font-weight: 900;
+      color: #fbbf24;
+      text-shadow: 0 2px 10px rgba(251, 191, 36, 0.5);
+    }
+    
+    /* SECTION ACTUALITÉS */
+    .section-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .posts-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 30px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    .posts-scroll {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 15px;
+      scroll-behavior: smooth;
+    }
+    
+    .posts-scroll::-webkit-scrollbar {
+      height: 8px;
+    }
+    
+    .posts-scroll::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+    
+    .posts-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+    }
+    
+    /* POST CARD */
+    .post-card {
+      min-width: 320px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .post-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+    
+    .post-author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: white;
+    }
+    
+    .post-author-name {
+      font-weight: 700;
+      color: white;
+      font-size: 14px;
+    }
+    
+    .post-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 10px;
+    }
+    
+    .post-content {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      max-height: 80px;
+      overflow: hidden;
+    }
+    
+    .post-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .love-btn {
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s;
+      filter: grayscale(1);
+    }
+    
+    .love-btn.loved {
+      filter: grayscale(0);
+      animation: heartBeat 0.3s;
+    }
+    
+    @keyframes heartBeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+    }
+    
+    .love-count {
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    
+    .comment-count {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    /* POP-UP COMMENTAIRES */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 24px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-header {
+      padding: 25px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+    }
+    
+    .modal-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 24px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+    
+    .modal-body {
+      padding: 25px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    
+    .comment-input-section {
+      padding: 20px 25px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .comment-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      color: white;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 60px;
+    }
+    
+    .comment-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .comment-submit {
+      margin-top: 10px;
+      padding: 12px 24px;
+      background: rgba(16, 185, 129, 0.3);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: white;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .comment-submit:hover {
+      background: rgba(16, 185, 129, 0.5);
+      transform: translateY(-2px);
+    }
+    
+    .comment {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .comment-author {
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    
+    .comment-text {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    
+    .comment-reply-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .comment-reply-btn:hover {
+      color: white;
+    }
+    
+    .replies {
+      margin-left: 30px;
+      margin-top: 15px;
+    }
+    
+    /* GAME BUTTON */
+    .game-button {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 30px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: block;
+    }
+    
+    .game-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .game-icon {
+      font-size: 64px;
+      margin-bottom: 15px;
+    }
+    
+    .game-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* LOADING */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: white;
+      font-size: 18px;
+    }
+    
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* MESSAGE */
+    .message {
+      padding: 15px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: none;
+    }
+    
+    .message.show {
+      display: block;
+    }
+    
+    .message.success {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: white;
+    }
+    
+    .message.error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="container">
+    
+    <!-- MESSAGE -->
+    <div id="message" class="message"></div>
+    
+    <!-- PROFIL HEADER -->
+    <div class="profile-header">
+      <div class="avatar-container">
+        <div class="avatar" id="userAvatar">👤</div>
+      </div>
+      
+      <div class="avatar-buttons">
+        <button class="avatar-btn add" disabled title="Disponible prochainement">
+          📷 Ajouter
+        </button>
+        <button class="avatar-btn delete" id="deleteAvatarBtn">
+          🗑️ Supprimer
+        </button>
+      </div>
+      
+      <div class="user-name" id="userName">Chargement...</div>
+      
+      <div class="wallet">
+        <div class="wallet-label">💰 Solde</div>
+        <div class="wallet-balance" id="walletBalance">0 €</div>
+      </div>
+    </div>
+    
+    <!-- POSTS ACTUALITÉS -->
+    <div class="posts-container">
+      <h2 class="section-title">📰 Actualités</h2>
+      <div class="posts-scroll" id="postsContainer">
+        <div class="loading">
+          <div class="spinner"></div>
+          Chargement des actualités...
+        </div>
+      </div>
+    </div>
+    
+    <!-- BOUTON JEU -->
+    <a href="vraifaux.html" class="game-button">
+      <div class="game-icon">🎮</div>
+      <div class="game-title">Jouer au Vrai ou Faux</div>
+    </a>
+    
+  </div>
+  
+  <!-- MODAL COMMENTAIRES -->
+  <div class="modal" id="commentsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">💬 Commentaires</div>
+        <button class="modal-close" onclick="closeCommentsModal()">×</button>
+      </div>
+      <div class="modal-body" id="commentsContainer">
+        <!-- Commentaires dynamiques -->
+      </div>
+      <div class="comment-input-section">
+        <textarea 
+          class="comment-input" 
+          id="commentInput" 
+          placeholder="Écrire un commentaire..."></textarea>
+        <button class="comment-submit" onclick="submitComment()">Envoyer</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // CONFIGURATION
+    const DB_PROXY_URL = 'https://dfccebkmiebkqfwdudjg.supabase.co/functions/v1/src';
+    const DELETE_AVATAR_URL = 'https://dfccebkmiebkqfwdudjg.supabase.co/functions/v1/delete';
+    
+    let currentUser = null;
+    let currentPostId = null;
+    let allPosts = [];
+    
+    // UTILITAIRES
+    function showMessage(text, type) {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = `message ${type} show`;
+      setTimeout(() => msg.classList.remove('show'), 5000);
+    }
+    
+    async function dbQuery(request) {
+      try {
+        const response = await fetch(DB_PROXY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(request)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message);
+        return result.data;
+      } catch (error) {
+        console.error('Erreur DB:', error);
+        throw error;
+      }
+    }
+    
+    // CHARGER PROFIL UTILISATEUR
+    async function loadUserProfile() {
+      try {
+        const session = JSON.parse(localStorage.getItem('session') || '{}');
+        const authUid = session.user?.id;
+        
+        if (!authUid) {
+          window.location.href = '/';
+          return;
+        }
+        
+        // Récupérer l'utilisateur
+        const user = await dbQuery({
+          operation: 'select',
+          table: 'users',
+          columns: 'id, username, email, avatar_url',
+          filters: [{ column: 'auth_uid', operator: 'eq', value: authUid }],
+          single: true
+        });
+        
+        currentUser = user;
+        
+        // Extraire prénom et nom du username
+        const [prenom, nom] = user.username.split('_');
+        const displayName = `${prenom.charAt(0).toUpperCase() + prenom.slice(1)} ${nom.charAt(0).toUpperCase() + nom.slice(1)}`;
+        
+        document.getElementById('userName').textContent = displayName;
+        
+        // Avatar
+        if (user.avatar_url) {
+          document.getElementById('userAvatar').innerHTML = `<img src="${user.avatar_url}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        }
+        
+        // Charger le wallet
+        await loadWallet(user.id);
+        
+        // Charger les posts
+        await loadPosts();
+        
+      } catch (error) {
+        console.error('Erreur chargement profil:', error);
+        showMessage('Erreur de chargement du profil', 'error');
+      }
+    }
+    
+    // CHARGER WALLET
+    async function loadWallet(userId) {
+      try {
+        const wallet = await dbQuery({
+          operation: 'select',
+          table: 'wallet',
+          columns: 'balance',
+          filters: [{ column: 'user_id', operator: 'eq', value: userId }],
+          single: true
+        });
+        
+        document.getElementById('walletBalance').textContent = `${wallet.balance} €`;
+      } catch (error) {
+        console.error('Erreur wallet:', error);
+      }
+    }
+    
+    // CHARGER TOUS LES POSTS
+    async function loadPosts() {
+      try {
+        const posts = await dbQuery({
+          operation: 'select',
+          table: 'posts_actualite',
+          columns: '*',
+          order: { column: 'created_at', ascending: false }
+        });
+        
+        allPosts = posts;
+        displayPosts(posts);
+      } catch (error) {
+        console.error('Erreur posts:', error);
+        document.getElementById('postsContainer').innerHTML = '<p style="color:white;">Aucune actualité pour le moment</p>';
+      }
+    }
+    
+    // AFFICHER LES POSTS
+    function displayPosts(posts) {
+      const container = document.getElementById('postsContainer');
+      
+      if (!posts || posts.length === 0) {
+        container.innerHTML = '<p style="color:white;">Aucune actualité pour le moment</p>';
+        return;
+      }
+      
+      container.innerHTML = posts.map(post => `
+        <div class="post-card" onclick="openCommentsModal('${post.id}')">
+          <div class="post-header">
+            <div class="post-author-avatar">👤</div>
+            <div class="post-author-name">Admin</div>
+          </div>
+          <div class="post-title">${post.title}</div>
+          <div class="post-content">${post.content}</div>
+          <div class="post-footer">
+            <div>
+              <button class="love-btn" onclick="toggleLove(event, '${post.id}')">❤️</button>
+              <span class="love-count" id="love-${post.id}">0</span>
+            </div>
+            <div class="comment-count" id="comments-${post.id}">0 commentaires</div>
+          </div>
+        </div>
+      `).join('');
+      
+      // Charger les stats de chaque post
+      posts.forEach(post => loadPostStats(post.id));
+    }
+    
+    // CHARGER STATS D'UN POST
+    async function loadPostStats(postId) {
+      try {
+        // Réactions
+        const reactions = await dbQuery({
+          operation: 'select',
+          table: 'post_actualite_reactions',
+          columns: 'id',
+          filters: [{ column: 'post_id', operator: 'eq', value: postId }]
+        });
+        
+        document.getElementById(`love-${postId}`).textContent = reactions.length;
+        
+        // Commentaires
+        const comments = await dbQuery({
+          operation: 'select',
+          table: 'post_actualite_comments',
+          columns: 'id',
+          filters: [{ column: 'post_id', operator: 'eq', value: postId }]
+        });
+        
+        document.getElementById(`comments-${postId}`).textContent = `${comments.length} commentaires`;
+        
+        // Vérifier si l'utilisateur a déjà aimé
+        const userReaction = await dbQuery({
+          operation: 'select',
+          table: 'post_actualite_reactions',
+          columns: 'id',
+          filters: [
+            { column: 'post_id', operator: 'eq', value: postId },
+            { column: 'user_id', operator: 'eq', value: currentUser.id }
+          ]
+        });
+        
+        if (userReaction.length > 0) {
+          const loveBtn = document.querySelector(`[onclick="toggleLove(event, '${postId}')"]`);
+          if (loveBtn) loveBtn.classList.add('loved');
+        }
+        
+      } catch (error) {
+        console.error('Erreur stats:', error);
+      }
+    }
+    
+    // TOGGLE LOVE
+    async function toggleLove(event, postId) {
+      event.stopPropagation();
+      
+      try {
+        const btn = event.target;
+        const isLoved = btn.classList.contains('loved');
+        
+        if (isLoved) {
+          // Supprimer
+          await dbQuery({
+            operation: 'delete',
+            table: 'post_actualite_reactions',
+            filters: [
+              { column: 'post_id', operator: 'eq', value: postId },
+              { column: 'user_id', operator: 'eq', value: currentUser.id }
+            ]
+          });
+          btn.classList.remove('loved');
+        } else {
+          // Ajouter
+          await dbQuery({
+            operation: 'insert',
+            table: 'post_actualite_reactions',
+            data: {
+              post_id: postId,
+              user_id: currentUser.id
+            }
+          });
+          btn.classList.add('loved');
+        }
+        
+        // Rafraîchir les stats
+        await loadPostStats(postId);
+        
+      } catch (error) {
+        console.error('Erreur love:', error);
+        showMessage('Erreur lors de la réaction', 'error');
+      }
+    }
+    
+    // OUVRIR MODAL COMMENTAIRES
+    async function openCommentsModal(postId) {
+      currentPostId = postId;
+      document.getElementById('commentsModal').classList.add('show');
+      await loadComments(postId);
+    }
+    
+    // FERMER MODAL
+    function closeCommentsModal() {
+      document.getElementById('commentsModal').classList.remove('show');
+      currentPostId = null;
+    }
+    
+    // CHARGER COMMENTAIRES
+    async function loadComments(postId) {
+      try {
+        const comments = await dbQuery({
+          operation: 'select',
+          table: 'post_actualite_comments',
+          columns: '*',
+          filters: [{ column: 'post_id', operator: 'eq', value: postId }],
+          order: { column: 'created_at', ascending: false }
+        });
+        
+        const container = document.getElementById('commentsContainer');
+        
+        if (!comments || comments.length === 0) {
+          container.innerHTML = '<p style="color:white;text-align:center;">Aucun commentaire</p>';
+          return;
+        }
+        
+        container.innerHTML = await Promise.all(comments.map(async comment => {
+          const user = await dbQuery({
+            operation: 'select',
+            table: 'users',
+            columns: 'username',
+            filters: [{ column: 'id', operator: 'eq', value: comment.user_id }],
+            single: true
+          });
+          
+          return `
+            <div class="comment">
+              <div class="comment-author">${user.username}</div>
+              <div class="comment-text">${comment.content}</div>
+              <button class="comment-reply-btn" onclick="replyToComment('${comment.id}')">Répondre</button>
+              <div class="replies" id="replies-${comment.id}"></div>
+            </div>
+          `;
+        })).then(html => html.join(''));
+        
+      } catch (error) {
+        console.error('Erreur commentaires:', error);
+      }
+    }
+    
+    // ENVOYER COMMENTAIRE
+    async function submitComment() {
+      const input = document.getElementById('commentInput');
+      const content = input.value.trim();
+      
+      if (!content) {
+        showMessage('Veuillez écrire un commentaire', 'error');
+        return;
+      }
+      
+      try {
+        await dbQuery({
+          operation: 'insert',
+          table: 'post_actualite_comments',
+          data: {
+            post_id: currentPostId,
+            user_id: currentUser.id,
+            content
+          }
+        });
+        
+        input.value = '';
+        await loadComments(currentPostId);
+        await loadPostStats(currentPostId);
+        showMessage('Commentaire ajouté !', 'success');
+        
+      } catch (error) {
+        console.error('Erreur commentaire:', error);
+        showMessage('Erreur lors de l\'ajout du commentaire', 'error');
+      }
+    }
+    
+    // SUPPRIMER AVATAR
+    document.getElementById('deleteAvatarBtn').addEventListener('click', async () => {
+      if (!currentUser || !currentUser.avatar_url) {
+        showMessage('Aucun avatar à supprimer', 'error');
+        return;
+      }
+      
+      if (!confirm('Êtes-vous sûr de vouloir supprimer votre photo de profil ?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(DELETE_AVATAR_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: currentUser.id })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.message || 'Erreur lors de la suppression');
+        }
+        
+        // Mettre à jour l'affichage
+        document.getElementById('userAvatar').innerHTML = '👤';
+        currentUser.avatar_url = null;
+        
+        showMessage('Photo de profil supprimée avec succès', 'success');
+        
+      } catch (error) {
+        console.error('Erreur suppression avatar:', error);
+        showMessage(error.message || 'Erreur lors de la suppression', 'error');
+      }
+    });
+    
+    // RÉPONDRE À UN COMMENTAIRE (fonction placeholder pour plus tard)
+    function replyToComment(commentId) {
+      showMessage('Fonctionnalité disponible prochainement', 'error');
+    }
+    
+    // INITIALISATION
+    window.addEventListener('DOMContentLoaded', () => {
+      loadUserProfile();
+    });
+    
+    // FERMER MODAL AU CLIC EXTÉRIEUR
+    document.getElementById('commentsModal').addEventListener('click', (e) => {
+      if (e.target.id === 'commentsModal') {
+        closeCommentsModal();
+      }
+    });
+  </script>
+</body>
+  </html>
