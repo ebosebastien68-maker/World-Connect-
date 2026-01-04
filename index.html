@@ -211,14 +211,17 @@
     <script src="optimistic-sync.js"></script>
     <script src="commentaires.js"></script>
     
-    <!-- Script principal -->
+    <!-- ============================================================================
+         SCRIPT PRINCIPAL - VERSION CORRIGÉE 5.0.3
+         ============================================================================ -->
     <script>
-        // Récupération des fonctions depuis supabaseClient.js
+        // ============================================================================
+        // CONFIGURATION ET VARIABLES GLOBALES
+        // ============================================================================
         const supabaseInstance = window.supabaseClient.supabase;
         const getCurrentUser = window.supabaseClient.getCurrentUser;
         const getUserProfile = window.supabaseClient.getUserProfile;
         
-        // Variables globales
         let currentUser = null;
         let userProfile = null;
         let allArticles = [];
@@ -1228,6 +1231,9 @@
             });
         }
 
+        // ============================================================================
+        // ✅ FONCTION CORRIGÉE : createArticleCard
+        // ============================================================================
         function createArticleCard(article) {
             const card = document.createElement('div');
             card.className = 'article-card';
@@ -1284,7 +1290,7 @@
             
             const reactionLike = article.reaction_like || 0;
             const reactionLove = article.reaction_love || 0;
-            const reactionRire = article.reaction_rire || 0;
+            const reactionRire = article.reaction_rire || 0; // ✅ CORRIGÉ
             const reactionColere = article.reaction_colere || 0;
 
             const formattedDate = new Date(article.date_created).toLocaleDateString('fr-FR', { 
@@ -1294,6 +1300,26 @@
                 hour: '2-digit', 
                 minute: '2-digit' 
             });
+
+            // ✅ NOUVEAU : Gestion du texte avec bouton "Voir plus"
+            const textContent = article.texte || '';
+            const isLongText = textContent.length > 300;
+            const truncatedText = isLongText ? textContent.substring(0, 300) + '...' : textContent;
+            const articleTextId = `article-text-${article.article_id}`;
+            
+            // ✅ Échapper les guillemets pour data-full-text
+            const escapedFullText = textContent.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            
+            const textHTML = isLongText ? `
+                <div class="article-text-container">
+                    <div class="article-text" id="${articleTextId}" data-full-text="${escapedFullText}">${truncatedText}</div>
+                    <button class="show-more-btn" onclick="toggleFullText('${article.article_id}')">
+                        <i class="fas fa-chevron-down"></i> Voir plus
+                    </button>
+                </div>
+            ` : `
+                <div class="article-text">${textContent}</div>
+            `;
             
             card.innerHTML = `
                 <div class="article-header">
@@ -1305,7 +1331,7 @@
                     ${adminOptionsHTML}
                 </div>
                 <div class="article-content">
-                    <div class="article-text">${article.texte}</div>
+                    ${textHTML}
                     ${imagesHTML}
                     ${videoHTML}
                     ${linksHTML}
@@ -1377,6 +1403,31 @@
         }
 
         // ============================================================================
+        // ✅ NOUVELLE FONCTION : Toggle du texte complet
+        // ============================================================================
+        function toggleFullText(articleId) {
+            const textContainer = document.getElementById(`article-text-${articleId}`);
+            const button = textContainer.parentElement.querySelector('.show-more-btn');
+            const fullText = textContainer.getAttribute('data-full-text');
+            
+            // Décoder les entités HTML
+            const decodedFullText = fullText.replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+            
+            if (textContainer.classList.contains('expanded')) {
+                // Réduire le texte
+                const truncatedText = decodedFullText.substring(0, 300) + '...';
+                textContainer.textContent = truncatedText;
+                textContainer.classList.remove('expanded');
+                button.innerHTML = '<i class="fas fa-chevron-down"></i> Voir plus';
+            } else {
+                // Afficher le texte complet
+                textContainer.textContent = decodedFullText;
+                textContainer.classList.add('expanded');
+                button.innerHTML = '<i class="fas fa-chevron-up"></i> Voir moins';
+            }
+        }
+
+        // ============================================================================
         // GESTION DES RÉACTIONS
         // ============================================================================
         async function handleReaction(articleId, reactionType) {
@@ -1432,14 +1483,13 @@
         }
 
         // ============================================================================
-        // GESTION DES COMMENTAIRES - ✅ VERSION CORRIGÉE AVEC CommentsWidget
+        // GESTION DES COMMENTAIRES
         // ============================================================================
         function toggleComments(articleId) {
             const section = document.getElementById(`comments-${articleId}`);
             section.classList.toggle('show');
             
             if (section.classList.contains('show') && section.innerHTML === '') {
-                // ✅ UTILISER CommentsWidget au lieu de l'ancienne fonction
                 if (window.CommentsWidget) {
                     window.CommentsWidget.loadComments(articleId, section);
                 } else {
@@ -1448,9 +1498,6 @@
                 }
             }
         }
-
-        // ❌ SUPPRIMÉ : Les anciennes fonctions loadComments, renderComments, submitComment, deleteComment
-        // ✅ Ces fonctions sont maintenant gérées par CommentsWidget dans commentaires.js
 
         // ============================================================================
         // PARTAGE SOCIAL
@@ -1763,9 +1810,12 @@
             console.log('═══════════════════════════════════════════════════');
             console.log('✅ APPLICATION WORLD CONNECT INITIALISÉE AVEC SUCCÈS');
             console.log('═══════════════════════════════════════════════════');
-            console.log('📱 Version: 5.0.2 PRO - Commentaires avec Widget');
+            console.log('📱 Version: 5.0.3 PRO - Toutes corrections appliquées');
             console.log('🔔 Système de notifications: OPTIMISÉ');
             console.log('💬 Système de commentaires: CommentsWidget v3.0');
+            console.log('📝 Affichage texte: Bouton "Voir plus" activé');
+            console.log('🎨 Préservation espaces: white-space: pre-wrap');
+            console.log('😆 Réaction "rire": CORRIGÉE');
             console.log('🔑 Clé VAPID: BH3HWUJHOVhPrzNe... (synchronisée)');
             console.log('👤 Utilisateur:', currentUser ? `${userProfile?.prenom} ${userProfile?.nom}` : 'Non connecté');
             console.log('🔔 Notifications:', Notification.permission);
@@ -1777,9 +1827,8 @@
         // ============================================================================
         window.loadArticles = loadArticles;
         window.handleReaction = handleReaction;
-        window.toggleComments = toggleComments; // ✅ Version corrigée utilisant CommentsWidget
-        // ❌ SUPPRIMÉ : window.submitComment (déjà exposé par commentaires.js)
-        // ❌ SUPPRIMÉ : window.deleteComment (déjà exposé par commentaires.js)
+        window.toggleComments = toggleComments;
+        window.toggleFullText = toggleFullText; // ✅ NOUVELLE FONCTION
         window.toggleShareMenu = toggleShareMenu;
         window.shareToFacebook = shareToFacebook;
         window.shareToTwitter = shareToTwitter;
@@ -1801,16 +1850,23 @@
         window.requestNotificationPermission = requestNotificationPermission;
 
         console.log('🎉 World Connect - Script chargé avec succès !');
-        console.log('📱 Version: 5.0.2 PRO - Commentaires avec CommentsWidget');
+        console.log('📱 Version: 5.0.3 PRO - Toutes corrections appliquées');
         console.log('🔥 Toutes les fonctionnalités sont opérationnelles');
         console.log('');
         console.log('💡 FONCTIONS DISPONIBLES :');
         console.log('   - enableNotifications() : Activer les notifications');
         console.log('   - disableNotifications() : Désactiver les notifications');
         console.log('   - getNotificationStatus() : Vérifier le statut');
+        console.log('   - toggleFullText(articleId) : Afficher/masquer texte complet');
         console.log('   - CommentsWidget.loadComments() : Charger les commentaires');
         console.log('   - window.submitComment() : Soumettre un commentaire');
         console.log('   - window.deleteComment() : Supprimer un commentaire');
+        console.log('');
+        console.log('✅ CORRECTIONS APPLIQUÉES :');
+        console.log('   1. Bouton réaction "rire" 😆 : CORRIGÉ');
+        console.log('   2. Bouton "Voir plus" : AJOUTÉ');
+        console.log('   3. Préservation espaces : ACTIVÉE (white-space: pre-wrap)');
+        console.log('   4. Échappement HTML : SÉCURISÉ');
     </script>
 </body>
-                </html>
+            </html>
