@@ -1,3 +1,9 @@
+/* ============================================================================
+   WORLD CONNECT - STYLE.CSS COMPLET CORRIGÉ
+   Version: 5.0.3 PRO
+   Date: 2026
+   ============================================================================ */
+
 * {
     margin: 0;
     padding: 0;
@@ -51,7 +57,9 @@ body {
     height: 100vh;
 }
 
-/* Canvas Background */
+/* ============================================================================
+   CANVAS BACKGROUND
+   ============================================================================ */
 #canvas-container {
     position: fixed;
     top: 0;
@@ -67,7 +75,9 @@ body.dark-mode #canvas-container {
     opacity: 0.3;
 }
 
-/* Loading Overlay */
+/* ============================================================================
+   LOADING OVERLAY
+   ============================================================================ */
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -108,7 +118,9 @@ body.dark-mode #canvas-container {
     100% { transform: rotate(360deg); }
 }
 
-/* Toast Notification System */
+/* ============================================================================
+   TOAST NOTIFICATION SYSTEM
+   ============================================================================ */
 .toast-container {
     position: fixed;
     top: 80px;
@@ -234,7 +246,9 @@ body.dark-mode #canvas-container {
     }
 }
 
-/* Offline Indicator */
+/* ============================================================================
+   OFFLINE INDICATOR
+   ============================================================================ */
 .offline-indicator {
     position: fixed;
     bottom: 20px;
@@ -267,7 +281,9 @@ body.dark-mode #canvas-container {
     50% { opacity: 0.5; }
 }
 
-/* Welcome Popup */
+/* ============================================================================
+   WELCOME POPUP
+   ============================================================================ */
 .welcome-popup {
     position: fixed;
     top: 50%;
@@ -354,7 +370,9 @@ body.dark-mode #canvas-container {
     pointer-events: all;
 }
 
-/* Navigation */
+/* ============================================================================
+   NAVIGATION
+   ============================================================================ */
 .navbar {
     position: fixed;
     top: 0;
@@ -789,6 +807,9 @@ body.dark-mode #canvas-container {
     color: #ffcccc;
 }
 
+/* ============================================================================
+   SPA CONTAINER
+   ============================================================================ */
 .spa-container {
     max-width: 100%;
     width: 100%;
@@ -826,7 +847,9 @@ body.dark-mode #canvas-container {
     }
 }
 
-/* SKELETON LOADER */
+/* ============================================================================
+   SKELETON LOADER
+   ============================================================================ */
 .article-skeleton {
     background: var(--bg-secondary);
     border-radius: 24px;
@@ -985,17 +1008,31 @@ body.dark-mode .skeleton-action-btn {
 .skeleton-action-btn:nth-child(3) { animation-delay: 0.9s; }
 .skeleton-action-btn:nth-child(4) { animation-delay: 1s; }
 
-/* ARTICLES STYLES */
+/* ============================================================================
+   ✅ ARTICLES STYLES - CORRIGÉ
+   ============================================================================ */
 .article-card {
     background: var(--bg-secondary);
     border-radius: 24px;
-    margin-bottom: 28px;
+    margin-bottom: 32px;
     box-shadow: var(--shadow-sm);
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid var(--border-color);
     backdrop-filter: blur(10px);
     position: relative;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .article-card::before {
@@ -1069,23 +1106,118 @@ body.dark-mode .skeleton-action-btn {
     font-weight: 500;
 }
 
+/* ✅ CORRECTION MAJEURE : CONTENU ET TEXTE */
 .article-content {
     padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
+/* ✅ CONTENEUR DU TEXTE AVEC BOUTON "VOIR PLUS" */
+.article-text-container {
+    position: relative;
+    min-height: 50px;
+}
+
+/* ✅ STYLE DU TEXTE - PRÉSERVATION DES ESPACES */
 .article-text {
     color: var(--text-primary);
     line-height: 1.8;
-    margin-bottom: 18px;
     font-size: 15.5px;
     font-weight: 400;
     letter-spacing: -0.1px;
+    
+    /* ✅ CORRECTION CRITIQUE : Préservation des espaces et sauts de ligne */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    
+    text-align: left;
+    max-width: 100%;
+    margin: 0;
 }
 
+/* État étendu du texte */
+.article-text.expanded {
+    white-space: pre-wrap;
+    max-height: none;
+}
+
+/* Amélioration du contraste en mode sombre */
+body.dark-mode .article-text {
+    color: var(--text-primary);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Style pour les codes ou extraits */
+.article-text code {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+body.dark-mode .article-text code {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ✅ NOUVEAU : BOUTON "VOIR PLUS" */
+.show-more-btn {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px auto 0 auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: inherit;
+}
+
+.show-more-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+}
+
+.show-more-btn:focus {
+    outline: 3px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+.show-more-btn i {
+    font-size: 14px;
+    transition: transform 0.3s ease;
+}
+
+.show-more-btn:hover i {
+    transform: scale(1.2);
+}
+
+/* Animation du chevron */
+@keyframes chevronRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(180deg); }
+}
+
+/* ============================================================================
+   IMAGES ET VIDÉOS
+   ============================================================================ */
 .article-images {
     display: grid;
     gap: 12px;
-    margin-top: 18px;
+    margin: 0;
 }
 
 .article-images.single {
@@ -1117,17 +1249,24 @@ body.dark-mode .skeleton-action-btn {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
+.article-video {
+    margin: 0;
+}
+
 .article-video video {
     width: 100%;
     border-radius: 16px;
-    margin-top: 18px;
+    margin: 0;
     box-shadow: var(--shadow-md);
 }
 
+/* ============================================================================
+   LIENS
+   ============================================================================ */
 .article-links {
     display: flex;
     gap: 10px;
-    margin-top: 16px;
+    margin: 0;
     flex-wrap: wrap;
 }
 
@@ -1150,6 +1289,7 @@ body.dark-mode .skeleton-action-btn {
     gap: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-family: inherit;
 }
 
 .link-btn:hover {
@@ -1162,7 +1302,9 @@ body.dark-mode .skeleton-action-btn {
     font-size: 16px;
 }
 
-/* REACTIONS */
+/* ============================================================================
+   ✅ RÉACTIONS - CORRECTION DU BOUTON "RIRE"
+   ============================================================================ */
 .reactions {
     display: flex;
     gap: 8px;
@@ -1248,6 +1390,7 @@ body.dark-mode .reaction-btn span {
     color: var(--text-primary);
 }
 
+/* ✅ COULEURS DES RÉACTIONS */
 .reaction-btn:nth-child(1) {
     color: var(--accent-blue);
 }
@@ -1256,6 +1399,7 @@ body.dark-mode .reaction-btn span {
     color: var(--accent-red);
 }
 
+/* ✅ CORRECTION : Bouton "rire" */
 .reaction-btn:nth-child(3) {
     color: var(--accent-yellow);
 }
@@ -1264,12 +1408,20 @@ body.dark-mode .reaction-btn span {
     color: var(--accent-orange);
 }
 
+/* ✅ ÉTATS ACTIFS DES RÉACTIONS */
 .reaction-btn.active {
     background: currentColor;
     color: white;
     border-color: currentColor;
     box-shadow: 0 6px 20px currentColor;
     transform: scale(1.05);
+    animation: reactionActivate 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes reactionActivate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1.05); }
 }
 
 .reaction-btn.active span {
@@ -1283,9 +1435,6 @@ body.dark-mode .reaction-btn span {
 .reaction-btn.active i {
     color: white !important;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-.reaction-btn.active i {
     animation: reactionBounce 0.6s ease;
 }
 
@@ -1304,6 +1453,9 @@ body.dark-mode .reaction-btn:not(.active):hover {
     background: rgba(255, 255, 255, 0.05);
 }
 
+/* ============================================================================
+   COMMENTAIRES ET PARTAGE
+   ============================================================================ */
 .comments-reactions-section {
     display: flex;
     border-top: 1px solid var(--border-color);
@@ -1530,6 +1682,9 @@ body.dark-mode .share-option.tiktok i { color: #ffffff; }
     display: block;
 }
 
+/* ============================================================================
+   OPTIONS ADMIN
+   ============================================================================ */
 .admin-options {
     position: relative;
     margin-left: auto;
@@ -1618,6 +1773,9 @@ body.dark-mode .share-option.tiktok i { color: #ffffff; }
     font-size: 18px;
 }
 
+/* ============================================================================
+   LOADER ET ÉTATS VIDES
+   ============================================================================ */
 .loader {
     text-align: center;
     padding: 80px 20px;
@@ -1663,6 +1821,9 @@ body.dark-mode .share-option.tiktok i { color: #ffffff; }
     color: var(--text-secondary);
 }
 
+/* ============================================================================
+   IFRAMES
+   ============================================================================ */
 .page-iframe {
     width: 100%;
     height: 100vh;
@@ -1695,6 +1856,20 @@ body.dark-mode .share-option.tiktok i { color: #ffffff; }
     z-index: 10;
 }
 
+/* ============================================================================
+   OPTIMISATIONS PERFORMANCE
+   ============================================================================ */
+.article-card,
+.reaction-btn,
+.show-more-btn,
+.link-btn {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* ============================================================================
+   RESPONSIVE - MOBILE
+   ============================================================================ */
 @media (max-width: 768px) {
     .navbar {
         width: 260px;
@@ -1716,6 +1891,17 @@ body.dark-mode .share-option.tiktok i { color: #ffffff; }
         left: 10px;
         right: 10px;
         max-width: none;
+    }
+
+    .article-text {
+        font-size: 14.5px;
+        line-height: 1.7;
+    }
+
+    .show-more-btn {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 12px;
     }
 
     .reactions {
@@ -1756,6 +1942,16 @@ body.dark-mode .share-option.tiktok i { color: #ffffff; }
         height: 42px;
     }
 
+    .article-text {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .show-more-btn {
+        padding: 10px 16px;
+        font-size: 11px;
+    }
+
     .reactions {
         gap: 4px;
         padding: 10px 12px;
@@ -1773,4 +1969,9 @@ body.dark-mode .share-option.tiktok i { color: #ffffff; }
         font-size: 11px;
         padding: 2px 6px;
     }
-   }
+}
+
+/* ============================================================================
+   FIN DU FICHIER CSS - WORLD CONNECT
+   Version: 5.0.3 PRO - Toutes les corrections appliquées
+   ============================================================================ */
