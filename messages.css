@@ -1,6 +1,6 @@
 /* ============================================================================
    WORLD CONNECT - MESSAGES.CSS
-   Styles complets pour la messagerie
+   Styles complets pour la messagerie avec popup centré
    ============================================================================ */
 
 * { 
@@ -627,87 +627,219 @@ body {
     background: rgba(30, 40, 60, 0.6);
     border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
-    padding: 0 18px;
+    padding: 12px 18px;
+    transition: all 0.3s ease;
+    min-height: 48px;
+    cursor: pointer;
+}
+
+.input-wrapper:hover {
+    border-color: rgba(107, 124, 63, 0.4);
+    background: rgba(30, 40, 60, 0.8);
+}
+
+.message-input-placeholder {
+    color: rgba(160, 174, 192, 0.6);
+    font-size: 15px;
+    user-select: none;
+}
+
+/* ============================================================================
+   POPUP DE SAISIE DE MESSAGE - CENTRÉ
+   ============================================================================ */
+
+.message-popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.message-popup-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+.message-popup {
+    background: rgba(15, 20, 40, 0.98);
+    backdrop-filter: blur(30px);
+    border: 2px solid rgba(107, 124, 63, 0.4);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 650px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.message-popup-overlay.show .message-popup {
+    transform: scale(1);
+}
+
+.message-popup-header {
+    padding: 24px 28px;
+    border-bottom: 2px solid rgba(107, 124, 63, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(20, 25, 45, 0.5);
+    border-radius: 20px 20px 0 0;
+}
+
+.message-popup-header h4 {
+    margin: 0;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.popup-close-btn {
+    background: rgba(107, 124, 63, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: #8a9b56;
+    font-size: 24px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
     transition: all 0.3s ease;
 }
 
-.input-wrapper { 
-    flex: 1; 
-    position: relative; 
-    display: flex; 
-    align-items: flex-end;  /* ✅ IMPORTANT : alignement en bas */
+.popup-close-btn:hover {
+    background: rgba(107, 124, 63, 0.5);
+    transform: rotate(90deg);
+    color: #fff;
+}
+
+.message-popup-body {
+    flex: 1;
+    padding: 28px;
+    overflow-y: auto;
+    background: rgba(10, 14, 39, 0.4);
+}
+
+.message-popup-input {
+    width: 100%;
+    min-height: 150px;
+    max-height: 450px;
     background: rgba(30, 40, 60, 0.6);
     border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    padding: 8px 18px;  /* ✅ Padding réduit pour laisser le textarea gérer sa hauteur */
+    border-radius: 14px;
+    padding: 18px;
+    color: #e0e0e0;
+    font-size: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
     transition: all 0.3s ease;
-    min-height: 48px;  /* ✅ Hauteur minimale */
+    overflow-y: auto;
 }
 
-.input-wrapper:focus-within {
+.message-popup-input:focus {
     border-color: rgba(107, 124, 63, 0.6);
+    background: rgba(30, 40, 60, 0.8);
     box-shadow: 0 0 20px rgba(107, 124, 63, 0.2);
 }
 
-.message-input { 
-    width: 100%; 
-    padding: 10px 0;  /* ✅ Padding vertical pour l'espace interne */
-    border: none;
-    background: transparent;
-    font-size: 16px;  /* ✅ Taille confortable */
-    font-family: inherit;
-    font-weight: 400;
-    resize: none;  /* ✅ IMPORTANT : empêche le redimensionnement manuel */
-    min-height: 24px;  /* ✅ Hauteur minimale d'une ligne */
-    max-height: 180px;  /* ✅ Hauteur maximale avant scroll */
-    overflow-y: auto;  /* ✅ Scroll vertical si trop de texte */
-    overflow-x: hidden;  /* ✅ Pas de scroll horizontal */
-    color: #e0e0e0;
-    line-height: 1.4;  /* ✅ Espacement confortable entre les lignes */
-    word-wrap: break-word;  /* ✅ Coupe les mots trop longs */
-    white-space: pre-wrap;  /* ✅ Préserve les sauts de ligne */
+.message-popup-input::placeholder {
+    color: rgba(160, 174, 192, 0.5);
 }
 
-.message-input::placeholder {
-    color: rgba(160, 174, 192, 0.6);
-    font-size: 15px;
+.message-popup-input::-webkit-scrollbar {
+    width: 8px;
 }
 
-.message-input:focus { 
-    outline: none;
+.message-popup-input::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
 }
 
-/* ✅ Scrollbar pour le textarea quand il dépasse max-height */
-.message-input::-webkit-scrollbar {
-    width: 6px;
+.message-popup-input::-webkit-scrollbar-thumb {
+    background: rgba(107, 124, 63, 0.5);
+    border-radius: 4px;
 }
 
-.message-input::-webkit-scrollbar-track {
-    background: transparent;
+.message-popup-input::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 124, 63, 0.7);
 }
 
-.message-input::-webkit-scrollbar-thumb {
-    background: rgba(107, 124, 63, 0.4);
-    border-radius: 3px;
+.message-popup-footer {
+    padding: 20px 28px;
+    border-top: 2px solid rgba(107, 124, 63, 0.3);
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: flex-end;
+    background: rgba(20, 25, 45, 0.5);
+    border-radius: 0 0 20px 20px;
 }
 
-.message-input::-webkit-scrollbar-thumb:hover {
-    background: rgba(107, 124, 63, 0.6);
-}
-
-.emoji-btn {
-    background: transparent;
-    border: none;
+.popup-emoji-btn {
+    background: rgba(107, 124, 63, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 12px;
     font-size: 22px;
     cursor: pointer;
-    padding: 0 6px;
-    margin-bottom: 8px;  /* ✅ Aligné avec le bas du textarea */
     transition: all 0.3s ease;
-    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.emoji-btn:hover {
-    transform: scale(1.2);
+.popup-emoji-btn:hover {
+    background: rgba(107, 124, 63, 0.4);
+    transform: scale(1.15);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.popup-send-btn {
+    background: linear-gradient(135deg, #6b7c3f 0%, #8a9b56 100%);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(107, 124, 63, 0.4);
+}
+
+.popup-send-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #8a9b56 0%, #6b7c3f 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(107, 124, 63, 0.6);
+}
+
+.popup-send-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.popup-send-btn i {
+    font-size: 16px;
 }
 
 .send-btn { 
@@ -1253,4 +1385,25 @@ body {
         margin: 12px; 
         border-radius: 16px; 
     }
-   }
+    .message-popup {
+        width: 95%;
+        max-width: 95%;
+        max-height: 90vh;
+        border-radius: 16px;
+    }
+    .message-popup-header {
+        padding: 18px 20px;
+        border-radius: 16px 16px 0 0;
+    }
+    .message-popup-body {
+        padding: 20px;
+    }
+    .message-popup-footer {
+        padding: 16px 20px;
+        border-radius: 0 0 16px 16px;
+    }
+    .message-popup-input {
+        min-height: 120px;
+        font-size: 15px;
+    }
+         }
