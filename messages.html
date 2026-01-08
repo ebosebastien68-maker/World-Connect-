@@ -91,7 +91,6 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         camera.position.z = 50;
 
-        // Particules
         const particlesGeometry = new THREE.BufferGeometry();
         const particlesCount = 3000;
         const posArray = new Float32Array(particlesCount * 3);
@@ -113,7 +112,6 @@
         const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
         scene.add(particlesMesh);
 
-        // Lignes de connexion
         const linesGroup = new THREE.Group();
         scene.add(linesGroup);
         
@@ -144,7 +142,6 @@
         
         createConnectionLines();
 
-        // Sphère centrale
         const sphereGeometry = new THREE.SphereGeometry(8, 32, 32);
         const sphereMaterial = new THREE.MeshBasicMaterial({
             color: 0x2e5c8a,
@@ -155,7 +152,6 @@
         const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
         scene.add(sphere);
 
-        // Animation
         let time = 0;
         function animate() {
             requestAnimationFrame(animate);
@@ -188,6 +184,7 @@
         let messageSubscription = null;
         let typingSubscription = null;
         let deliverySubscription = null;
+        let reactionSubscription = null;
         let conversationsCache = [];
         let contactsCache = [];
         let typingTimeout = null;
@@ -200,6 +197,7 @@
         let isRecording = false;
         let recordingStartTime = null;
         let recordingTimer = null;
+        let userVoicePermission = false;
 
         // ==================== INITIALISATION ====================
         function initializeApp() {
@@ -209,10 +207,7 @@
                 getUserProfile = window.supabaseClient.getUserProfile;
                 redirectByRole = window.supabaseClient.redirectByRole;
                 
-                // ✅ Vérification critique
                 console.log('✅ Supabase initialisé:', !!supabaseInstance);
-                console.log('✅ URL:', supabaseInstance?.supabaseUrl);
-                console.log('✅ Auth disponible:', !!supabaseInstance?.auth);
                 
                 initApp();
             } else {
@@ -222,7 +217,6 @@
         }
 
         async function initApp() {
-            // ✅ Double vérification de l'authentification
             if (!supabaseInstance) {
                 console.error('❌ supabaseInstance non initialisé');
                 alert('Erreur: Client Supabase non initialisé. Rechargez la page.');
@@ -248,6 +242,9 @@
 
             console.log('✅ Profil chargé:', userProfile);
             
+            // ✅ Charger les permissions vocales
+            await loadVoicePermission();
+            
             await initInterface();
 
             document.getElementById('search-conversations').addEventListener('input', (e) => filterList('conversations', e.target.value));
@@ -264,6 +261,205 @@
 
         window.addEventListener('DOMContentLoaded', initializeApp);
 
+        // ==================== PERMISSIONS VOCALES ====================
+        async function loadVoicePermission() {
+            try {
+                // Admins ont toujours la permission
+                if (userProfile.role === 'admin') {
+                    userVoicePermission = true;
+                    console.log('✅ Admin: permission vocale activée');
+                    return;
+                }
+
+                // Vérifier la permission pour les users
+                const { data, error } = await supabaseInstance
+                    .from('user_voice_permissions')
+                    .select('voice_enabled')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') {
+                    console.error('❌ Erreur chargement permissions:', error);
+                    userVoicePermission = false;
+                    return;
+                }
+
+                userVoicePermission = data?.voice_enabled || false;
+                console.log('✅ Permission vocale:', userVoicePermission);
+
+            } catch (error) {
+                console.error('❌ Erreur loadVoicePermission:', error);
+                userVoicePermission = false;
+            }
+        }
+
+        async function toggleUserVoicePermission(userId, enable) {
+            if (userProfile.role !== 'admin') {
+                alert('Seuls les administrateurs peuvent gérer les permissions');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseInstance
+                    .from('user_voice_permissions')
+                    .upsert({
+                        user_id: userId,
+                        voice_enabled: enable
+                    }, {
+                        onConflict: 'user_id'
+                    });
+
+                if (error) throw error;
+
+                alert(`Permission vocale ${enable ? 'activée' : 'désactivée'} avec succès`);
+                
+                // Si c'est pour l'utilisateur actuel, recharger
+                if (userId === currentChatUser?.user_id) {
+                    await refreshChatInterface();
+                }
+
+            } catch (error) {
+                console.error('❌ Erreur modification permission:', error);
+                alert('Erreur lors de la modification de la permission');
+            }
+        }
+
+        async function refreshChatInterface() {
+            if (currentChatUser) {
+                const user = currentChatUser;
+                currentChatUser = null;
+                await openChat(user);
+            }
+        }
+
+        // ==================== RÉACTIONS ====================
+        async function addReaction(messageId, emoji, event) {
+            event.stopPropagation();
+            
+            try {
+                // Vérifier si l'utilisateur a déjà réagi
+                const { data: existing } = await supabaseInstance
+                    .from('message_reactions')
+                    .select('id, emoji')
+                    .eq('message_id', messageId)
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (existing) {
+                    if (existing.emoji === emoji) {
+                        // Supprimer la réaction si c'est la même
+                        await supabaseInstance
+                            .from('message_reactions')
+                            .delete()
+                            .eq('id', existing.id);
+                        console.log('✅ Réaction supprimée');
+                    } else {
+                        // Modifier la réaction
+                        await supabaseInstance
+                            .from('message_reactions')
+                            .update({ emoji: emoji })
+                            .eq('id', existing.id);
+                        console.log('✅ Réaction modifiée');
+                    }
+                } else {
+                    // Ajouter une nouvelle réaction
+                    const { error } = await supabaseInstance
+                        .from('message_reactions')
+                        .insert({
+                            message_id: messageId,
+                            user_id: currentUser.id,
+                            emoji: emoji
+                        });
+
+                    if (error) throw error;
+                    console.log('✅ Réaction ajoutée');
+                }
+
+                // Recharger les réactions pour ce message
+                await loadMessageReactions(messageId);
+
+            } catch (error) {
+                console.error('❌ Erreur ajout réaction:', error);
+            }
+        }
+
+        async function loadMessageReactions(messageId) {
+            try {
+                const { data, error } = await supabaseInstance
+                    .from('message_reactions')
+                    .select('emoji, user_id')
+                    .eq('message_id', messageId);
+
+                if (error) throw error;
+
+                // Grouper les réactions par emoji
+                const reactions = {};
+                data.forEach(r => {
+                    if (!reactions[r.emoji]) {
+                        reactions[r.emoji] = {
+                            count: 0,
+                            users: [],
+                            hasCurrentUser: false
+                        };
+                    }
+                    reactions[r.emoji].count++;
+                    reactions[r.emoji].users.push(r.user_id);
+                    if (r.user_id === currentUser.id) {
+                        reactions[r.emoji].hasCurrentUser = true;
+                    }
+                });
+
+                // Mettre à jour l'affichage
+                displayMessageReactions(messageId, reactions);
+
+            } catch (error) {
+                console.error('❌ Erreur chargement réactions:', error);
+            }
+        }
+
+        function displayMessageReactions(messageId, reactions) {
+            const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (!messageEl) return;
+
+            // Supprimer les anciennes réactions
+            const oldReactions = messageEl.querySelector('.message-reactions');
+            if (oldReactions) oldReactions.remove();
+
+            // Si pas de réactions, ne rien afficher
+            if (Object.keys(reactions).length === 0) return;
+
+            // Créer le container de réactions
+            const reactionsDiv = document.createElement('div');
+            reactionsDiv.className = 'message-reactions';
+
+            Object.entries(reactions).forEach(([emoji, data]) => {
+                const reactionSpan = document.createElement('span');
+                reactionSpan.className = 'reaction-item' + (data.hasCurrentUser ? ' user-reacted' : '');
+                reactionSpan.innerHTML = `${emoji} ${data.count}`;
+                reactionSpan.onclick = (e) => addReaction(messageId, emoji, e);
+                reactionsDiv.appendChild(reactionSpan);
+            });
+
+            messageEl.appendChild(reactionsDiv);
+        }
+
+        function subscribeToReactions() {
+            if (reactionSubscription) supabaseInstance.removeChannel(reactionSubscription);
+
+            reactionSubscription = supabaseInstance.channel('message-reactions')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'message_reactions'
+                }, (payload) => {
+                    const messageId = payload.new?.message_id || payload.old?.message_id;
+                    if (messageId) {
+                        loadMessageReactions(messageId);
+                    }
+                })
+                .subscribe();
+        }
+
         async function initInterface() {
             if (userProfile.role === 'user') {
                 document.getElementById('contacts-btn-text').textContent = 'Admins';
@@ -274,6 +470,9 @@
                 document.getElementById('contacts-modal-title').textContent = 'Tous les contacts';
                 await initAdminChat();
             }
+
+            // ✅ S'abonner aux réactions
+            subscribeToReactions();
         }
 
         async function initUserChat() {
@@ -325,7 +524,6 @@
         // ==================== CHARGEMENT DONNÉES ====================
         async function loadConversations() {
             try {
-                // ✅ Sélectionner uniquement les colonnes nécessaires
                 const [sentMessages, receivedMessages] = await Promise.all([
                     supabaseInstance
                         .from('messages')
@@ -344,7 +542,6 @@
                 if (sentMessages.error) throw sentMessages.error;
                 if (receivedMessages.error) throw receivedMessages.error;
 
-                // Fusionner et trier les messages
                 const messages = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
                     .sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
 
@@ -403,7 +600,6 @@
             try {
                 console.log('🔍 Chargement messages avec:', otherUserId);
                 
-                // ✅ Sélectionner uniquement les colonnes nécessaires (sans audio_url qui n'existe peut-être pas)
                 const [sentMessages, receivedMessages] = await Promise.all([
                     supabaseInstance
                         .from('messages')
@@ -421,19 +617,9 @@
                         .limit(100)
                 ]);
 
-                console.log('📤 Messages envoyés:', sentMessages);
-                console.log('📥 Messages reçus:', receivedMessages);
+                if (sentMessages.error) throw sentMessages.error;
+                if (receivedMessages.error) throw receivedMessages.error;
 
-                if (sentMessages.error) {
-                    console.error('❌ Erreur messages envoyés:', sentMessages.error);
-                    throw sentMessages.error;
-                }
-                if (receivedMessages.error) {
-                    console.error('❌ Erreur messages reçus:', receivedMessages.error);
-                    throw receivedMessages.error;
-                }
-
-                // Fusionner et trier les messages
                 messagesCache = [...(sentMessages.data || []), ...(receivedMessages.data || [])]
                     .sort((a, b) => new Date(a.date_created) - new Date(b.date_created));
                 
@@ -441,7 +627,6 @@
                 
                 if (messagesCache.length > 0) {
                     const messageIds = messagesCache.map(m => m.message_id);
-                    console.log('🔍 Chargement fichiers pour', messageIds.length, 'messages');
                     
                     const { data: files, error: filesError } = await supabaseInstance
                         .from('message_files')
@@ -449,7 +634,7 @@
                         .in('message_id', messageIds);
                     
                     if (filesError) {
-                        console.error('⚠️ Erreur chargement fichiers (non bloquant):', filesError);
+                        console.error('⚠️ Erreur chargement fichiers:', filesError);
                     } else {
                         console.log('📎 Fichiers chargés:', files?.length || 0);
                         if (files) {
@@ -458,6 +643,11 @@
                             });
                         }
                     }
+
+                    // ✅ Charger les réactions pour tous les messages
+                    for (const msg of messagesCache) {
+                        await loadMessageReactions(msg.message_id);
+                    }
                 }
                 
                 console.log('✅ Affichage des messages...');
@@ -465,12 +655,6 @@
                 
             } catch (error) {
                 console.error('❌ Erreur complète chargement messages:', error);
-                console.error('Détails:', {
-                    message: error.message,
-                    code: error.code,
-                    details: error.details,
-                    hint: error.hint
-                });
                 messagesCache = [];
                 showEmptyState('Erreur de chargement', 'Impossible de charger les messages');
             }
@@ -513,7 +697,6 @@
                 const initials = `${conv.user.prenom[0]}${conv.user.nom[0]}`.toUpperCase();
                 let lastMsg;
                 
-                // Vérifier les fichiers d'abord
                 if (conv.lastMessage.files && conv.lastMessage.files.length > 0) {
                     const firstFile = conv.lastMessage.files[0];
                     if (firstFile.file_type === 'audio') {
@@ -569,7 +752,6 @@
 
             container.innerHTML = '';
             contacts.forEach(user => {
-                // ✅ Vérification de sécurité pour éviter "undefined"
                 const prenom = user.prenom || 'U';
                 const nom = user.nom || 'ser';
                 const initials = `${prenom[0]}${nom[0]}`.toUpperCase();
@@ -663,7 +845,6 @@
                 if (msg.texte) content += `<div class="message-text">${escapeHtml(msg.texte)}</div>`;
                 if (msg.image_url) content += `<img src="${msg.image_url}" class="message-image" onclick="openImageFullscreen('${msg.image_url}')">`;
                 
-                // ✅ Afficher les fichiers depuis message_files (pas audio_url)
                 if (msg.files && msg.files.length > 0) {
                     msg.files.forEach(file => {
                         if (file.file_type === 'audio') {
@@ -716,12 +897,12 @@
 
                 content += `
                     <div class="reaction-picker">
-                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '❤️', event)">❤️</div>
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '😊', event)">😊</div>
                         <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '😂', event)">😂</div>
-                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '😮', event)">😮</div>
-                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '😢', event)">😢</div>
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '❤️', event)">❤️</div>
                         <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '👍', event)">👍</div>
-                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '👎', event)">👎</div>
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '🎉', event)">🎉</div>
+                        <div class="reaction-emoji" onclick="addReaction('${msg.message_id}', '🔥', event)">🔥</div>
                     </div>
                 `;
 
@@ -743,14 +924,28 @@
         }
 
         // ==================== CHAT ====================
-        function openChat(user) {
+        async function openChat(user) {
             currentChatUser = user;
             selectedImage = null;
             selectedFile = null;
+            
+            // ✅ Charger les permissions vocales de l'utilisateur si admin
+            let targetUserVoiceEnabled = false;
+            if (userProfile.role === 'admin' && user.role === 'user') {
+                const { data } = await supabaseInstance
+                    .from('user_voice_permissions')
+                    .select('voice_enabled')
+                    .eq('user_id', user.user_id)
+                    .single();
+                
+                targetUserVoiceEnabled = data?.voice_enabled || false;
+            }
+            
             const initials = `${user.prenom[0]}${user.nom[0]}`.toUpperCase();
             const chatArea = document.getElementById('chat-area');
 
             const isAdmin = userProfile.role === 'admin';
+            const showVoiceBtn = isAdmin || userVoicePermission;
 
             chatArea.innerHTML = `
                 <div class="chat-header">
@@ -760,6 +955,13 @@
                         <p id="user-status">${user.role === 'admin' ? 'Administrateur' : 'Utilisateur'}</p>
                     </div>
                     <div class="chat-header-actions">
+                        ${isAdmin && user.role === 'user' ? `
+                            <button class="chat-header-btn ${targetUserVoiceEnabled ? 'voice-enabled' : ''}" 
+                                    onclick="toggleUserVoicePermission('${user.user_id}', ${!targetUserVoiceEnabled})"
+                                    title="${targetUserVoiceEnabled ? 'Désactiver' : 'Activer'} les messages vocaux">
+                                <i class="fas fa-microphone${targetUserVoiceEnabled ? '' : '-slash'}"></i>
+                            </button>
+                        ` : ''}
                         <button class="chat-header-btn" onclick="refreshChat()" title="Actualiser">
                             <i class="fas fa-sync-alt"></i>
                         </button>
@@ -800,13 +1002,13 @@
                                 <i class="fas fa-file"></i>
                                 <span>Fichier ${!isAdmin ? '🔒' : ''}</span>
                             </div>
-                            ${isAdmin ? `<div class="attach-option" onclick="toggleVoiceRecording(); document.getElementById('attach-menu').classList.remove('show');" title="Enregistrement vocal">
+                            ${showVoiceBtn ? `<div class="attach-option" onclick="toggleVoiceRecording(); document.getElementById('attach-menu').classList.remove('show');" title="Enregistrement vocal">
                                 <i class="fas fa-microphone"></i>
-                                <span>Audio vocal 🔒</span>
+                                <span>Audio vocal${!isAdmin && userVoicePermission ? ' ✅' : isAdmin ? ' 🔒' : ' 🔒'}</span>
                             </div>` : ''}
                         </div>
                     </div>
-                    ${isAdmin ? `<button class="voice-btn" id="voice-btn" onclick="toggleVoiceRecording()" title="Enregistrement vocal">
+                    ${showVoiceBtn ? `<button class="voice-btn" id="voice-btn" onclick="toggleVoiceRecording()" title="Enregistrement vocal">
                         <i class="fas fa-microphone"></i>
                     </button>` : ''}
                     <div class="input-wrapper" onclick="openMessagePopup()">
@@ -817,7 +1019,6 @@
                 </div>
             `;
 
-            // ✅ Ajouter le popup de saisie
             const popupHTML = `
                 <div class="message-popup-overlay" id="message-popup-overlay" onclick="closeMessagePopup()">
                     <div class="message-popup" id="message-popup" onclick="event.stopPropagation()">
@@ -856,9 +1057,6 @@
             subscribeToMessages(user.user_id);
             subscribeToTypingStatus(user.user_id);
             subscribeToDeliveryStatus(user.user_id);
-            
-            const input = document.getElementById('message-input');
-            if (input) input.focus();
         }
 
         // ==================== ENVOI MESSAGES ====================
@@ -982,8 +1180,9 @@
 
         // ==================== ENREGISTREMENT VOCAL ====================
         async function toggleVoiceRecording() {
-            if (userProfile.role !== 'admin') {
-                alert('Seuls les administrateurs peuvent envoyer des messages vocaux');
+            // ✅ Vérifier les permissions
+            if (userProfile.role !== 'admin' && !userVoicePermission) {
+                alert('Vous n\'avez pas la permission d\'envoyer des messages vocaux. Contactez un administrateur.');
                 return;
             }
 
@@ -1062,16 +1261,17 @@
 
         async function uploadVoiceMessage(audioBlob) {
             try {
-                // ✅ Vérification de l'authentification
                 const { data: { session } } = await supabaseInstance.auth.getSession();
                 if (!session) {
                     throw new Error('Vous devez être connecté pour envoyer un message vocal');
                 }
 
                 console.log('🎤 Début upload message vocal...');
-                console.log('📊 Taille audio:', audioBlob.size, 'bytes');
                 
-                // 1. Créer le message SANS audio_url
+                // ✅ Choisir le bon bucket selon le rôle
+                const bucketName = userProfile.role === 'admin' ? 'messages-files' : 'messages-filesuser';
+                console.log('📦 Bucket utilisé:', bucketName);
+                
                 const { data: messageData, error: insertError } = await supabaseInstance
                     .from('messages')
                     .insert({
@@ -1084,44 +1284,26 @@
                     .select()
                     .single();
 
-                if (insertError) {
-                    console.error('❌ Erreur création message:', insertError);
-                    throw insertError;
-                }
+                if (insertError) throw insertError;
                 
                 const messageId = messageData.message_id;
                 console.log('✅ Message créé:', messageId);
                 
-                // 2. Upload l'audio dans Storage
                 const fileName = `voice_${Date.now()}_${currentUser.id}.wav`;
-                console.log('📤 Upload fichier:', fileName);
                 
                 const { data: uploadData, error: uploadError } = await supabaseInstance.storage
-                    .from('messages-files')
+                    .from(bucketName)
                     .upload(fileName, audioBlob, {
                         contentType: 'audio/wav',
                         upsert: false
                     });
 
-                if (uploadError) {
-                    console.error('❌ Erreur Storage upload:', uploadError);
-                    console.error('Détails:', {
-                        message: uploadError.message,
-                        statusCode: uploadError.statusCode,
-                        error: uploadError.error
-                    });
-                    throw new Error(`Erreur Storage: ${uploadError.message}`);
-                }
-                
-                console.log('✅ Fichier uploadé:', uploadData);
+                if (uploadError) throw new Error(`Erreur Storage: ${uploadError.message}`);
                 
                 const { data: audioUrlData } = supabaseInstance.storage
-                    .from('messages-files')
+                    .from(bucketName)
                     .getPublicUrl(fileName);
 
-                console.log('🔗 URL publique:', audioUrlData.publicUrl);
-
-                // 3. ✅ Insérer dans message_files
                 const { error: fileMetaError } = await supabaseInstance
                     .from('message_files')
                     .insert({
@@ -1133,10 +1315,7 @@
                         mime_type: 'audio/wav'
                     });
 
-                if (fileMetaError) {
-                    console.error('❌ Erreur insertion message_files:', fileMetaError);
-                    throw fileMetaError;
-                }
+                if (fileMetaError) throw fileMetaError;
                 
                 console.log('✅ Message vocal envoyé avec succès');
                 
@@ -1434,10 +1613,7 @@
             
             if (!input || !sendBtn) return;
             
-            // ✅ Réinitialiser la hauteur pour calculer la vraie hauteur nécessaire
             input.style.height = 'auto';
-            
-            // ✅ Calculer la nouvelle hauteur (min 24px, max 180px)
             const newHeight = Math.max(24, Math.min(input.scrollHeight, 180));
             input.style.height = newHeight + 'px';
             
@@ -1494,7 +1670,6 @@
             
             if (!input || !sendBtn) return;
             
-            // ✅ Auto-resize du textarea
             input.style.height = 'auto';
             input.style.height = Math.min(input.scrollHeight, 400) + 'px';
             
@@ -1512,7 +1687,6 @@
         }
 
         function handlePopupKeyDown(event) {
-            // Ctrl/Cmd + Enter pour envoyer
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
                 event.preventDefault();
                 sendMessageFromPopup();
@@ -1548,7 +1722,6 @@
 
                 if (insertError) throw insertError;
 
-                // Fermer le popup
                 closeMessagePopup();
                 
             } catch (error) {
@@ -1575,11 +1748,6 @@
 
         function openImageFullscreen(imageUrl) {
             window.open(imageUrl, '_blank');
-        }
-
-        async function addReaction(messageId, emoji, event) {
-            event.stopPropagation();
-            console.log('Réaction ajoutée:', emoji, 'au message', messageId);
         }
 
         function refreshChat() {
@@ -1690,6 +1858,7 @@
             if (messageSubscription) supabaseInstance.removeChannel(messageSubscription);
             if (typingSubscription) supabaseInstance.removeChannel(typingSubscription);
             if (deliverySubscription) supabaseInstance.removeChannel(deliverySubscription);
+            if (reactionSubscription) supabaseInstance.removeChannel(reactionSubscription);
         });
 
         setInterval(() => {
