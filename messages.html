@@ -883,16 +883,40 @@
                 
                 if (index === messages.length - 1) {
                     let statusIcon = '';
+                    let editDeleteBtns = '';
+                    
                     if (isSent) {
                         if (msg.read_status) {
                             statusIcon = '<span class="message-status"><i class="fas fa-check-double" style="color: #8a9b56;"></i></span>';
                         } else if (msg.delivery_status === 'delivered') {
                             statusIcon = '<span class="message-status"><i class="fas fa-check-double"></i></span>';
+                            // ✅ Boutons modifier/supprimer si non lu
+                            editDeleteBtns = `
+                                <div class="message-actions">
+                                    ${msg.texte ? `<button class="message-action-btn" onclick="editMessage('${msg.message_id}', event)" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </button>` : ''}
+                                    <button class="message-action-btn delete" onclick="deleteMessage('${msg.message_id}', event)" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            `;
                         } else if (msg.delivery_status === 'sent') {
                             statusIcon = '<span class="message-status"><i class="fas fa-check"></i></span>';
+                            editDeleteBtns = `
+                                <div class="message-actions">
+                                    ${msg.texte ? `<button class="message-action-btn" onclick="editMessage('${msg.message_id}', event)" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </button>` : ''}
+                                    <button class="message-action-btn delete" onclick="deleteMessage('${msg.message_id}', event)" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            `;
                         }
                     }
                     content += `<div class="message-time">${formatMessageTime(msg.date_created)} ${statusIcon}</div>`;
+                    content += editDeleteBtns;
                 }
 
                 content += `
@@ -1757,6 +1781,97 @@
             }
         }
 
+        // ==================== MODIFIER/SUPPRIMER MESSAGES ====================
+        async function editMessage(messageId, event) {
+            event.stopPropagation();
+            
+            // Trouver le message dans le cache
+            const message = messagesCache.find(m => m.message_id === messageId);
+            if (!message || !message.texte) {
+                alert('Impossible de modifier ce message');
+                return;
+            }
+
+            // Demander le nouveau texte
+            const newText = prompt('Modifier le message:', message.texte);
+            if (newText === null || newText.trim() === '') return;
+
+            try {
+                const { error } = await supabaseInstance
+                    .rpc('update_message_text', {
+                        msg_id: messageId,
+                        new_text: newText.trim()
+                    });
+
+                if (error) {
+                    if (error.message.includes('déjà été lu')) {
+                        alert('❌ Ce message a déjà été lu, impossible de le modifier');
+                    } else {
+                        throw error;
+                    }
+                    return;
+                }
+
+                console.log('✅ Message modifié');
+                
+                // Mettre à jour le cache local
+                message.texte = newText.trim();
+                displayMessages(messagesCache);
+
+            } catch (error) {
+                console.error('❌ Erreur modification message:', error);
+                alert('Erreur lors de la modification du message');
+            }
+        }
+
+        async function deleteMessage(messageId, event) {
+            event.stopPropagation();
+            
+            if (!confirm('❌ Supprimer définitivement ce message ?')) return;
+
+            try {
+                // Récupérer les fichiers associés pour les supprimer du Storage
+                const message = messagesCache.find(m => m.message_id === messageId);
+                if (message && message.files && message.files.length > 0) {
+                    // Supprimer les fichiers du Storage
+                    for (const file of message.files) {
+                        const fileName = file.file_url.split('/').pop();
+                        const bucketName = userProfile.role === 'admin' ? 'messages-files' : 'messages-filesuser';
+                        
+                        await supabaseInstance.storage
+                            .from(bucketName)
+                            .remove([fileName]);
+                    }
+                }
+
+                // Supprimer le message via la fonction RPC
+                const { error } = await supabaseInstance
+                    .rpc('delete_message_with_files', {
+                        msg_id: messageId
+                    });
+
+                if (error) {
+                    if (error.message.includes('déjà été lu')) {
+                        alert('❌ Ce message a déjà été lu, impossible de le supprimer');
+                    } else {
+                        throw error;
+                    }
+                    return;
+                }
+
+                console.log('✅ Message supprimé');
+                
+                // Retirer du cache local
+                messagesCache = messagesCache.filter(m => m.message_id !== messageId);
+                displayMessages(messagesCache);
+                loadConversations();
+
+            } catch (error) {
+                console.error('❌ Erreur suppression message:', error);
+                alert('Erreur lors de la suppression du message');
+            }
+        }
+
         // ==================== UTILITAIRES ====================
         function escapeHtml(text) {
             if (!text) return '';
@@ -1868,4 +1983,4 @@
         }, 30000);
     </script>
 </body>
-    </html>
+                    </html>
