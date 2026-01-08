@@ -499,6 +499,49 @@ body {
     background: rgba(107, 124, 63, 0.7);
 }
 
+/* Boutons Modifier/Supprimer */
+.message-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.message-bubble:hover .message-actions {
+    opacity: 1;
+}
+
+.message-action-btn {
+    background: rgba(107, 124, 63, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #8a9b56;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+.message-action-btn:hover {
+    background: rgba(107, 124, 63, 0.5);
+    transform: scale(1.1);
+}
+
+.message-action-btn.delete {
+    color: #ef4444;
+}
+
+.message-action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #dc2626;
+}
+
 .reaction-picker {
     position: absolute;
     bottom: 100%;
@@ -1440,4 +1483,4 @@ body {
         min-height: 120px;
         font-size: 15px;
     }
-}
+   }
