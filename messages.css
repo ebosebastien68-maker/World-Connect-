@@ -915,6 +915,16 @@ body {
     transform: none;
 }
 
+.popup-send-btn.secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.popup-send-btn.secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
 .popup-send-btn i {
     font-size: 16px;
 }
