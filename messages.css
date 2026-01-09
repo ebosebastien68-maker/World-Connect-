@@ -957,6 +957,15 @@ body {
     cursor: not-allowed;
 }
 
+/* ✅ Style spécifique pour le bouton d'envoi principal */
+#send-btn-main {
+    display: none; /* Caché par défaut */
+}
+
+#send-btn-main:not([style*="display: none"]) {
+    display: flex !important;
+}
+
 /* État vide */
 .empty-state { 
     flex: 1; 
