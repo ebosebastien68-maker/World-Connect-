@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -25,7 +25,7 @@
         .container {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             width: 100%;
             max-width: 500px;
@@ -44,24 +44,26 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: white;
             padding: 40px;
             text-align: center;
-            color: white;
+            border-bottom: 2px solid #f0f0f0;
         }
 
         .header h1 {
             font-size: 28px;
             margin-bottom: 10px;
+            color: #2c3e50;
         }
 
         .header p {
             font-size: 14px;
-            opacity: 0.9;
+            color: #7f8c8d;
         }
 
         .form-container {
             padding: 40px;
+            background: white;
         }
 
         .message {
@@ -118,7 +120,7 @@
 
         .spinner {
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border-top: 4px solid #3498db;
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -146,7 +148,7 @@
         label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: #2c3e50;
             font-weight: 600;
             font-size: 14px;
         }
@@ -162,12 +164,13 @@
             border-radius: 10px;
             font-size: 16px;
             transition: all 0.3s;
+            background: white;
         }
 
         input[type="password"]:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
 
         input[type="password"].error {
@@ -193,7 +196,7 @@
         }
 
         .toggle-password:hover {
-            color: #667eea;
+            color: #3498db;
         }
 
         .password-strength {
@@ -271,7 +274,7 @@
         .btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #3498db;
             color: white;
             border: none;
             border-radius: 10px;
@@ -283,8 +286,9 @@
         }
 
         .btn:hover:not(:disabled) {
+            background: #2980b9;
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
         }
 
         .btn:active:not(:disabled) {
@@ -305,7 +309,7 @@
         }
 
         .back-link a {
-            color: #667eea;
+            color: #3498db;
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
@@ -313,7 +317,7 @@
         }
 
         .back-link a:hover {
-            color: #764ba2;
+            color: #2980b9;
             text-decoration: underline;
         }
 
@@ -328,13 +332,13 @@
         }
 
         .error-container h2 {
-            color: #333;
+            color: #2c3e50;
             margin-bottom: 15px;
             font-size: 24px;
         }
 
         .error-container p {
-            color: #666;
+            color: #7f8c8d;
             line-height: 1.6;
             margin-bottom: 30px;
         }
@@ -366,7 +370,7 @@
         }
 
         .success-container p {
-            color: #666;
+            color: #7f8c8d;
             line-height: 1.6;
         }
     </style>
@@ -464,13 +468,15 @@
 
     <script src="supabaseClient.js"></script>
     <script>
-        let supabase;
+        // ✅ CORRECTION: Utiliser un nom différent pour éviter le conflit
+        let supabaseInstance;
         let isValidSession = false;
 
         // Initialiser l'application
         function initializeApp() {
             if (window.supabaseClient) {
-                supabase = window.supabaseClient.supabase;
+                // ✅ CORRECTION: Récupérer l'instance sans conflit de nom
+                supabaseInstance = window.supabaseClient.supabase;
                 verifyRecoverySession();
             } else {
                 setTimeout(initializeApp, 100);
@@ -491,8 +497,8 @@
                     return;
                 }
 
-                // Vérifier la session utilisateur
-                const { data: { user }, error } = await supabase.auth.getUser();
+                // ✅ CORRECTION: Utiliser supabaseInstance au lieu de supabase
+                const { data: { user }, error } = await supabaseInstance.auth.getUser();
 
                 if (error || !user) {
                     showError();
@@ -693,8 +699,8 @@
                     throw new Error('Le mot de passe ne respecte pas tous les critères de sécurité');
                 }
 
-                // Mettre à jour le mot de passe
-                const { error } = await supabase.auth.updateUser({
+                // ✅ CORRECTION: Utiliser supabaseInstance au lieu de supabase
+                const { error } = await supabaseInstance.auth.updateUser({
                     password: newPassword
                 });
 
@@ -706,7 +712,8 @@
 
                 // Déconnecter l'utilisateur et rediriger vers la page de connexion
                 setTimeout(async () => {
-                    await supabase.auth.signOut();
+                    // ✅ CORRECTION: Utiliser supabaseInstance au lieu de supabase
+                    await supabaseInstance.auth.signOut();
                     window.location.href = 'connexion.html';
                 }, 3000);
 
