@@ -1012,7 +1012,7 @@
                 </div>
                 <div class="chat-input-area">
                     <input type="file" id="image-input" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
-                    <input type="file" id="file-input" accept=".pdf,.zip,.mp3,.mp4,.wav,.doc,.docx,.xls,.xlsx" style="display: none;" onchange="handleFileSelect(event)">
+                    <input type="file" id="file-input" accept=".pdf,.zip,.mp3,.mp4,.wav,.doc,.docx,.xls,.xlsx,.avi,.mov,.rar,.7z" style="display: none;" onchange="handleFileSelect(event)">
                     <div style="position: relative;">
                         <button class="attach-btn" id="attach-btn" onclick="toggleAttachMenu()" title="Joindre un fichier">
                             <i class="fas fa-paperclip"></i>
@@ -1022,13 +1022,13 @@
                                 <i class="fas fa-image"></i>
                                 <span>Photo</span>
                             </div>
-                            <div class="attach-option ${!isAdmin ? 'admin-only' : ''}" onclick="${isAdmin ? "document.getElementById('file-input').click(); document.getElementById('attach-menu').classList.remove('show');" : "alert('Seuls les administrateurs peuvent envoyer des fichiers');"}" title="${!isAdmin ? 'Réservé aux admins' : ''}">
+                            <div class="attach-option ${!showVoiceBtn ? 'admin-only' : ''}" onclick="${showVoiceBtn ? "document.getElementById('file-input').click(); document.getElementById('attach-menu').classList.remove('show');" : "alert('Permission requise. Contactez un administrateur.');"}" title="${!showVoiceBtn ? 'Permission requise' : 'Fichiers PDF, ZIP, vidéos, etc.'}">
                                 <i class="fas fa-file"></i>
-                                <span>Fichier ${!isAdmin ? '🔒' : ''}</span>
+                                <span>Fichier ${!showVoiceBtn ? '🔒' : ''}</span>
                             </div>
                             ${showVoiceBtn ? `<div class="attach-option" onclick="toggleVoiceRecording(); document.getElementById('attach-menu').classList.remove('show');" title="Enregistrement vocal">
                                 <i class="fas fa-microphone"></i>
-                                <span>Audio vocal${!isAdmin && userVoicePermission ? ' ✅' : isAdmin ? ' 🔒' : ' 🔒'}</span>
+                                <span>Audio vocal</span>
                             </div>` : ''}
                         </div>
                     </div>
@@ -1131,11 +1131,14 @@
                 if (insertError) throw insertError;
                 messageId = messageData.message_id;
 
-                if (selectedFile && userProfile.role === 'admin') {
+                if (selectedFile && (userProfile.role === 'admin' || userVoicePermission)) {
                     const fileName = `${Date.now()}_${selectedFile.name}`;
                     
+                    // ✅ Choisir le bon bucket
+                    const bucketName = userProfile.role === 'admin' ? 'messages-files' : 'messages-filesuser';
+                    
                     const { error: fileUploadError } = await supabaseInstance.storage
-                        .from('messages-files')
+                        .from(bucketName)
                         .upload(fileName, selectedFile, {
                             contentType: selectedFile.type,
                             upsert: false
@@ -1144,7 +1147,7 @@
                     if (fileUploadError) throw fileUploadError;
                     
                     const { data: fileUrlData } = supabaseInstance.storage
-                        .from('messages-files')
+                        .from(bucketName)
                         .getPublicUrl(fileName);
                     
                     const fileType = getFileTypeFromMime(selectedFile.type, selectedFile.name);
@@ -1157,7 +1160,8 @@
                             file_name: selectedFile.name,
                             file_type: fileType,
                             file_size: selectedFile.size,
-                            mime_type: selectedFile.type
+                            mime_type: selectedFile.type,
+                            uploaded_by: currentUser.id
                         });
 
                     if (fileMetaError) throw fileMetaError;
@@ -1499,14 +1503,16 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            if (userProfile.role !== 'admin') {
-                alert('Seuls les administrateurs peuvent envoyer des fichiers');
+            // ✅ Vérifier les permissions
+            if (userProfile.role !== 'admin' && !userVoicePermission) {
+                alert('Vous n\'avez pas la permission d\'envoyer des fichiers. Contactez un administrateur.');
                 event.target.value = '';
                 return;
             }
 
             if (file.size > 50000000) {
                 alert('Le fichier est trop volumineux (max 50MB)');
+                event.target.value = '';
                 return;
             }
 
@@ -1792,22 +1798,83 @@
                 return;
             }
 
-            // Demander le nouveau texte
-            const newText = prompt('Modifier le message:', message.texte);
-            if (newText === null || newText.trim() === '') return;
+            // ✅ Créer un popup moderne pour la modification
+            const popup = document.createElement('div');
+            popup.className = 'message-popup-overlay show';
+            popup.innerHTML = `
+                <div class="message-popup" onclick="event.stopPropagation()">
+                    <div class="message-popup-header">
+                        <h4>Modifier le message</h4>
+                        <button class="popup-close-btn" onclick="this.closest('.message-popup-overlay').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="message-popup-body">
+                        <textarea 
+                            class="message-popup-input" 
+                            id="edit-message-input"
+                            placeholder="Modifiez votre message..."
+                        >${escapeHtmlForEdit(message.texte)}</textarea>
+                    </div>
+                    <div class="message-popup-footer">
+                        <button class="popup-send-btn secondary" onclick="this.closest('.message-popup-overlay').remove()">
+                            Annuler
+                        </button>
+                        <button class="popup-send-btn" id="save-edit-btn" onclick="saveEditedMessage('${messageId}')">
+                            <i class="fas fa-check"></i>
+                            <span>Enregistrer</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Focus sur le textarea
+            setTimeout(() => {
+                const textarea = document.getElementById('edit-message-input');
+                if (textarea) {
+                    textarea.focus();
+                    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+                }
+            }, 100);
+        }
+
+        async function saveEditedMessage(messageId) {
+            const textarea = document.getElementById('edit-message-input');
+            const newText = textarea ? textarea.value.trim() : '';
+            
+            if (!newText) {
+                alert('Le message ne peut pas être vide');
+                return;
+            }
+
+            const saveBtn = document.getElementById('save-edit-btn');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Enregistrement...</span>';
+            }
 
             try {
                 const { error } = await supabaseInstance
-                    .rpc('update_message_text', {
-                        msg_id: messageId,
-                        new_text: newText.trim()
-                    });
+                    .from('messages')
+                    .update({ 
+                        texte: newText,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('message_id', messageId)
+                    .eq('sender_id', currentUser.id)
+                    .eq('read_status', false);
 
                 if (error) {
-                    if (error.message.includes('déjà été lu')) {
+                    if (error.message.includes('déjà été lu') || error.code === '42501') {
                         alert('❌ Ce message a déjà été lu, impossible de le modifier');
                     } else {
                         throw error;
+                    }
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = '<i class="fas fa-check"></i><span>Enregistrer</span>';
                     }
                     return;
                 }
@@ -1815,13 +1882,30 @@
                 console.log('✅ Message modifié');
                 
                 // Mettre à jour le cache local
-                message.texte = newText.trim();
-                displayMessages(messagesCache);
+                const message = messagesCache.find(m => m.message_id === messageId);
+                if (message) {
+                    message.texte = newText;
+                    displayMessages(messagesCache);
+                }
+
+                // Fermer le popup
+                document.querySelector('.message-popup-overlay').remove();
 
             } catch (error) {
                 console.error('❌ Erreur modification message:', error);
                 alert('Erreur lors de la modification du message');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-check"></i><span>Enregistrer</span>';
+                }
             }
+        }
+
+        function escapeHtmlForEdit(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         async function deleteMessage(messageId, event) {
@@ -1983,4 +2067,4 @@
         }, 30000);
     </script>
 </body>
-                    </html>
+    </html>
