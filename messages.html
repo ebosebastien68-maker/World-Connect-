@@ -1040,6 +1040,9 @@
                             Aa
                         </div>
                     </div>
+                    <button class="send-btn" id="send-btn-main" onclick="sendMessage()" disabled style="display: none;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             `;
 
@@ -1085,18 +1088,15 @@
 
         // ==================== ENVOI MESSAGES ====================
         async function sendMessage() {
-            const input = document.getElementById('message-input');
-            const sendBtn = document.getElementById('send-btn');
-            const texte = input ? input.value.trim() : '';
+            const sendBtn = document.getElementById('send-btn-main');
+            const texte = ''; // Pas de texte pour les fichiers/images uniquement
 
-            if (!texte && !selectedImage && !selectedFile) return;
+            if (!selectedImage && !selectedFile) return;
 
             if (sendBtn) {
                 sendBtn.disabled = true;
                 sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             }
-
-            updateTypingStatus(false);
 
             try {
                 let imageUrl = null;
@@ -1166,12 +1166,6 @@
 
                     if (fileMetaError) throw fileMetaError;
                 }
-
-                if (input) {
-                    input.value = '';
-                    input.style.height = 'auto';
-                    input.focus();
-                }
                 
                 removeImagePreview();
                 removeFilePreview();
@@ -1182,7 +1176,7 @@
             } finally {
                 if (sendBtn) {
                     sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                    handleInputChange();
+                    updateSendButton();
                 }
             }
         }
@@ -1484,7 +1478,7 @@
                 if (previewContainer && previewImage) {
                     previewImage.src = e.target.result;
                     previewContainer.style.display = 'block';
-                    handleInputChange();
+                    updateSendButton();
                 }
             };
             reader.readAsDataURL(file);
@@ -1496,7 +1490,7 @@
             const imageInput = document.getElementById('image-input');
             if (previewContainer) previewContainer.style.display = 'none';
             if (imageInput) imageInput.value = '';
-            handleInputChange();
+            updateSendButton();
         }
 
         function handleFileSelect(event) {
@@ -1531,7 +1525,7 @@
             if (previewIcon) previewIcon.innerHTML = `<i class="fas ${iconClass}"></i>`;
             
             if (previewContainer) previewContainer.style.display = 'block';
-            handleInputChange();
+            updateSendButton();
         }
 
         function removeFilePreview() {
@@ -1540,7 +1534,26 @@
             const fileInput = document.getElementById('file-input');
             if (previewContainer) previewContainer.style.display = 'none';
             if (fileInput) fileInput.value = '';
-            handleInputChange();
+            updateSendButton();
+        }
+
+        // ✅ Nouvelle fonction pour gérer l'affichage du bouton d'envoi
+        function updateSendButton() {
+            const sendBtn = document.getElementById('send-btn-main');
+            const inputWrapper = document.querySelector('.input-wrapper');
+            
+            if (!sendBtn || !inputWrapper) return;
+            
+            const hasContent = selectedImage !== null || selectedFile !== null;
+            
+            if (hasContent) {
+                sendBtn.style.display = 'flex';
+                sendBtn.disabled = false;
+                inputWrapper.style.display = 'none';
+            } else {
+                sendBtn.style.display = 'none';
+                inputWrapper.style.display = 'flex';
+            }
         }
 
         function playAudio(audioUrl, button) {
@@ -1856,28 +1869,37 @@
             }
 
             try {
-                const { error } = await supabaseInstance
+                // ✅ Vérifier d'abord que le message n'est pas lu
+                const { data: msgCheck, error: checkError } = await supabaseInstance
+                    .from('messages')
+                    .select('read_status, sender_id')
+                    .eq('message_id', messageId)
+                    .single();
+
+                if (checkError) throw checkError;
+
+                if (msgCheck.read_status) {
+                    alert('❌ Ce message a déjà été lu, impossible de le modifier');
+                    document.querySelector('.message-popup-overlay').remove();
+                    return;
+                }
+
+                if (msgCheck.sender_id !== currentUser.id) {
+                    alert('❌ Vous n\'êtes pas l\'auteur de ce message');
+                    document.querySelector('.message-popup-overlay').remove();
+                    return;
+                }
+
+                // ✅ Modifier le message
+                const { error: updateError } = await supabaseInstance
                     .from('messages')
                     .update({ 
                         texte: newText,
                         updated_at: new Date().toISOString()
                     })
-                    .eq('message_id', messageId)
-                    .eq('sender_id', currentUser.id)
-                    .eq('read_status', false);
+                    .eq('message_id', messageId);
 
-                if (error) {
-                    if (error.message.includes('déjà été lu') || error.code === '42501') {
-                        alert('❌ Ce message a déjà été lu, impossible de le modifier');
-                    } else {
-                        throw error;
-                    }
-                    if (saveBtn) {
-                        saveBtn.disabled = false;
-                        saveBtn.innerHTML = '<i class="fas fa-check"></i><span>Enregistrer</span>';
-                    }
-                    return;
-                }
+                if (updateError) throw updateError;
 
                 console.log('✅ Message modifié');
                 
@@ -1893,7 +1915,7 @@
 
             } catch (error) {
                 console.error('❌ Erreur modification message:', error);
-                alert('Erreur lors de la modification du message');
+                alert('Erreur lors de la modification du message: ' + (error.message || 'Erreur inconnue'));
                 if (saveBtn) {
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = '<i class="fas fa-check"></i><span>Enregistrer</span>';
@@ -2067,4 +2089,4 @@
         }, 30000);
     </script>
 </body>
-    </html>
+        </html>
