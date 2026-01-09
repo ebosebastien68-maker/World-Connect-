@@ -1549,10 +1549,12 @@
             if (hasContent) {
                 sendBtn.style.display = 'flex';
                 sendBtn.disabled = false;
-                inputWrapper.style.display = 'none';
+                inputWrapper.style.opacity = '0.3';
+                inputWrapper.style.pointerEvents = 'none';
             } else {
                 sendBtn.style.display = 'none';
-                inputWrapper.style.display = 'flex';
+                inputWrapper.style.opacity = '1';
+                inputWrapper.style.pointerEvents = 'auto';
             }
         }
 
@@ -1890,12 +1892,11 @@
                     return;
                 }
 
-                // ✅ Modifier le message
+                // ✅ Modifier le message (SANS updated_at)
                 const { error: updateError } = await supabaseInstance
                     .from('messages')
                     .update({ 
-                        texte: newText,
-                        updated_at: new Date().toISOString()
+                        texte: newText
                     })
                     .eq('message_id', messageId);
 
@@ -2089,4 +2090,4 @@
         }, 30000);
     </script>
 </body>
-        </html>
+    </html>
