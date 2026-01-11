@@ -1,4 +1,4 @@
-// usereact.js - Gestion de l'affichage des utilisateurs qui ont réagi aux articles
+// usereact.js - Gestion de l'affichage des utilisateurs avec PAGINATION COMPLÈTE
 
 (function() {
     'use strict';
@@ -8,7 +8,7 @@
         currentUser: null,
         userProfile: null,
         articleId: null,
-        allReactions: [], // Stocker toutes les réactions ici
+        allReactions: [],
 
         async init() {
             if (window.supabaseClient) {
@@ -30,26 +30,61 @@
             await this.loadReactions();
         },
 
+        // ✅ FONCTION DE PAGINATION COMPLÈTE
+        async fetchAllReactions(articleId) {
+            const allReactions = [];
+            let offset = 0;
+            const batchSize = 1000;
+            let hasMore = true;
+
+            console.log('📥 Début de la pagination des réactions...');
+
+            while (hasMore) {
+                const { data, error } = await this.supabase
+                    .from('reactions_with_actor_info')
+                    .select('*')
+                    .eq('article_id', articleId)
+                    .order('date_created', { ascending: false })
+                    .range(offset, offset + batchSize - 1);
+
+                if (error) {
+                    console.error(`❌ Erreur pagination à offset ${offset}:`, error);
+                    throw error;
+                }
+
+                if (!data || data.length === 0) {
+                    hasMore = false;
+                    console.log(`✅ Fin de pagination (0 résultats à offset ${offset})`);
+                } else {
+                    allReactions.push(...data);
+                    console.log(`📦 ${data.length} réactions récupérées (offset ${offset})`);
+                    
+                    if (data.length < batchSize) {
+                        hasMore = false;
+                        console.log(`✅ Dernière page atteinte`);
+                    } else {
+                        offset += batchSize;
+                    }
+                }
+            }
+
+            console.log(`✅ Total récupéré: ${allReactions.length} réactions`);
+            return allReactions;
+        },
+
         async loadReactions() {
             const container = document.getElementById('user-reactions-container');
             container.innerHTML = `
                 <div class="loader">
                     <div class="spinner"></div>
-                    <p style="margin-top: 15px; color: var(--text-tertiary);">Chargement des réactions...</p>
+                    <p>Chargement des réactions...</p>
                 </div>`;
 
             try {
-                // Interrogation de la Vue
-                const { data: reactions, error } = await this.supabase
-                    .from('reactions_with_actor_info') // <-- NOM DE LA VUE
-                    .select('*') // <-- Sélectionne toutes les colonnes simplifiées
-                    .eq('article_id', this.articleId)
-                    .order('date_created', { ascending: false });
-
-                if (error) throw error;
+                // ✅ Utilisation de la pagination complète
+                const reactions = await this.fetchAllReactions(this.articleId);
                 this.allReactions = reactions;
 
-                // Le reste du code pour charger l'article reste inchangé
                 const { data: article, error: articleError } = await this.supabase
                     .from('articles')
                     .select('*, users_profile(prenom, nom)')
@@ -82,9 +117,8 @@
                 return;
             }
             
-            // L'ensemble d'utilisateurs utilise 'acteur_id'
             const reactionsByType = this.groupReactionsByType(reactions);
-            const totalUsers = new Set(reactions.map(r => r.acteur_id)).size; 
+            const totalUsers = new Set(reactions.map(r => r.acteur_id)).size;
 
             let html = `
                 <div class="article-info-header">
@@ -125,7 +159,6 @@
             `;
             container.innerHTML = html;
             
-            // Premier affichage avec toutes les réactions
             this.renderGroupedUserList(reactions);
             this.initTabs();
         },
@@ -144,7 +177,7 @@
             const colors = { like: '#3b82f6', love: '#ef4444', rire: '#f59e0b', colere: '#dc2626' };
             const labels = { like: 'J\'aime', love: 'Amour', rire: 'Rire', colere: 'Colère' };
             return `
-                <div class="reaction-stat" style="border-left: 3px solid ${colors[type]};">
+                <div class="reaction-stat" style="border-left: 4px solid ${colors[type]};">
                     <i class="fas fa-${icon}" style="color: ${colors[type]};"></i>
                     <div class="stat-info">
                         <span class="stat-label">${labels[type]}</span>
@@ -153,7 +186,6 @@
                 </div>`;
         },
 
-        // Fonction pour regrouper par utilisateur et afficher
         renderGroupedUserList(reactions) {
             const listContainer = document.getElementById('reactions-list');
             if (!listContainer) return;
@@ -163,13 +195,12 @@
                 return;
             }
 
-            // 1. Regrouper les réactions par utilisateur (acteur_id est la nouvelle clé)
+            // Regrouper par utilisateur
             const usersData = {};
             reactions.forEach(reaction => {
                 const acteurId = reaction.acteur_id;
                 if (!usersData[acteurId]) {
                     usersData[acteurId] = {
-                        // Les informations de profil sont maintenant directes dans l'objet réaction
                         prenom: reaction.prenom_acteur, 
                         nom: reaction.nom_acteur,      
                         type: reaction.type_acteur,     
@@ -186,7 +217,7 @@
                 }
             });
 
-            // 2. Trier les utilisateurs par leur réaction la plus récente
+            // Trier par date
             const sortedUsers = Object.values(usersData).sort((a, b) => b.latestDate - a.latestDate);
             
             const reactionDetails = {
@@ -196,7 +227,7 @@
                 colere: { icon: 'angry', color: '#dc2626', label: 'Colère' }
             };
 
-            // 3. Générer le HTML pour chaque utilisateur
+            // Générer le HTML
             const html = sortedUsers.map(userData => {
                 const initials = `${userData.prenom[0]}${userData.nom[0]}`.toUpperCase();
                 
@@ -218,7 +249,7 @@
                             <div class="user-details">
                                 <h4>${userData.prenom} ${userData.nom}</h4>
                                 <p>Dernière réaction: ${this.formatDate(userData.latestDate)}</p>
-                                </div>
+                            </div>
                         </div>
                         <div class="reaction-badges-container">
                             ${badgesHtml}
@@ -229,7 +260,6 @@
             listContainer.innerHTML = html;
         },
 
-        // La logique des onglets filtre maintenant la liste principale
         initTabs() {
             const tabs = document.querySelectorAll('.tab-btn');
             tabs.forEach(tab => {
