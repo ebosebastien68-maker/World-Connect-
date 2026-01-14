@@ -457,7 +457,7 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(107, 142, 35, 0.25);
+    Bon-shadow: 0 4px 12px rgba(107, 142, 35, 0.25);
             position: relative;
             overflow: hidden;
             letter-spacing: 0.3px;
@@ -861,7 +861,7 @@
 
             <!-- Formulaire de Connexion -->
             <div id="connexion-form" class="form-content active">
-                <h2>👋 Bon retour !</h2>
+                <h2>Bon retour !</h2>
                 <p class="subtitle">Connectez-vous pour continuer votre aventure</p>
                 
                 <div class="user-guide">
@@ -941,7 +941,7 @@
 
             <!-- Formulaire d'Inscription -->
             <div id="inscription-form" class="form-content">
-                <h2>🚀 Créer un compte</h2>
+                <h2>Créer un compte</h2>
                 <p class="subtitle">Rejoignez notre communauté en quelques secondes</p>
                 
                 <div class="user-guide">
@@ -1064,7 +1064,7 @@
 
             <!-- Formulaire Mot de passe oublié -->
             <div id="reset-form" class="form-content">
-                <h2>🔐 Récupération de mot de passe</h2>
+                <h2>Récupération de mot de passe</h2>
                 <p class="subtitle">Pas de problème, nous allons vous aider</p>
                 
                 <div class="user-guide">
@@ -1163,8 +1163,7 @@
         });
 
         function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.form-content').forEach(f => f.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))Récupération  document.querySelectorAll('.form-content').forEach(f => f.classList.remove('active'));
             
             const selectedTab = document.querySelector(`[data-tab="${tab}"]`);
             const selectedForm = document.getElementById(`${tab}-form`);
