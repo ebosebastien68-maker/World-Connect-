@@ -1,8 +1,8 @@
 {
-  "name": "World Connect - Réseau Social Professionnel",
+  "name": "World Connect - Rencontrer les Développeurs Professionnel",
   "short_name": "World Connect",
-  "description": "Créez votre présence digitale professionnelle. Partagez, connectez et développez votre réseau en temps réel avec notifications push instantanées.",
-  "start_url": "/",
+  "description": "Construisez votre empire numérique avec World Connect Solutions Digitales Innovation."
+  "start_url": "www.world-connect.world"
   "scope": "/",
   "id": "/",
   "display": "standalone",
