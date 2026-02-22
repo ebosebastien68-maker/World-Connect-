@@ -1,8 +1,8 @@
 {
   "name": "World Connect - Rencontrer les Développeurs Professionnel",
   "short_name": "World Connect",
-  "description": "Construisez votre empire numérique avec World Connect Solutions Digitales Innovation."
-  "start_url": "www.world-connect.world"
+  "description": "Construisez votre empire numérique avec World Connect Solutions Digitales Innovation.",
+  "start_url": "www.world-connect.world",
   "scope": "/",
   "id": "/",
   "display": "standalone",
