@@ -1,0 +1,356 @@
+/* ═══════════════════════════════════════════════════════════════════
+   WORLD CONNECT — globals.css
+   Palette extraite du logo : Navy · Chrome · Cyber
+   Disponible sur TOUTES les pages via app/layout.tsx
+   ═══════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+/* ─── Reset ──────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ─── Variables Brand — extraites du logo ─────────────────────────
+   Ces variables sont disponibles dans TOUS les fichiers tsx/css     */
+:root {
+
+  /* Navy — fond principal du logo */
+  --navy-950: #070f2b;
+  --navy-900: #0d1f4e;   /* ★ fond page */
+  --navy-800: #132560;
+  --navy-700: #1a3070;   /* ★ fond cards */
+  --navy-600: #1e3f8f;
+  --navy-500: #2152b8;
+  --navy-400: #3a6fd8;
+  --navy-300: #6b9ee8;
+  --navy-200: #a8c4f0;
+  --navy-100: #d4e3f8;
+  --navy-50:  #eef4fd;
+
+  /* Silver — plaques chrome du logo */
+  --silver-950: #1a1c22;
+  --silver-900: #2e3040;
+  --silver-800: #4a4d60;
+  --silver-700: #6e7280;
+  --silver-600: #9094a8;
+  --silver-500: #adb2c8;
+  --silver-400: #c4c8d8;  /* ★ chrome médium */
+  --silver-300: #d4d8e4;
+  --silver-200: #e4e7ef;
+  --silver-100: #f0f2f7;
+  --silver-50:  #f8f9fc;
+
+  /* Cyber — chiffres binaires du logo */
+  --cyber-600: #2e87f0;
+  --cyber-500: #4a9eff;  /* ★ bleu électrique */
+  --cyber-400: #60b0ff;
+  --cyber-300: #93c5fd;
+  --cyber-200: #bfdbfe;
+
+  /* Globe — blanc de l'icône */
+  --globe-white:  #ffffff;
+  --globe-muted:  rgba(255,255,255,0.75);
+  --globe-subtle: rgba(255,255,255,0.40);
+  --globe-ghost:  rgba(255,255,255,0.12);
+
+  /* ─── Tokens sémantiques ─────────────────────────────────────── */
+  --background:        var(--navy-900);
+  --background-card:   var(--navy-700);
+  --background-subtle: var(--navy-800);
+  --foreground:        var(--globe-white);
+  --foreground-muted:  var(--globe-muted);
+  --foreground-subtle: var(--globe-subtle);
+
+  --border:       rgba(196,200,216,0.18);   /* silver-400 @ 18% */
+  --border-light: rgba(196,200,216,0.08);
+  --ring:         var(--cyber-500);
+
+  --accent:           var(--cyber-500);
+  --accent-hover:     var(--cyber-400);
+
+  --danger:   #ef4444;
+  --success:  #10b981;
+  --warning:  #f59e0b;
+
+  /* ─── Gradients ──────────────────────────────────────────────── */
+  --gradient-navy:
+    radial-gradient(ellipse at 50% 0%, #1a3070 0%, #0d1f4e 55%, #070f2b 100%);
+
+  --gradient-chrome:
+    linear-gradient(135deg, #d4d8e4 0%, #f0f2f7 35%, #adb2c8 60%, #e4e7ef 80%, #c4c8d8 100%);
+
+  --gradient-btn:
+    linear-gradient(135deg, var(--navy-500) 0%, var(--navy-700) 100%);
+
+  --gradient-btn-hover:
+    linear-gradient(135deg, var(--navy-400) 0%, var(--navy-500) 100%);
+
+  --gradient-card:
+    linear-gradient(160deg, rgba(26,48,112,0.7) 0%, rgba(13,31,78,0.5) 100%);
+
+  --gradient-border:
+    linear-gradient(90deg, transparent, var(--silver-400), #f0f2f7, var(--silver-400), transparent);
+
+  /* ─── Shadows ────────────────────────────────────────────────── */
+  --shadow-sm:   0 2px 8px rgba(7,15,43,0.5);
+  --shadow-md:   0 4px 24px rgba(7,15,43,0.6);
+  --shadow-lg:   0 8px 48px rgba(7,15,43,0.8);
+  --shadow-cyber: 0 0 20px rgba(74,158,255,0.35), 0 0 40px rgba(74,158,255,0.12);
+  --shadow-chrome: 0 2px 20px rgba(196,200,216,0.3), inset 0 1px 0 rgba(255,255,255,0.5);
+
+  /* ─── Radius & Spacing ───────────────────────────────────────── */
+  --radius-sm:  0.5rem;
+  --radius-md:  0.875rem;
+  --radius-lg:  1.25rem;
+  --radius-xl:  1.75rem;
+  --radius-full: 9999px;
+
+  /* ─── Typography ─────────────────────────────────────────────── */
+  --font-sans:    'Exo 2', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  /* ─── BottomNav ──────────────────────────────────────────────── */
+  --bottom-nav-h: 72px;
+
+  /* ─── Transitions ────────────────────────────────────────────── */
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base:   250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Base HTML ──────────────────────────────────────────────────── */
+html {
+  height: 100%;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100%;
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--gradient-navy);
+  background-attachment: fixed;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Couvre TOUT l'écran sans aucun gap */
+#__next,
+[data-nextjs-scroll-focus-boundary] {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Scrollbar custom brand ─────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--navy-950); }
+::-webkit-scrollbar-thumb {
+  background: var(--navy-600);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--cyber-500); }
+
+/* ─── Selection ──────────────────────────────────────────────────── */
+::selection {
+  background: rgba(74,158,255,0.3);
+  color: var(--globe-white);
+}
+
+/* ─── Focus ring ─────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--cyber-500);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Liens ──────────────────────────────────────────────────────── */
+a {
+  color: var(--cyber-400);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+a:hover { color: var(--cyber-300); }
+
+/* ─── Images ─────────────────────────────────────────────────────── */
+img, video { max-width: 100%; display: block; }
+
+/* ─── Typographie ────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: clamp(1.75rem, 5vw, 3rem);   font-weight: 900; }
+h2 { font-size: clamp(1.4rem,  4vw, 2.25rem); font-weight: 800; }
+h3 { font-size: clamp(1.1rem,  3vw, 1.5rem);  font-weight: 700; }
+
+p  { color: var(--foreground-muted); line-height: 1.7; }
+
+code, pre {
+  font-family: var(--font-mono);
+  background: var(--globe-ghost);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+code { padding: 2px 6px; font-size: 0.875em; }
+pre  { padding: 1rem; overflow-x: auto; }
+
+/* ─── Utilitaires globaux ────────────────────────────────────────── */
+
+/* Fond plein écran navy */
+.wc-page {
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--gradient-navy);
+  padding-bottom: var(--bottom-nav-h);
+}
+
+/* Card glassmorphism */
+.wc-card {
+  background: var(--gradient-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+.wc-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Ligne chrome décorative */
+.wc-chrome-line {
+  height: 2px;
+  background: var(--gradient-border);
+  border-radius: var(--radius-full);
+}
+
+/* Bouton primaire brand */
+.wc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--gradient-btn);
+  color: var(--globe-white);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm), 0 0 0 0 rgba(74,158,255,0);
+}
+.wc-btn:hover {
+  background: var(--gradient-btn-hover);
+  box-shadow: var(--shadow-md), var(--shadow-cyber);
+  transform: translateY(-1px);
+}
+.wc-btn:active { transform: translateY(0); }
+
+/* Badge cyber */
+.wc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--cyber-500);
+  color: var(--navy-950);
+  font-size: 0.7rem;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 8px rgba(74,158,255,0.6);
+  animation: wc-badge-pulse 2s ease-in-out infinite;
+}
+
+/* Texte brand */
+.wc-text-cyber   { color: var(--cyber-500); }
+.wc-text-silver  { color: var(--silver-400); }
+.wc-text-muted   { color: var(--foreground-subtle); }
+
+/* Glow effects */
+.wc-glow-cyber  { box-shadow: var(--shadow-cyber); }
+.wc-glow-chrome { box-shadow: var(--shadow-chrome); }
+
+/* ─── Animations globales ────────────────────────────────────────── */
+@keyframes wc-badge-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(74,158,255,0.6); }
+  50%       { box-shadow: 0 0 16px rgba(74,158,255,0.9), 0 0 32px rgba(74,158,255,0.3); }
+}
+
+@keyframes wc-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wc-fade-in-scale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes wc-slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wc-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes wc-cyber-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+@keyframes wc-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Classes d'animation */
+.anim-fade-in       { animation: wc-fade-in 0.35s ease-out both; }
+.anim-fade-in-scale { animation: wc-fade-in-scale 0.3s ease-out both; }
+.anim-slide-up      { animation: wc-slide-up 0.4s ease-out both; }
+
+/* Délais pour stagger */
+.anim-delay-1 { animation-delay: 100ms; }
+.anim-delay-2 { animation-delay: 200ms; }
+.anim-delay-3 { animation-delay: 300ms; }
+.anim-delay-4 { animation-delay: 400ms; }
+
+/* ─── Toast ──────────────────────────────────────────────────────── */
+[data-sonner-toaster] [data-styled="true"] {
+  background: var(--background-card) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--foreground) !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* ─── Responsive helpers ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+  :root { --bottom-nav-h: 68px; }
+  body  { font-size: 14px; }
+}
+
