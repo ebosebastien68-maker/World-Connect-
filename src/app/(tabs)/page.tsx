@@ -1,14 +1,23 @@
+// ═══════════════════════════════════════════════════════════════
+//  src/app/(tabs)/page.tsx
+//  Page d'accueil "/" — branche ArticleFeed
+//
+//  Avant : page avec squelettes statiques
+//  Maintenant : branché sur ArticleFeed (données réelles Supabase)
+// ═══════════════════════════════════════════════════════════════
+
 import type { Metadata } from "next";
+import { ArticleFeed } from "@/components/articles/ArticleFeed";
 
 export const metadata: Metadata = {
-  title: "Accueil",
+  title:       "Accueil",
   description: "Fil d'actualité World Connect",
 };
 
-/* ─── Page d'accueil — Server Component ─────────────────────────── */
 export default function HomePage() {
-  return (
-    <div className="wc-page anim-fade-in">
+  return <ArticleFeed />;
+}
+
 
       {/* ── Header fixe en haut ───────────────────────────────── */}
       <header
