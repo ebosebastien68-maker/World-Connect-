@@ -59,21 +59,36 @@ export interface ArticleReaction {
 
 // ─── Table : notifications ────────────────────────────────────────
 export interface Notification {
-  id:          string;
-  user_id:     string;
-  message:     string;
-  read_status: boolean;
-  created_at:  string;
+  notification_id: string;
+  user_id:         string;
+  texte:           string;
+  read_status:     boolean;
+  date_created:    string;
 }
 
 // ─── Table : messages ─────────────────────────────────────────────
 export interface Message {
-  id:          string;
-  sender_id:   string;
-  receiver_id: string;
-  content:     string;
-  read_status: boolean;
-  created_at:  string;
+  message_id:       string;
+  sender_id:        string;
+  receiver_id:      string;
+  texte:            string | null;
+  image_url?:       string | null;
+  read_status:      boolean;
+  delivery_status?: string;
+  read_at?:         string | null;
+  date_created:     string;
+  files?:           MessageFile[];
+}
+
+// ─── Table : message_files ────────────────────────────────────────
+export interface MessageFile {
+  id:         string;
+  message_id: string;
+  file_url:   string;
+  file_name:  string;
+  file_type:  string;
+  file_size:  number;
+  mime_type:  string;
 }
 
 // ─── Table : subscriptions (push) ─────────────────────────────────
