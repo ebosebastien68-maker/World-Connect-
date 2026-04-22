@@ -15,28 +15,27 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <ArticleFeed />;
-}
-
+  return (
+    <div>
 
       {/* ── Header fixe en haut ───────────────────────────────── */}
       <header
         style={{
-          position:       "sticky",
-          top:            0,
-          left:           0,
-          right:          0,
-          zIndex:         40,
-          padding:        "0 1rem",
-          height:         "60px",
-          display:        "flex",
-          alignItems:     "center",
-          justifyContent: "space-between",
-          background:     "rgba(13,31,78,0.85)",
-          backdropFilter: "blur(20px)",
+          position:             "sticky",
+          top:                  0,
+          left:                 0,
+          right:                0,
+          zIndex:               40,
+          padding:              "0 1rem",
+          height:               "60px",
+          display:              "flex",
+          alignItems:           "center",
+          justifyContent:       "space-between",
+          background:           "rgba(13,31,78,0.85)",
+          backdropFilter:       "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
-          borderBottom:   "1px solid var(--border)",
-          boxShadow:      "0 2px 24px rgba(7,15,43,0.6)",
+          borderBottom:         "1px solid var(--border)",
+          boxShadow:            "0 2px 24px rgba(7,15,43,0.6)",
         }}
       >
         {/* Logo + nom */}
@@ -74,10 +73,10 @@ export default function HomePage() {
 
           <span
             style={{
-              fontFamily:  "var(--font-sans)",
-              fontWeight:  800,
-              fontSize:    "1.2rem",
-              color:       "white",
+              fontFamily:    "var(--font-sans)",
+              fontWeight:    800,
+              fontSize:      "1.2rem",
+              color:         "white",
               letterSpacing: "-0.02em",
             }}
           >
@@ -85,7 +84,7 @@ export default function HomePage() {
           </span>
         </div>
 
-        {/* Ligne chrome décorative sous le nom */}
+        {/* Ligne chrome décorative sous le header */}
         <div
           aria-hidden
           style={{
@@ -116,22 +115,22 @@ export default function HomePage() {
         >
           <p
             style={{
-              fontFamily:  "var(--font-sans)",
-              fontSize:    "0.75rem",
-              fontWeight:  600,
+              fontFamily:    "var(--font-sans)",
+              fontSize:      "0.75rem",
+              fontWeight:    600,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              color:       "var(--cyber-500)",
-              marginBottom: "0.5rem",
+              color:         "var(--cyber-500)",
+              marginBottom:  "0.5rem",
             }}
           >
             Votre empire numérique
           </p>
           <h1
             style={{
-              fontSize:    "clamp(1.4rem, 5vw, 2rem)",
-              fontWeight:  900,
-              color:       "white",
+              fontSize:     "clamp(1.4rem, 5vw, 2rem)",
+              fontWeight:   900,
+              color:        "white",
               marginBottom: "0.5rem",
             }}
           >
@@ -143,87 +142,8 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Feed articles — placeholder */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {[1, 2, 3].map((i) => (
-            <article
-              key={i}
-              className={`wc-card anim-slide-up anim-delay-${i}`}
-              style={{ padding: "1.25rem" }}
-            >
-              {/* Skeleton header */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-                {/* Avatar */}
-                <div
-                  style={{
-                    width:        "44px",
-                    height:       "44px",
-                    borderRadius: "50%",
-                    background:   "var(--gradient-btn)",
-                    flexShrink:   0,
-                    border:       "2px solid var(--border)",
-                    boxShadow:    "0 0 8px rgba(74,158,255,0.3)",
-                  }}
-                />
-                <div>
-                  <div
-                    style={{
-                      width:        "120px",
-                      height:       "12px",
-                      background:   "var(--globe-ghost)",
-                      borderRadius: "var(--radius-sm)",
-                      marginBottom: "6px",
-                    }}
-                  />
-                  <div
-                    style={{
-                      width:        "80px",
-                      height:       "10px",
-                      background:   "var(--globe-ghost)",
-                      borderRadius: "var(--radius-sm)",
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Skeleton texte */}
-              {[100, 90, 70].map((w, j) => (
-                <div
-                  key={j}
-                  style={{
-                    width:        `${w}%`,
-                    height:       "11px",
-                    background:   "var(--globe-ghost)",
-                    borderRadius: "var(--radius-sm)",
-                    marginBottom: "8px",
-                  }}
-                />
-              ))}
-
-              {/* Ligne chrome séparateur */}
-              <div className="wc-chrome-line" style={{ margin: "1rem 0 0.75rem" }} />
-
-              {/* Actions */}
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                {["👍", "❤️", "😂", "😡"].map((emoji) => (
-                  <button
-                    key={emoji}
-                    className="wc-btn"
-                    style={{
-                      flex:       1,
-                      padding:    "0.5rem",
-                      fontSize:   "0.75rem",
-                      background: "var(--globe-ghost)",
-                      border:     "1px solid var(--border-light)",
-                    }}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
+        {/* ── Feed articles réel (Supabase) ─────────────────── */}
+        <ArticleFeed />
 
       </section>
     </div>
