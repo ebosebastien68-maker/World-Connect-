@@ -27,6 +27,9 @@
     "sharp": "^0.34.1",
     "plaiceholder": "^3.0.0",
 
+    "@supabase/supabase-js": "^2.49.4",
+    "@supabase/ssr": "^0.6.1",
+
     "@vidstack/react": "^1.12.10",
     "react-player": "^2.16.0",
     "hls.js": "^1.5.17",
@@ -204,4 +207,3 @@
     "*.{json,css,md,mdx}": ["prettier --write"]
   }
 }
-
