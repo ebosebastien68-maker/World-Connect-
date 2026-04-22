@@ -19,6 +19,15 @@ const config: Linter.Config[] = [
   {
     files: ["**/*.{ts,tsx}"],
 
+    // Requis pour les règles type-aware (@typescript-eslint/no-floating-promises,
+    // await-thenable, no-misused-promises) — pointe vers le tsconfig du projet.
+    languageOptions: {
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: __dirname,
+      },
+    },
+
     rules: {
 
       // ─── TypeScript ──────────────────────────────────────────
