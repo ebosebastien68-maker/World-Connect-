@@ -109,7 +109,7 @@ const nextConfig: NextConfig = {
   },
 
   // ─── Webpack ──────────────────────────────────────────────────────
-  webpack(config, { isServer }) {
+  webpack(config) {
     // Support SVG as React components
     config.module.rules.push({
       test: /\.svg$/i,
