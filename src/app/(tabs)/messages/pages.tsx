@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  Globe, List, UserPlus, Send, RefreshCw, X,
+  Globe, List, UserPlus, Send, X,
   ChevronLeft, MessageCircle, Image as ImageIcon, Mic, MicOff,
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
