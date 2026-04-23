@@ -7,7 +7,7 @@
 //  Accès réservé : role === "admin"
 //  Fonctions :
 //    - Stats globales (articles, users, réactions, messages)
-//    - Liste des derniers articles avec actions rapides
+//    - Liste des derniers articles avec actions tres rapides
 //    - Gestion des utilisateurs (voir profils)
 //    - Accès rapide vers /plus/publier
 // ═══════════════════════════════════════════════════════════════
