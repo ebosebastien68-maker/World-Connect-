@@ -54,8 +54,9 @@ function Counter({ target }: { target: number }) {
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const obs = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
+    const obs = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (!entry?.isIntersecting) return;
       obs.disconnect();
       let start = 0;
       const step = target / 80;
