@@ -2,31 +2,18 @@
 
 // ═══════════════════════════════════════════════════════════════
 //  src/app/(tabs)/plus/page.tsx
-//  Converti depuis : landing.html
-//
-//  Références HTML → Next.js :
-//    href='index.html'    → router.push("/")
-//    href='messages.html' → router.push("/messages")
-//    href='publier.html'  → router.push("/plus/publier") [admin only]
-//    Three.js             → retiré (fond via globals.css)
-//    Font Awesome         → lucide-react
-//    Orbitron font        → var(--font-sans) Exo 2 (même énergie)
-//
-//  Ce fichier est visible par TOUS les utilisateurs.
-//  L'accès à /plus/publier et /plus/admin est réservé aux admins.
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Globe, ArrowRight, MessageCircle, Smartphone, Monitor,
-  Settings, Cpu, Bot, Shield, Cloud, BarChart3, Trophy,
-  ChevronRight, Star,
+  Settings, Cpu, Bot, Shield, Cloud,
+  ChevronRight,
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { UserProfile } from "@/types/supabase";
 
-// ─── Données services (depuis landing.html) ───────────────────
 const SERVICES = [
   { icon: <Globe        size={36} />, title: "Sites Web & Design",       desc: "Sites professionnels ultra-modernes, e-commerce performants, landing pages qui convertissent." },
   { icon: <Smartphone   size={36} />, title: "Applications Mobile",       desc: "Applications iOS et Android natives, APK personnalisés, interface fluide et performances optimales." },
@@ -55,29 +42,13 @@ const STATS = [
 ];
 
 const PROBLEMS = [
-  {
-    n: "01", title: "Les réseaux sociaux ne vous appartiennent pas",
-    desc: "Aujourd'hui visible. Demain bloqué. Un signalement, un changement d'algorithme… Votre visibilité disparaît.",
-  },
-  {
-    n: "02", title: "Les impressions inutiles vous coûtent",
-    desc: "Des milliers de vues, des likes… Mais très peu de vraies conversions. Vous payez pour être vu, pas pour vendre.",
-  },
-  {
-    n: "03", title: "Vous perdez du temps sur des tâches répétitives",
-    desc: "Les mêmes questions chaque jour. Ce temps précieux devrait être automatisé, pas consommé.",
-  },
-  {
-    n: "04", title: "Vos données sont éparpillées",
-    desc: "WhatsApp, Instagram, Facebook… Impossible d'avoir une vision d'ensemble claire.",
-  },
-  {
-    n: "05", title: "Votre entreprise s'arrête quand vous vous déconnectez",
-    desc: "Pas connecté → pas de réponses → pas de ventes. Ce n'est pas une vraie entreprise.",
-  },
+  { n: "01", title: "Les réseaux sociaux ne vous appartiennent pas", desc: "Aujourd'hui visible. Demain bloqué. Un signalement, un changement d'algorithme… Votre visibilité disparaît." },
+  { n: "02", title: "Les impressions inutiles vous coûtent",         desc: "Des milliers de vues, des likes… Mais très peu de vraies conversions. Vous payez pour être vu, pas pour vendre." },
+  { n: "03", title: "Vous perdez du temps sur des tâches répétitives", desc: "Les mêmes questions chaque jour. Ce temps précieux devrait être automatisé, pas consommé." },
+  { n: "04", title: "Vos données sont éparpillées",                  desc: "WhatsApp, Instagram, Facebook… Impossible d'avoir une vision d'ensemble claire." },
+  { n: "05", title: "Votre entreprise s'arrête quand vous vous déconnectez", desc: "Pas connecté → pas de réponses → pas de ventes. Ce n'est pas une vraie entreprise." },
 ];
 
-// ─── Compteur animé ───────────────────────────────────────────
 function Counter({ target }: { target: number }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
@@ -101,13 +72,11 @@ function Counter({ target }: { target: number }) {
   return <span ref={ref}>{count}</span>;
 }
 
-// ─── Composant principal ──────────────────────────────────────
 export default function PlusPage() {
   const router   = useRouter();
   const supabase = createSupabaseBrowserClient();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
-  // Auth — vérifier si admin pour afficher le lien administration
   useEffect(() => {
     void (async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -122,7 +91,6 @@ export default function PlusPage() {
   return (
     <div className="wc-page" style={{ paddingBottom: "calc(var(--bottom-nav-h) + 2rem)" }}>
 
-      {/* ── Barre admin (visible uniquement aux admins) ── */}
       {userProfile?.role === "admin" && (
         <div className="sticky top-0 z-40 flex items-center justify-between px-4 py-2"
           style={{ background: "rgba(33,82,184,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" }}>
@@ -140,9 +108,7 @@ export default function PlusPage() {
         </div>
       )}
 
-      {/* ── HERO ─────────────────────────────────────── */}
       <section className="relative flex flex-col items-center justify-center text-center px-5 pt-16 pb-14">
-        {/* Orbes décoratifs */}
         <div aria-hidden className="absolute top-0 left-0 w-64 h-64 rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, rgba(74,158,255,0.15), transparent 70%)", filter: "blur(40px)" }} />
         <div aria-hidden className="absolute bottom-0 right-0 w-56 h-56 rounded-full pointer-events-none"
@@ -155,7 +121,7 @@ export default function PlusPage() {
 
         <h1 className="font-black mb-4 leading-none"
           style={{
-            fontSize:   "clamp(2.5rem, 10vw, 5rem)",
+            fontSize: "clamp(2.5rem, 10vw, 5rem)",
             background: "linear-gradient(135deg, var(--globe-white) 0%, var(--cyber-500) 60%, var(--cyber-300) 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor:  "transparent",
@@ -169,29 +135,24 @@ export default function PlusPage() {
         <p className="text-base font-semibold mb-3" style={{ color: "var(--silver-400)" }}>
           Sites Web • Applications Mobile • Logiciels • APK • IA
         </p>
-
         <p className="text-sm leading-relaxed max-w-lg mb-8" style={{ color: "var(--foreground-muted)" }}>
           Nous créons des solutions digitales complètes qui vous appartiennent à 100%.
           Construisez votre empire numérique avec World Connect.
         </p>
 
         <div className="flex flex-col gap-3 w-full max-w-xs">
-          <button onClick={() => router.push("/")}
-            className="wc-btn justify-center" style={{ padding: "0.875rem" }}>
+          <button onClick={() => router.push("/")} className="wc-btn justify-center" style={{ padding: "0.875rem" }}>
             Accéder à Notre Plateforme <ArrowRight size={16} />
           </button>
-          <button onClick={() => router.push("/messages")}
-            className="wc-btn justify-center"
+          <button onClick={() => router.push("/messages")} className="wc-btn justify-center"
             style={{ padding: "0.875rem", background: "transparent", border: "1.5px solid var(--cyber-500)", color: "var(--cyber-500)" }}>
             <MessageCircle size={16} /> Nous Contacter
           </button>
         </div>
       </section>
 
-      {/* ── Ligne chrome ─────────────────────────────── */}
       <div className="wc-chrome-line mx-5 mb-10" />
 
-      {/* ── STATS ────────────────────────────────────── */}
       <section className="px-5 mb-12">
         <div className="grid grid-cols-2 gap-3">
           {STATS.map(({ value, label }) => (
@@ -215,19 +176,15 @@ export default function PlusPage() {
         </div>
       </section>
 
-      {/* ── SERVICES ─────────────────────────────────── */}
       <section className="px-5 mb-12">
         <div className="text-center mb-6">
           <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3 inline-block"
             style={{ background: "rgba(74,158,255,0.1)", border: "1px solid rgba(74,158,255,0.2)", color: "var(--cyber-500)" }}>
             Ce Que Nous Faisons
           </span>
-          <h2 className="font-black text-2xl" style={{ color: "white", fontFamily: "var(--font-sans)" }}>
-            Services Complets
-          </h2>
+          <h2 className="font-black text-2xl" style={{ color: "white", fontFamily: "var(--font-sans)" }}>Services Complets</h2>
           <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>De la conception au déploiement</p>
         </div>
-
         <div className="flex flex-col gap-3">
           {SERVICES.map(({ icon, title, desc }) => (
             <div key={title} className="wc-card flex items-start gap-4 p-4 anim-fade-in group">
@@ -245,7 +202,6 @@ export default function PlusPage() {
         </div>
       </section>
 
-      {/* ── PROBLÈMES ────────────────────────────────── */}
       <section className="px-5 mb-12">
         <div className="text-center mb-6">
           <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3 inline-block"
@@ -256,14 +212,12 @@ export default function PlusPage() {
             Les Vraies Raisons de Votre Échec
           </h2>
         </div>
-
         <div className="flex flex-col gap-3">
           {PROBLEMS.map(({ n, title, desc }) => (
             <div key={n} className="rounded-2xl p-5 anim-fade-in transition-all hover:translate-x-1"
               style={{
-                background:   "rgba(13,31,78,0.5)",
-                borderLeft:   "4px solid var(--cyber-500)",
-                border:       "1px solid var(--border)",
+                background: "rgba(13,31,78,0.5)",
+                border: "1px solid var(--border)",
                 borderLeftWidth: "4px",
                 borderLeftColor: "var(--cyber-500)",
               }}>
@@ -284,7 +238,6 @@ export default function PlusPage() {
         </div>
       </section>
 
-      {/* ── SOLUTIONS ────────────────────────────────── */}
       <section className="px-5 mb-12">
         <div className="text-center mb-6">
           <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3 inline-block"
@@ -295,7 +248,6 @@ export default function PlusPage() {
             Une Plateforme Qui Vous Appartient
           </h2>
         </div>
-
         <div className="grid grid-cols-2 gap-3">
           {SOLUTIONS.map(({ icon, title, desc }) => (
             <div key={title} className="wc-card p-4 text-center anim-fade-in">
@@ -307,7 +259,6 @@ export default function PlusPage() {
         </div>
       </section>
 
-      {/* ── CTA final ────────────────────────────────── */}
       <section className="px-5">
         <div className="rounded-3xl p-8 text-center"
           style={{
@@ -318,16 +269,12 @@ export default function PlusPage() {
           <h2 className="font-black text-2xl mb-3" style={{ color: "white", fontFamily: "var(--font-sans)" }}>
             Prêt à Transformer Votre Vision ?
           </h2>
-          <p className="text-sm mb-6" style={{ color: "var(--foreground-muted)" }}>
-            100% personnalisé, 100% à vous.
-          </p>
+          <p className="text-sm mb-6" style={{ color: "var(--foreground-muted)" }}>100% personnalisé, 100% à vous.</p>
           <div className="flex flex-col gap-3">
-            <button onClick={() => router.push("/")}
-              className="wc-btn justify-center" style={{ padding: "0.875rem" }}>
+            <button onClick={() => router.push("/")} className="wc-btn justify-center" style={{ padding: "0.875rem" }}>
               Accéder à la Plateforme <ArrowRight size={16} />
             </button>
-            <button onClick={() => router.push("/messages")}
-              className="wc-btn justify-center"
+            <button onClick={() => router.push("/messages")} className="wc-btn justify-center"
               style={{ padding: "0.875rem", background: "transparent", border: "1.5px solid var(--silver-400)", color: "var(--silver-400)" }}>
               Analyse Gratuite — Sans Engagement
             </button>
