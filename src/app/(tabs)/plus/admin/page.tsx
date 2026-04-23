@@ -38,7 +38,8 @@ interface ArticleRow {
   reaction_like:   number;
   reaction_love:   number;
   comment_count:   number;
-  users_profile: { prenom: string; nom: string } | null;
+  // ✅ CORRECTION 1 : Supabase retourne un tableau via la jointure, pas un objet simple
+  users_profile: { prenom: string; nom: string }[] | null;
 }
 
 interface UserRow {
@@ -98,8 +99,9 @@ export default function AdminPage() {
       messages:      messagesCount ?? 0,
       notifications: notifsCount  ?? 0,
     });
-    setArticles((artData as ArticleRow[]) ?? []);
-    setUsers((usrData as UserRow[]) ?? []);
+    // ✅ CORRECTION 2 : cast via unknown pour éviter l'erreur TypeScript
+    setArticles((artData as unknown as ArticleRow[]) ?? []);
+    setUsers((usrData as unknown as UserRow[]) ?? []);
   }, [supabase]);
 
   useEffect(() => { if (!loading) void loadData(); }, [loading, loadData]);
@@ -178,39 +180,43 @@ export default function AdminPage() {
         {/* Liste articles */}
         {tab === "articles" && (
           <div className="flex flex-col gap-3">
-            {articles.map((a) => (
-              <div key={a.article_id} className="wc-card p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm flex-shrink-0"
-                    style={{ background: "var(--gradient-btn)" }}>
-                    {getInitials(a.users_profile?.prenom ?? "U", a.users_profile?.nom ?? "")}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold mb-0.5" style={{ color: "var(--foreground-muted)" }}>
-                      {a.users_profile?.prenom} {a.users_profile?.nom} · {formatDate(a.date_created)}
-                    </p>
-                    <p className="text-sm line-clamp-2" style={{ color: "var(--foreground)", whiteSpace: "pre-wrap" }}>
-                      {a.texte?.substring(0, 120)}{(a.texte?.length ?? 0) > 120 ? "…" : ""}
-                    </p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className="text-xs" style={{ color: "var(--foreground-subtle)" }}>❤️ {a.reaction_love ?? 0}</span>
-                      <span className="text-xs" style={{ color: "var(--foreground-subtle)" }}>👍 {a.reaction_like ?? 0}</span>
-                      <span className="text-xs" style={{ color: "var(--foreground-subtle)" }}>💬 {a.comment_count ?? 0}</span>
+            {articles.map((a) => {
+              // ✅ CORRECTION 3 : users_profile est un tableau, on prend le premier élément
+              const profile = Array.isArray(a.users_profile) ? a.users_profile[0] : a.users_profile;
+              return (
+                <div key={a.article_id} className="wc-card p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm flex-shrink-0"
+                      style={{ background: "var(--gradient-btn)" }}>
+                      {getInitials(profile?.prenom ?? "U", profile?.nom ?? "")}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold mb-0.5" style={{ color: "var(--foreground-muted)" }}>
+                        {profile?.prenom} {profile?.nom} · {formatDate(a.date_created)}
+                      </p>
+                      <p className="text-sm line-clamp-2" style={{ color: "var(--foreground)", whiteSpace: "pre-wrap" }}>
+                        {a.texte?.substring(0, 120)}{(a.texte?.length ?? 0) > 120 ? "…" : ""}
+                      </p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-xs" style={{ color: "var(--foreground-subtle)" }}>❤️ {a.reaction_love ?? 0}</span>
+                        <span className="text-xs" style={{ color: "var(--foreground-subtle)" }}>👍 {a.reaction_like ?? 0}</span>
+                        <span className="text-xs" style={{ color: "var(--foreground-subtle)" }}>💬 {a.comment_count ?? 0}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1 flex-shrink-0">
+                      <button onClick={() => router.push(`/plus/publier?edit=${a.article_id}`)}
+                        className="p-2 rounded-lg transition-all hover:scale-110" style={{ background: "rgba(74,158,255,0.1)", color: "var(--cyber-400)" }}>
+                        <Pencil size={14} />
+                      </button>
+                      <button onClick={() => void handleDelete(a.article_id)} disabled={deleting === a.article_id}
+                        className="p-2 rounded-lg transition-all hover:scale-110" style={{ background: "rgba(239,68,68,0.1)", color: "var(--danger)" }}>
+                        {deleting === a.article_id ? <span className="w-3 h-3 rounded-full border border-red-400 border-t-transparent animate-spin block" /> : <Trash2 size={14} />}
+                      </button>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1 flex-shrink-0">
-                    <button onClick={() => router.push(`/plus/publier?edit=${a.article_id}`)}
-                      className="p-2 rounded-lg transition-all hover:scale-110" style={{ background: "rgba(74,158,255,0.1)", color: "var(--cyber-400)" }}>
-                      <Pencil size={14} />
-                    </button>
-                    <button onClick={() => void handleDelete(a.article_id)} disabled={deleting === a.article_id}
-                      className="p-2 rounded-lg transition-all hover:scale-110" style={{ background: "rgba(239,68,68,0.1)", color: "var(--danger)" }}>
-                      {deleting === a.article_id ? <span className="w-3 h-3 rounded-full border border-red-400 border-t-transparent animate-spin block" /> : <Trash2 size={14} />}
-                    </button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
