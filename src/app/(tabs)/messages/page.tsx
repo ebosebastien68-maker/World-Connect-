@@ -1,7 +1,7 @@
 "use client";
 
 // ═══════════════════════════════════════════════════════════════
-//  messages/page.tsx — converti depuis messages.html
+//  messages/page.tsx — convertis depuis messages.html
 //  Utilise globals.css + tailwind.config.ts
 //  Pas de Three.js — fond géré par globals.css
 // ═══════════════════════════════════════════════════════════════
