@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from "react";
-import { Bell, BellOff, Check, CheckCheck, Trash2, Heart, MessageCircle, Reply, Newspaper, Mail } from "lucide-react";
+import { Bell, BellOff, CheckCheck, Trash2, Heart, MessageCircle, Reply, Newspaper, Mail } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { markNotificationRead, markAllNotificationsRead, deleteNotification } from "@/lib/supabase/mutations";
 import { cn } from "@/lib/utils";
@@ -30,19 +30,19 @@ function timeAgo(dateStr: string): string {
   const m = Math.floor(s / 60);
   const h = Math.floor(m / 60);
   const d = Math.floor(h / 24);
-  if (d > 0)  return `Il y a ${d} jour${d > 1 ? "s" : ""}`;
-  if (h > 0)  return `Il y a ${h}h`;
-  if (m > 0)  return `Il y a ${m} min`;
+  if (d > 0) return `Il y a ${d} jour${d > 1 ? "s" : ""}`;
+  if (h > 0) return `Il y a ${h}h`;
+  if (m > 0) return `Il y a ${m} min`;
   return "À l'instant";
 }
 
 function getIcon(text: string) {
   const t = text.toLowerCase();
-  if (t.includes("réaction"))   return { Icon: Heart,          color: "#ec4899" };
-  if (t.includes("commentaire")) return { Icon: MessageCircle, color: "var(--success)" };
-  if (t.includes("réponse"))    return { Icon: Reply,          color: "var(--warning)" };
-  if (t.includes("article"))    return { Icon: Newspaper,      color: "var(--cyber-400)" };
-  if (t.includes("message"))    return { Icon: Mail,           color: "var(--cyber-500)" };
+  if (t.includes("réaction"))    return { Icon: Heart,          color: "#ec4899" };
+  if (t.includes("commentaire")) return { Icon: MessageCircle,  color: "var(--success)" };
+  if (t.includes("réponse"))     return { Icon: Reply,          color: "var(--warning)" };
+  if (t.includes("article"))     return { Icon: Newspaper,      color: "var(--cyber-400)" };
+  if (t.includes("message"))     return { Icon: Mail,           color: "var(--cyber-500)" };
   return { Icon: Bell, color: "var(--silver-400)" };
 }
 
@@ -187,7 +187,7 @@ export default function NotificationsPage() {
           style={{ background: "var(--globe-ghost)", border: "1px solid var(--border)" }}
         >
           <span className="text-sm font-semibold" style={{ color: "var(--foreground-muted)" }}>
-            {filter === "all" ? "Toutes les notifications"
+            {filter === "all"    ? "Toutes les notifications"
               : filter === "unread" ? "Non lues"
               : "Lues"}
           </span>
@@ -225,9 +225,9 @@ export default function NotificationsPage() {
                     !notif.read_status && "anim-fade-in"
                   )}
                   style={!notif.read_status ? {
-                    borderLeftWidth:  "3px",
-                    borderLeftColor:  "var(--cyber-500)",
-                    background:       "rgba(26,48,112,0.6)",
+                    borderLeftWidth: "3px",
+                    borderLeftColor: "var(--cyber-500)",
+                    background:      "rgba(26,48,112,0.6)",
                   } : {}}
                 >
                   {/* Icône */}
@@ -240,8 +240,10 @@ export default function NotificationsPage() {
 
                   {/* Contenu */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm leading-relaxed mb-2"
-                      style={{ color: "var(--foreground)", whiteSpace: "pre-wrap" }}>
+                    <p
+                      className="text-sm leading-relaxed mb-2"
+                      style={{ color: "var(--foreground)", whiteSpace: "pre-wrap" }}
+                    >
                       {notif.texte}
                     </p>
                     <div className="flex items-center gap-3">
@@ -252,10 +254,10 @@ export default function NotificationsPage() {
                         <span
                           className="text-xs font-bold uppercase px-2 py-0.5 rounded-full"
                           style={{
-                            background:   "var(--cyber-500)",
-                            color:        "var(--navy-950)",
-                            letterSpacing:"0.05em",
-                            fontSize:     "0.6rem",
+                            background:    "var(--cyber-500)",
+                            color:         "var(--navy-950)",
+                            letterSpacing: "0.05em",
+                            fontSize:      "0.6rem",
                           }}
                         >
                           Nouveau
@@ -280,5 +282,4 @@ export default function NotificationsPage() {
       </div>
     </div>
   );
-        }
-        
+}
