@@ -9,7 +9,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Globe, List, UserPlus, Send, X,
-  ChevronLeft, MessageCircle, Mic, MicOff,
+  ChevronLeft, MessageCircle, MicOff,
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { sendTextMessage, markMessagesRead } from "@/lib/supabase/mutations";
