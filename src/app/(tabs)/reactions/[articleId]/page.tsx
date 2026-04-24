@@ -2,14 +2,6 @@
 
 // ═══════════════════════════════════════════════════════════════
 //  src/app/(tabs)/reactions/[articleId]/page.tsx
-//  Converti depuis : usereact.html + usereact.js
-//
-//  Références HTML → Next.js :
-//    supabaseClient.js    → createSupabaseBrowserClient()
-//    url ?article_id=xxx  → params.articleId (Next.js dynamic route)
-//    window.history.back()→ router.back()
-//    Font Awesome         → lucide-react
-//    style.css (kaki)     → globals.css (navy/silver/cyber)
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from "react";
@@ -23,26 +15,27 @@ interface ReactionRow {
   reaction_id:   string;
   user_id:       string;
   reaction_type: ReactionType;
-  users_profile: { prenom: string; nom: string; } | null;
+  // ✅ Supabase retourne un tableau via la jointure
+  users_profile: { prenom: string; nom: string; }[] | null;
 }
 
 interface ArticleInfo {
   texte: string;
-  users_profile: { prenom: string; nom: string; } | null;
+  // ✅ Supabase retourne un tableau via la jointure
+  users_profile: { prenom: string; nom: string; }[] | null;
   date_created: string;
 }
 
 const REACTION_CONFIG: Record<ReactionType, { label: string; icon: React.ReactNode; color: string }> = {
-  like:   { label: "J'aime",    icon: <ThumbsUp size={22} />, color: "#4a9eff" },
-  love:   { label: "Adore",    icon: <Heart    size={22} />, color: "#ef4444" },
-  rire:   { label: "Rire",     icon: <Laugh   size={22} />, color: "#f59e0b" },
-  colere: { label: "Colère",   icon: <Angry   size={22} />, color: "#f97316" },
+  like:   { label: "J'aime",  icon: <ThumbsUp size={22} />, color: "#4a9eff" },
+  love:   { label: "Adore",   icon: <Heart    size={22} />, color: "#ef4444" },
+  rire:   { label: "Rire",    icon: <Laugh    size={22} />, color: "#f59e0b" },
+  colere: { label: "Colère",  icon: <Angry    size={22} />, color: "#f97316" },
 };
 
 export default function ReactionsPage() {
-  const router   = useRouter();
-  const params   = useParams();
-  // articleId vient de [articleId] dans le dossier (remplace ?article_id= dans l'URL)
+  const router    = useRouter();
+  const params    = useParams();
   const articleId = params.articleId as string;
   const supabase  = createSupabaseBrowserClient();
 
@@ -55,22 +48,23 @@ export default function ReactionsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    // Charger l'article (remplace la logique de loadArticleInfo dans usereact.js)
+
     const { data: art } = await supabase
       .from("articles")
       .select("texte, date_created, users_profile!articles_user_id_fkey(prenom, nom)")
       .eq("article_id", articleId)
       .single();
-    if (art) setArticle(art as ArticleInfo);
+    // ✅ Cast via unknown pour éviter l'erreur TypeScript
+    if (art) setArticle(art as unknown as ArticleInfo);
 
-    // Charger les réactions (remplace loadReactions() dans usereact.js)
     const { data } = await supabase
       .from("article_reactions")
       .select("reaction_id, user_id, reaction_type, users_profile!article_reactions_user_id_fkey(prenom, nom)")
       .eq("article_id", articleId)
       .order("reaction_id", { ascending: false })
       .range(0, page * PAGE_SIZE - 1);
-    setReactions((data as ReactionRow[]) ?? []);
+    // ✅ Cast via unknown pour éviter l'erreur TypeScript
+    setReactions((data as unknown as ReactionRow[]) ?? []);
     setLoading(false);
   }, [articleId, page, supabase]);
 
@@ -100,27 +94,31 @@ export default function ReactionsPage() {
       <div style={{ maxWidth: "680px", margin: "0 auto", padding: "1.25rem 1rem" }}>
 
         {/* Article résumé */}
-        {article && (
-          <div className="wc-card p-4 mb-4 anim-fade-in">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0"
-                style={{ background: "var(--gradient-btn)" }}>
-                {getInitials(article.users_profile?.prenom ?? "U", article.users_profile?.nom ?? "")}
+        {article && (() => {
+          // ✅ users_profile est un tableau, on prend le premier élément
+          const profile = Array.isArray(article.users_profile) ? article.users_profile[0] : article.users_profile;
+          return (
+            <div className="wc-card p-4 mb-4 anim-fade-in">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0"
+                  style={{ background: "var(--gradient-btn)" }}>
+                  {getInitials(profile?.prenom ?? "U", profile?.nom ?? "")}
+                </div>
+                <div>
+                  <p className="font-bold text-sm" style={{ color: "white" }}>
+                    {profile?.prenom} {profile?.nom}
+                  </p>
+                  <p className="text-xs" style={{ color: "var(--foreground-subtle)" }}>
+                    {new Date(article.date_created).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-sm" style={{ color: "white" }}>
-                  {article.users_profile?.prenom} {article.users_profile?.nom}
-                </p>
-                <p className="text-xs" style={{ color: "var(--foreground-subtle)" }}>
-                  {new Date(article.date_created).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                </p>
-              </div>
+              <p className="text-sm line-clamp-3 pl-14" style={{ color: "var(--foreground-muted)", whiteSpace: "pre-wrap" }}>
+                {article.texte?.substring(0, 200)}{(article.texte?.length ?? 0) > 200 ? "…" : ""}
+              </p>
             </div>
-            <p className="text-sm line-clamp-3 pl-14" style={{ color: "var(--foreground-muted)", whiteSpace: "pre-wrap" }}>
-              {article.texte?.substring(0, 200)}{(article.texte?.length ?? 0) > 200 ? "…" : ""}
-            </p>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Stats réactions */}
         <div className="grid grid-cols-4 gap-2 mb-4">
@@ -163,12 +161,14 @@ export default function ReactionsPage() {
           <div className="flex flex-col gap-2">
             {filtered.map((r) => {
               const cfg = REACTION_CONFIG[r.reaction_type];
-              const name = `${r.users_profile?.prenom ?? "?"} ${r.users_profile?.nom ?? ""}`;
+              // ✅ users_profile est un tableau, on prend le premier élément
+              const profile = Array.isArray(r.users_profile) ? r.users_profile[0] : r.users_profile;
+              const name = `${profile?.prenom ?? "?"} ${profile?.nom ?? ""}`;
               return (
                 <div key={r.reaction_id} className="wc-card flex items-center gap-3 p-4 anim-fade-in">
                   <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0"
                     style={{ background: "var(--gradient-btn)" }}>
-                    {getInitials(r.users_profile?.prenom ?? "U", r.users_profile?.nom ?? "")}
+                    {getInitials(profile?.prenom ?? "U", profile?.nom ?? "")}
                   </div>
                   <p className="flex-1 font-semibold text-sm" style={{ color: "white" }}>{name}</p>
                   <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
@@ -191,5 +191,4 @@ export default function ReactionsPage() {
       </div>
     </div>
   );
-              }
-          
+}
