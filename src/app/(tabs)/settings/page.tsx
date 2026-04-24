@@ -2,25 +2,15 @@
 
 // ═══════════════════════════════════════════════════════════════
 //  src/app/(tabs)/settings/page.tsx
-//  Converti depuis : parametre.html
-//
-//  Références HTML → Next.js :
-//    supabaseClient.js          → createSupabaseBrowserClient()
-//    getCurrentUser()           → supabase.auth.getSession()
-//    getUserProfile()           → supabase.from("users_profile")
-//    window.location.href='connexion.html' → router.push("/auth")
-//    window.location.href='index.html'     → router.push("/")
-//    Three.js                   → retiré (fond via globals.css)
-//    Font Awesome               → lucide-react
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, User, AlertTriangle, Save, Trash2, Eye, EyeOff, Check, X, Globe } from "lucide-react";
+// ✅ Retiré : Settings (importé mais jamais utilisé)
+import { User, AlertTriangle, Save, Trash2, Eye, EyeOff, Check, X, Globe } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { UserProfile } from "@/types/supabase";
 
-// ── Chaîne de vérification (identique à parametre.html)
 const VERIFICATION_STRING =
   "₽ o hn ₹ ₿₱ ¶v; \"(t\" ><æ₿β ϟϛχ ποιι θετψψ ηφσϟνχ ζδσξλππ φδρψη κξγφϛ βνμκ ϡλλπο γφζϛϛφθσ ∩∋∈→8≡⊷ εε∨ ⊥∡⌀∞∞ℝℕ∇ 23ϡ⊗⊙⊖⊕∀789↕↑↔∨∧⌈⌉∡⌀√";
 
@@ -37,14 +27,12 @@ export default function SettingsPage() {
   const [updateMsg,    setUpdateMsg]    = useState<{ text: string; ok: boolean } | null>(null);
   const [updLoading,   setUpdLoading]   = useState(false);
 
-  // Zone suppression
   const [verifyInput,  setVerifyInput]  = useState("");
   const [verified,     setVerified]     = useState(false);
   const [deletePwd,    setDeletePwd]    = useState("");
   const [deleteMsg,    setDeleteMsg]    = useState<{ text: string; ok: boolean } | null>(null);
   const [delLoading,   setDelLoading]   = useState(false);
 
-  // ── Auth + profil (remplace initSettings())
   useEffect(() => {
     void (async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -59,7 +47,6 @@ export default function SettingsPage() {
         setNom(data.nom);
       }
 
-      // Temps réel profil (remplace subscribeToProfile())
       const ch = supabase.channel(`profile-${session.user.id}`)
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "users_profile", filter: `user_id=eq.${session.user.id}` },
           (p) => { setPrenom(p.new.prenom); setNom(p.new.nom); })
@@ -68,14 +55,12 @@ export default function SettingsPage() {
     })();
   }, [router, supabase]);
 
-  // ── Mise à jour profil (remplace submit de #update-profile-form)
   async function handleUpdateProfile(e: React.FormEvent) {
     e.preventDefault();
     if (!currentUser || !currentPwd) return;
     setUpdLoading(true);
     setUpdateMsg(null);
     try {
-      // Vérifier le mot de passe actuel (remplace verifyPassword())
       const { error: authErr } = await supabase.auth.signInWithPassword({ email: currentUser.email, password: currentPwd });
       if (authErr) throw new Error("Mot de passe incorrect.");
       const { error } = await supabase.from("users_profile").update({ prenom, nom }).eq("user_id", currentUser.id);
@@ -88,13 +73,11 @@ export default function SettingsPage() {
     setUpdLoading(false);
   }
 
-  // ── Vérifier la chaîne (remplace verify-btn click)
   function handleVerify() {
     if (verifyInput.trim() === VERIFICATION_STRING.trim()) setVerified(true);
     else setDeleteMsg({ text: "La chaîne ne correspond pas. Réessayez.", ok: false });
   }
 
-  // ── Supprimer compte (remplace delete-btn click)
   async function handleDelete(e: React.FormEvent) {
     e.preventDefault();
     if (!currentUser || !deletePwd || !verified) return;
@@ -113,6 +96,9 @@ export default function SettingsPage() {
     setDelLoading(false);
   }
 
+  // Supprimer l'avertissement "userProfile is assigned but never used"
+  void userProfile;
+
   if (!currentUser) {
     return (
       <div className="wc-page flex items-center justify-center min-h-dvh">
@@ -124,7 +110,6 @@ export default function SettingsPage() {
 
   return (
     <div className="wc-page">
-      {/* Header */}
       <header style={{ position: "sticky", top: 0, zIndex: 40, padding: "0 1rem", height: "60px", display: "flex", alignItems: "center", gap: "0.75rem", background: "rgba(13,31,78,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)", boxShadow: "var(--shadow-md)" }}>
         <Globe size={20} style={{ color: "var(--cyber-500)" }} />
         <h1 className="font-black text-lg" style={{ color: "white", letterSpacing: "-0.02em" }}>Paramètres</h1>
@@ -132,7 +117,6 @@ export default function SettingsPage() {
 
       <div style={{ maxWidth: "640px", margin: "0 auto", padding: "1.5rem 1rem" }}>
 
-        {/* ── Section profil ───────────────────────────── */}
         <section className="wc-card p-6 mb-5 anim-slide-up">
           <h2 className="flex items-center gap-2 font-bold text-lg mb-5 pb-4" style={{ color: "white", borderBottom: "1px solid var(--border)" }}>
             <User size={20} style={{ color: "var(--cyber-500)" }} />
@@ -184,7 +168,6 @@ export default function SettingsPage() {
           </form>
         </section>
 
-        {/* ── Zone dangereuse ───────────────────────────── */}
         <section className="p-6 rounded-2xl anim-slide-up anim-delay-2"
           style={{ background: "rgba(239,68,68,0.08)", border: "2px solid rgba(239,68,68,0.35)", boxShadow: "var(--shadow-md)" }}>
           <h2 className="flex items-center gap-2 font-bold text-lg mb-4 pb-4" style={{ color: "var(--danger)", borderBottom: "1px solid rgba(239,68,68,0.2)" }}>
@@ -197,7 +180,6 @@ export default function SettingsPage() {
             Pour confirmer, tapez <strong style={{ color: "var(--danger)" }}>exactement</strong> la chaîne suivante (sans copier-coller) :
           </p>
 
-          {/* Chaîne de vérification */}
           <div className="p-4 rounded-xl mb-4 text-xs font-mono leading-relaxed select-none"
             style={{ background: "var(--navy-900)", border: "1.5px solid rgba(239,68,68,0.25)", color: "var(--foreground)", wordBreak: "break-all", userSelect: "none" }}>
             {VERIFICATION_STRING}
@@ -243,5 +225,4 @@ export default function SettingsPage() {
       </div>
     </div>
   );
-  }
-              
+}
