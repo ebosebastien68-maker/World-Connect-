@@ -20,11 +20,19 @@ import type { Article, UserProfile, ReactionType } from "@/types/supabase";
 const VAPID_PUBLIC_KEY =
   "BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA";
 
-function vapidToUint8(base64: string): Uint8Array {
+// ✅ FIX : on construit le tableau avec `new Uint8Array(n)` dont le buffer
+//    est garanti `ArrayBuffer` (et non `ArrayBufferLike` / `SharedArrayBuffer`).
+//    `Uint8Array.from()` pouvait retourner un `Uint8Array<ArrayBufferLike>`,
+//    ce qui bloquait le build TypeScript strict.
+function vapidToUint8(base64: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
-  const b64 = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const raw = atob(b64);
-  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+  const b64     = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw     = atob(b64);
+  const arr     = new Uint8Array(raw.length);          // buffer = ArrayBuffer ✅
+  for (let i = 0; i < raw.length; i++) {
+    arr[i] = raw.charCodeAt(i);
+  }
+  return arr;
 }
 
 function SkeletonCard() {
