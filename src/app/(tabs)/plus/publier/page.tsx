@@ -4,18 +4,12 @@
 //  src/app/(tabs)/plus/publier/page.tsx
 //  Converti depuis : publier.html
 //
-//  Références HTML → Next.js :
-//    supabaseClient.js     → createSupabaseBrowserClient()
-//    window.location.href='index.html'    → router.push("/")
-//    window.location.href='connexion.html'→ router.push("/auth")
-//    Supabase Storage      → même API via client
-//    Font Awesome          → lucide-react
-//
-//  Accès réservé : role === "admin"
-//  Redirige vers "/" si non connecté ou non admin
+//  ✅ FIX : useSearchParams() doit être dans un composant enfant
+//     enveloppé par <Suspense>, sinon Next.js 15 bloque le build
+//     lors du pré-rendu statique de la page.
 // ═══════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -31,20 +25,24 @@ interface FormState {
   whatsapp_url: string;
 }
 
-export default function PublierPage() {
+// ─────────────────────────────────────────────────────────────────
+//  Composant interne — utilise useSearchParams() librement
+//  car il est garanti d'être sous <Suspense>
+// ─────────────────────────────────────────────────────────────────
+function PublierContent() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const editId       = searchParams.get("edit"); // ?edit=articleId depuis ArticleCard
+  const editId       = searchParams.get("edit");
   const supabase     = createSupabaseBrowserClient();
 
-  const [userId,     setUserId]     = useState<string | null>(null);
-  const [loading,    setLoading]    = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [form,       setForm]       = useState<FormState>({ texte: "", texte_url: "", vente_url: "", whatsapp_url: "" });
-  const [images,     setImages]     = useState<File[]>([]);
+  const [userId,        setUserId]        = useState<string | null>(null);
+  const [loading,       setLoading]       = useState(true);
+  const [submitting,    setSubmitting]    = useState(false);
+  const [form,          setForm]          = useState<FormState>({ texte: "", texte_url: "", vente_url: "", whatsapp_url: "" });
+  const [images,        setImages]        = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [video,      setVideo]      = useState<File | null>(null);
-  const [videoPreview, setVideoPreview]  = useState<string>("");
+  const [video,         setVideo]         = useState<File | null>(null);
+  const [videoPreview,  setVideoPreview]  = useState<string>("");
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,7 +116,6 @@ export default function PublierPage() {
       let articleId = editId;
 
       if (editId) {
-        // Mode édition — mise à jour texte et liens
         const { error } = await supabase
           .from("articles")
           .update({ texte: form.texte, texte_url: form.texte_url || null, vente_url: form.vente_url || null, whatsapp_url: form.whatsapp_url || null })
@@ -126,7 +123,6 @@ export default function PublierPage() {
         if (error) throw error;
         toast.success("Article mis à jour !");
       } else {
-        // Nouvel article
         const { data, error } = await supabase
           .from("articles")
           .insert({ user_id: userId, texte: form.texte, texte_url: form.texte_url || null, vente_url: form.vente_url || null, whatsapp_url: form.whatsapp_url || null })
@@ -134,13 +130,11 @@ export default function PublierPage() {
         if (error) throw error;
         articleId = data.article_id as string;
 
-        // Upload images
         for (const img of images) {
           const url = await uploadFile(img, "articles-images", "images");
           await supabase.from("article_images").insert({ article_id: articleId, image_url: url });
         }
 
-        // Upload vidéo
         if (video) {
           const url = await uploadFile(video, "articles-videos", "videos");
           await supabase.from("article_videos").insert({ article_id: articleId, video_url: url });
@@ -149,7 +143,6 @@ export default function PublierPage() {
         toast.success("Article publié avec succès !");
       }
 
-      // Retour au feed
       setTimeout(() => router.push("/"), 800);
 
     } catch (err) {
@@ -181,7 +174,7 @@ export default function PublierPage() {
       </header>
 
       <div style={{ maxWidth: "640px", margin: "0 auto", padding: "1.5rem 1rem" }}>
-        <form onSubmit={void handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={(e) => { void handleSubmit(e); }} className="flex flex-col gap-4">
 
           {/* Texte */}
           <div className="wc-card p-4">
@@ -204,9 +197,9 @@ export default function PublierPage() {
           <div className="wc-card p-4 flex flex-col gap-3">
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>Liens optionnels</h3>
             {[
-              { key: "texte_url" as const,    icon: <Link2 size={14} />,         label: "Lien externe",    ph: "https://..." },
-              { key: "vente_url" as const,     icon: <ShoppingCart size={14} />, label: "Lien d'achat",   ph: "https://..." },
-              { key: "whatsapp_url" as const,  icon: <Globe size={14} />,        label: "Lien WhatsApp",  ph: "https://wa.me/..." },
+              { key: "texte_url" as const,    icon: <Link2 size={14} />,         label: "Lien externe",   ph: "https://..." },
+              { key: "vente_url" as const,     icon: <ShoppingCart size={14} />, label: "Lien d'achat",  ph: "https://..." },
+              { key: "whatsapp_url" as const,  icon: <Globe size={14} />,        label: "Lien WhatsApp", ph: "https://wa.me/..." },
             ].map(({ key, icon, label, ph }) => (
               <div key={key}>
                 <label className="flex items-center gap-1 text-xs font-semibold mb-1.5" style={{ color: "var(--foreground-muted)" }}>
@@ -284,7 +277,7 @@ export default function PublierPage() {
             ) : editId ? (
               <><Pencil size={16} /> Mettre à jour</>
             ) : (
-              <><Send size={16} /> Publier l'article</>
+              <><Send size={16} /> Publier l&apos;article</>
             )}
           </button>
         </form>
@@ -292,3 +285,22 @@ export default function PublierPage() {
     </div>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────
+//  ✅ Export par défaut — enveloppe dans <Suspense>
+//     obligatoire pour tout composant utilisant useSearchParams()
+//     en Next.js 13+ avec l'App Router
+// ─────────────────────────────────────────────────────────────────
+export default function PublierPage() {
+  return (
+    <Suspense fallback={
+      <div className="wc-page flex items-center justify-center min-h-dvh">
+        <div className="w-10 h-10 rounded-full border-2 animate-spin"
+          style={{ borderColor: "var(--cyber-500)", borderTopColor: "transparent" }} />
+      </div>
+    }>
+      <PublierContent />
+    </Suspense>
+  );
+}
+
