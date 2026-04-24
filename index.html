@@ -15,6 +15,10 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="World Connect - Créez votre présence digitale professionnelle. Partagez, connectez et développez votre réseau.">
     <meta name="keywords" content="réseau social, professionnel, networking, connexion">
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1993784510652053"
+     crossorigin="anonymous"></script>
     
     <!-- External Resources -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1290,7 +1294,7 @@
             
             const reactionLike = article.reaction_like || 0;
             const reactionLove = article.reaction_love || 0;
-            const reactionRire = article.reaction_rire || 0; // ✅ CORRIGÉ
+            const reactionRire = article.reaction_rire || 0;
             const reactionColere = article.reaction_colere || 0;
 
             const formattedDate = new Date(article.date_created).toLocaleDateString('fr-FR', { 
@@ -1301,13 +1305,11 @@
                 minute: '2-digit' 
             });
 
-            // ✅ NOUVEAU : Gestion du texte avec bouton "Voir plus"
             const textContent = article.texte || '';
             const isLongText = textContent.length > 300;
             const truncatedText = isLongText ? textContent.substring(0, 300) + '...' : textContent;
             const articleTextId = `article-text-${article.article_id}`;
             
-            // ✅ Échapper les guillemets pour data-full-text
             const escapedFullText = textContent.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             
             const textHTML = isLongText ? `
@@ -1410,17 +1412,14 @@
             const button = textContainer.parentElement.querySelector('.show-more-btn');
             const fullText = textContainer.getAttribute('data-full-text');
             
-            // Décoder les entités HTML
             const decodedFullText = fullText.replace(/&quot;/g, '"').replace(/&#39;/g, "'");
             
             if (textContainer.classList.contains('expanded')) {
-                // Réduire le texte
                 const truncatedText = decodedFullText.substring(0, 300) + '...';
                 textContainer.textContent = truncatedText;
                 textContainer.classList.remove('expanded');
                 button.innerHTML = '<i class="fas fa-chevron-down"></i> Voir plus';
             } else {
-                // Afficher le texte complet
                 textContainer.textContent = decodedFullText;
                 textContainer.classList.add('expanded');
                 button.innerHTML = '<i class="fas fa-chevron-up"></i> Voir moins';
@@ -1685,21 +1684,17 @@
             console.log('🚀 Initialisation de l\'application World Connect...');
             console.log('📅', new Date().toLocaleString('fr-FR'));
             
-            // ÉTAPE 1 : INITIALISER LES MANAGERS
             ToastManager.init();
             LoadingManager.init();
             OfflineManager.init();
             console.log('✅ Managers initialisés');
             
-            // ÉTAPE 2 : INITIALISER THREE.JS
             initThreeJS();
             console.log('✅ Three.js initialisé');
             
-            // ÉTAPE 3 : ENREGISTRER LE SERVICE WORKER
             await initServiceWorker();
             console.log('✅ Service Worker enregistré');
             
-            // ÉTAPE 4 : VÉRIFIER LA DÉCONNEXION MANUELLE
             const manualLogout = sessionStorage.getItem('manualLogout');
             if (manualLogout === 'true') {
                 sessionStorage.removeItem('manualLogout');
@@ -1710,7 +1705,6 @@
             try {
                 LoadingManager.show();
                 
-                // ÉTAPE 5 : RÉCUPÉRER L'UTILISATEUR ACTUEL
                 console.log('🔍 Récupération de l\'utilisateur...');
                 currentUser = await getCurrentUser();
                 
@@ -1718,19 +1712,16 @@
                     console.log('✅ Utilisateur connecté:', currentUser.id);
                     
                     try {
-                        // ÉTAPE 6 : CHARGER LE PROFIL UTILISATEUR
                         console.log('🔍 Chargement du profil...');
                         userProfile = await getUserProfile(currentUser.id);
                         
                         if (userProfile) {
                             console.log('✅ Profil chargé:', userProfile.prenom, userProfile.nom);
                             
-                            // ÉTAPE 7 : CONFIGURER L'INTERFACE UTILISATEUR
                             updateMenu();
                             showWelcomePopup();
                             console.log('✅ Interface mise à jour');
                             
-                            // ÉTAPE 8 : CHARGER LES DONNÉES UTILISATEUR
                             await loadUserReactions();
                             console.log('✅ Réactions chargées');
                             
@@ -1741,7 +1732,6 @@
                             loadMessageCount();
                             console.log('✅ Compteurs chargés');
                             
-                            // ÉTAPE 9 : DEMANDER LES NOTIFICATIONS
                             console.log('🔔 Vérification des notifications...');
                             
                             if ('Notification' in window && Notification.permission === 'granted') {
@@ -1769,15 +1759,12 @@
                 LoadingManager.hide();
             }
             
-            // ÉTAPE 10 : CHARGER LES ARTICLES
             await loadArticles();
             console.log('✅ Articles chargés');
             
-            // ÉTAPE 11 : INITIALISER LA NAVIGATION
             initNavigation();
             console.log('✅ Navigation initialisée');
             
-            // ÉTAPE 12 : DÉMARRER LES INTERVALLES
             setInterval(() => {
                 if (currentUser) {
                     loadNotificationCount();
@@ -1786,7 +1773,6 @@
             }, 30000);
             console.log('✅ Intervalles démarrés (30s)');
             
-            // ÉTAPE 13 : ÉCOUTER LES ÉVÉNEMENTS
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden && currentUser) {
                     loadNotificationCount();
@@ -1796,30 +1782,9 @@
             });
             console.log('✅ Événements configurés');
             
-            // ✅ DIAGNOSTIC COMMENTAIRES
-            console.log('═══════════════════════════════════════');
-            console.log('🔍 DIAGNOSTIC COMMENTAIRES');
-            console.log('═══════════════════════════════════════');
-            console.log('CommentsWidget disponible:', !!window.CommentsWidget);
-            console.log('submitComment disponible:', typeof window.submitComment);
-            console.log('deleteComment disponible:', typeof window.deleteComment);
-            console.log('toggleReplyBox disponible:', typeof window.toggleReplyBox);
-            console.log('═══════════════════════════════════════');
-            
-            // INITIALISATION TERMINÉE
-            console.log('═══════════════════════════════════════════════════');
             console.log('✅ APPLICATION WORLD CONNECT INITIALISÉE AVEC SUCCÈS');
-            console.log('═══════════════════════════════════════════════════');
-            console.log('📱 Version: 5.0.3 PRO - Toutes corrections appliquées');
-            console.log('🔔 Système de notifications: OPTIMISÉ');
-            console.log('💬 Système de commentaires: CommentsWidget v3.0');
-            console.log('📝 Affichage texte: Bouton "Voir plus" activé');
-            console.log('🎨 Préservation espaces: white-space: pre-wrap');
-            console.log('😆 Réaction "rire": CORRIGÉE');
-            console.log('🔑 Clé VAPID: BH3HWUJHOVhPrzNe... (synchronisée)');
+            console.log('📱 Version: 5.0.3 PRO');
             console.log('👤 Utilisateur:', currentUser ? `${userProfile?.prenom} ${userProfile?.nom}` : 'Non connecté');
-            console.log('🔔 Notifications:', Notification.permission);
-            console.log('═══════════════════════════════════════════════════');
         });
 
         // ============================================================================
@@ -1828,7 +1793,7 @@
         window.loadArticles = loadArticles;
         window.handleReaction = handleReaction;
         window.toggleComments = toggleComments;
-        window.toggleFullText = toggleFullText; // ✅ NOUVELLE FONCTION
+        window.toggleFullText = toggleFullText;
         window.toggleShareMenu = toggleShareMenu;
         window.shareToFacebook = shareToFacebook;
         window.shareToTwitter = shareToTwitter;
@@ -1848,25 +1813,7 @@
         window.disableNotifications = disableNotifications;
         window.getNotificationStatus = getNotificationStatus;
         window.requestNotificationPermission = requestNotificationPermission;
-
-        console.log('🎉 World Connect - Script chargé avec succès !');
-        console.log('📱 Version: 5.0.3 PRO - Toutes corrections appliquées');
-        console.log('🔥 Toutes les fonctionnalités sont opérationnelles');
-        console.log('');
-        console.log('💡 FONCTIONS DISPONIBLES :');
-        console.log('   - enableNotifications() : Activer les notifications');
-        console.log('   - disableNotifications() : Désactiver les notifications');
-        console.log('   - getNotificationStatus() : Vérifier le statut');
-        console.log('   - toggleFullText(articleId) : Afficher/masquer texte complet');
-        console.log('   - CommentsWidget.loadComments() : Charger les commentaires');
-        console.log('   - window.submitComment() : Soumettre un commentaire');
-        console.log('   - window.deleteComment() : Supprimer un commentaire');
-        console.log('');
-        console.log('✅ CORRECTIONS APPLIQUÉES :');
-        console.log('   1. Bouton réaction "rire" 😆 : CORRIGÉ');
-        console.log('   2. Bouton "Voir plus" : AJOUTÉ');
-        console.log('   3. Préservation espaces : ACTIVÉE (white-space: pre-wrap)');
-        console.log('   4. Échappement HTML : SÉCURISÉ');
     </script>
 </body>
-            </html>
+</html>
+
