@@ -2,32 +2,19 @@
 
 // ═══════════════════════════════════════════════════════════════
 //  src/app/auth/page.tsx
-//  Converti depuis : connexion.html
-//
-//  Références HTML → Next.js :
-//    supabaseClient.js          → createSupabaseBrowserClient()
-//    window.location.href='index.html'    → router.push("/")
-//    window.location.href='publier.html'  → router.push("/plus")
-//    window.location.href='auth.html'     → router.push("/auth/reset")
-//    redirectByRole()           → getUserProfile() + router.push() selon role
-//    style.css (kaki)           → globals.css (navy/silver/cyber brand)
-//    Font Awesome               → lucide-react
 // ═══════════════════════════════════════════════════════════════
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Globe, Mail, Lock, User, Eye, EyeOff, ArrowRight, Github, MessageCircle, Check, AlertCircle, Info } from "lucide-react";
+// ✅ Retiré : MessageCircle (importé mais jamais utilisé)
+import { Globe, Mail, Lock, User, Eye, EyeOff, ArrowRight, Github, Check, AlertCircle, Info } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import type { Metadata } from "next";
 
-// ─── Types ────────────────────────────────────────────────────
 type Tab     = "connexion" | "inscription" | "reset";
 type MsgType = "success" | "error" | "info";
-
 interface Msg { text: string; type: MsgType; }
 
-// ─── Composant message ─────────────────────────────────────────
 function Alert({ msg }: { msg: Msg }) {
   const styles: Record<MsgType, { bg: string; icon: React.ReactNode }> = {
     success: { bg: "rgba(16,185,129,0.12)", icon: <Check size={16} /> },
@@ -46,7 +33,6 @@ function Alert({ msg }: { msg: Msg }) {
   );
 }
 
-// ─── Input brand ──────────────────────────────────────────────
 function Input({ id, type = "text", placeholder, icon, required, minLength, value, onChange, suffix }:
   { id: string; type?: string; placeholder: string; icon: React.ReactNode; required?: boolean; minLength?: number; value: string; onChange: (v: string) => void; suffix?: React.ReactNode }) {
   return (
@@ -58,12 +44,7 @@ function Input({ id, type = "text", placeholder, icon, required, minLength, valu
         id={id} type={type} placeholder={placeholder} required={required} minLength={minLength}
         value={value} onChange={(e) => onChange(e.target.value)}
         className="w-full pl-11 pr-11 py-3.5 rounded-xl text-sm outline-none transition-all"
-        style={{
-          background:  "var(--navy-800)",
-          border:      "1.5px solid var(--border)",
-          color:       "var(--foreground)",
-          fontFamily:  "var(--font-sans)",
-        }}
+        style={{ background: "var(--navy-800)", border: "1.5px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-sans)" }}
         onFocus={(e) => (e.currentTarget.style.borderColor = "var(--cyber-500)")}
         onBlur={(e)  => (e.currentTarget.style.borderColor = "var(--border)")}
       />
@@ -76,7 +57,6 @@ function Input({ id, type = "text", placeholder, icon, required, minLength, valu
   );
 }
 
-// ─── Composant principal ──────────────────────────────────────
 export default function AuthPage() {
   const router   = useRouter();
   const supabase = createSupabaseBrowserClient();
@@ -85,12 +65,10 @@ export default function AuthPage() {
   const [msg,         setMsg]         = useState<Msg | null>(null);
   const [loading,     setLoading]     = useState(false);
 
-  // Connexion
   const [loginEmail,    setLoginEmail]    = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPwd,  setShowLoginPwd]  = useState(false);
 
-  // Inscription
   const [prenom,      setPrenom]      = useState("");
   const [nom,         setNom]         = useState("");
   const [signupEmail, setSignupEmail] = useState("");
@@ -98,7 +76,6 @@ export default function AuthPage() {
   const [showSignPwd, setShowSignPwd] = useState(false);
   const [terms,       setTerms]       = useState(false);
 
-  // Reset
   const [resetEmail, setResetEmail] = useState("");
 
   function showMsg(text: string, type: MsgType) {
@@ -106,30 +83,19 @@ export default function AuthPage() {
     setTimeout(() => setMsg(null), 5000);
   }
 
-  // ── Redirection par rôle (remplace redirectByRole() de supabaseClient.js)
   async function redirectByRole(userId: string) {
-    const { data } = await supabase
-      .from("users_profile")
-      .select("role")
-      .eq("user_id", userId)
-      .single();
-    // connexion.html redirige admin → publier.html (=/plus), user → index.html (=/)
+    const { data } = await supabase.from("users_profile").select("role").eq("user_id", userId).single();
     if (data?.role === "admin") router.push("/plus");
     else router.push("/");
   }
 
-  // ── Connexion email/password (remplace le submit de #login-form)
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMsg(null);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginEmail, password: loginPassword,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPassword });
     if (error) {
-      showMsg(error.message.includes("Invalid login credentials")
-        ? "Email ou mot de passe incorrect."
-        : error.message, "error");
+      showMsg(error.message.includes("Invalid login credentials") ? "Email ou mot de passe incorrect." : error.message, "error");
     } else if (data.user) {
       showMsg("Connexion réussie ! Redirection…", "success");
       setTimeout(() => void redirectByRole(data.user.id), 1200);
@@ -137,7 +103,6 @@ export default function AuthPage() {
     setLoading(false);
   }
 
-  // ── Inscription (remplace le submit de #signup-form)
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     if (!terms) { showMsg("Veuillez accepter les conditions d'utilisation.", "error"); return; }
@@ -148,26 +113,20 @@ export default function AuthPage() {
       options: { data: { full_name: `${prenom} ${nom}`, first_name: prenom, last_name: nom } },
     });
     if (error) {
-      showMsg(error.message.includes("already registered")
-        ? "Cet email est déjà utilisé."
-        : error.message, "error");
+      showMsg(error.message.includes("already registered") ? "Cet email est déjà utilisé." : error.message, "error");
     } else if (data.user) {
       await new Promise((r) => setTimeout(r, 800));
-      await supabase.from("users_profile").insert({
-        user_id: data.user.id, prenom, nom, role: "user",
-      });
+      await supabase.from("users_profile").insert({ user_id: data.user.id, prenom, nom, role: "user" });
       showMsg("🎉 Inscription réussie ! Vérifiez votre email.", "success");
       setTimeout(() => router.push("/"), 2500);
     }
     setLoading(false);
   }
 
-  // ── Reset password (remplace le submit de #password-reset-form)
   async function handleReset(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      // auth.html → /auth/reset (la page de confirmation Next.js)
       redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset`,
     });
     if (error) showMsg(error.message, "error");
@@ -175,13 +134,9 @@ export default function AuthPage() {
     setLoading(false);
   }
 
-  // ── OAuth (remplace signInWithGoogle/GitHub/Discord)
   async function handleOAuth(provider: "google" | "github" | "discord") {
     showMsg(`Connexion avec ${provider} en cours…`, "info");
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/` },
-    });
+    await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/` } });
   }
 
   const TABS: { key: Tab; label: string }[] = [
@@ -193,25 +148,19 @@ export default function AuthPage() {
   return (
     <div className="min-h-dvh flex items-center justify-center p-4"
       style={{ background: "var(--gradient-navy)", backgroundAttachment: "fixed" }}>
-
       <div className="w-full max-w-md anim-fade-in-scale">
 
-        {/* ── Header ──────────────────────────────────────── */}
         <div className="text-center mb-6 px-4">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Globe size={32} style={{ color: "var(--cyber-500)", filter: "drop-shadow(0 0 8px var(--cyber-500))" }} />
-            <h1 className="font-black text-3xl" style={{ color: "white", fontFamily: "var(--font-sans)", letterSpacing: "-0.03em" }}>
-              World Connect
-            </h1>
+            <h1 className="font-black text-3xl" style={{ color: "white", fontFamily: "var(--font-sans)", letterSpacing: "-0.03em" }}>World Connect</h1>
           </div>
           <p className="text-sm" style={{ color: "var(--foreground-subtle)" }}>Le Monde connecté à l'internet</p>
           <div className="wc-chrome-line mt-3 mx-auto" style={{ maxWidth: "120px" }} />
         </div>
 
-        {/* ── Card ────────────────────────────────────────── */}
         <div className="rounded-3xl overflow-hidden" style={{ background: "var(--navy-700)", border: "1px solid var(--border)", boxShadow: "var(--shadow-lg)" }}>
 
-          {/* Onglets */}
           <div className="flex" style={{ borderBottom: "1px solid var(--border)", background: "var(--navy-800)" }}>
             {TABS.map(({ key, label }) => (
               <button key={key} onClick={() => { setTab(key); setMsg(null); }}
@@ -229,13 +178,11 @@ export default function AuthPage() {
           <div className="p-7">
             {msg && <Alert msg={msg} />}
 
-            {/* ── CONNEXION ─────────────────────────────── */}
             {tab === "connexion" && (
               <div className="anim-fade-in">
                 <h2 className="font-black text-2xl mb-1" style={{ color: "white" }}>👋 Bon retour !</h2>
                 <p className="text-sm mb-6" style={{ color: "var(--foreground-subtle)" }}>Connectez-vous pour continuer votre aventure</p>
 
-                {/* OAuth */}
                 <div className="flex flex-col gap-2 mb-5">
                   {[{ p: "google" as const, label: "Google", icon: "G" }, { p: "github" as const, label: "GitHub", icon: <Github size={16} /> }, { p: "discord" as const, label: "Discord", icon: "D" }].map(({ p, label, icon }) => (
                     <button key={p} onClick={() => void handleOAuth(p)}
@@ -262,8 +209,7 @@ export default function AuthPage() {
                     <Input id="login-password" type={showLoginPwd ? "text" : "password"} placeholder="••••••••" icon={<Lock size={15} />} required value={loginPassword} onChange={setLoginPassword}
                       suffix={<span onClick={() => setShowLoginPwd(!showLoginPwd)}>{showLoginPwd ? <EyeOff size={15} /> : <Eye size={15} />}</span>} />
                   </div>
-                  <button type="submit" disabled={loading} className="wc-btn justify-center mt-1"
-                    style={{ padding: "0.875rem", opacity: loading ? 0.7 : 1 }}>
+                  <button type="submit" disabled={loading} className="wc-btn justify-center mt-1" style={{ padding: "0.875rem", opacity: loading ? 0.7 : 1 }}>
                     {loading ? "Connexion…" : "Se connecter"} <ArrowRight size={16} />
                   </button>
                 </form>
@@ -275,7 +221,6 @@ export default function AuthPage() {
               </div>
             )}
 
-            {/* ── INSCRIPTION ───────────────────────────── */}
             {tab === "inscription" && (
               <div className="anim-fade-in">
                 <h2 className="font-black text-2xl mb-1" style={{ color: "white" }}>🚀 Créer un compte</h2>
@@ -319,7 +264,6 @@ export default function AuthPage() {
               </div>
             )}
 
-            {/* ── RESET ─────────────────────────────────── */}
             {tab === "reset" && (
               <div className="anim-fade-in">
                 <h2 className="font-black text-2xl mb-1" style={{ color: "white" }}>🔐 Récupération</h2>
@@ -335,8 +279,7 @@ export default function AuthPage() {
                     <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--foreground-muted)" }}>Email associé à votre compte</label>
                     <Input id="reset-email" type="email" placeholder="exemple@email.com" icon={<Mail size={15} />} required value={resetEmail} onChange={setResetEmail} />
                   </div>
-                  <button type="submit" disabled={loading} className="wc-btn justify-center mt-1"
-                    style={{ padding: "0.875rem", opacity: loading ? 0.7 : 1 }}>
+                  <button type="submit" disabled={loading} className="wc-btn justify-center mt-1" style={{ padding: "0.875rem", opacity: loading ? 0.7 : 1 }}>
                     {loading ? "Envoi…" : "Envoyer le lien"} <ArrowRight size={16} />
                   </button>
                 </form>
@@ -351,5 +294,4 @@ export default function AuthPage() {
       </div>
     </div>
   );
-      }
-    
+}
