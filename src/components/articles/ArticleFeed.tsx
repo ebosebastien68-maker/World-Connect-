@@ -135,6 +135,7 @@ export function ArticleFeed() {
 
   useEffect(() => {
     if (!currentUser) return;
+
     const ch = supabase.channel("feed-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "articles" }, () => void loadArticles())
       .on("postgres_changes", { event: "*", schema: "public", table: "article_reactions" }, () => { void loadUserReactions(); void loadArticles(); })
@@ -142,7 +143,10 @@ export function ArticleFeed() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${currentUser.id}` }, () => void loadCounts())
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${currentUser.id}` }, () => void loadCounts())
       .subscribe();
-    return () => supabase.removeChannel(ch);
+
+    return () => {
+      void supabase.removeChannel(ch);
+    };
   }, [currentUser, supabase, loadArticles, loadUserReactions, loadCounts]);
 
   useEffect(() => { void loadCounts(); }, [loadCounts]);
