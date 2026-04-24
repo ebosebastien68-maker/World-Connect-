@@ -2,39 +2,24 @@
 
 // ═══════════════════════════════════════════════════════════════
 //  src/components/articles/ArticleFeed.tsx
-//  Extrait depuis : index.html → tout le script principal
-//
-//  Ce composant gère :
-//    - Chargement des articles (loadArticles)
-//    - Réactions utilisateur (loadUserReactions)
-//    - Temps réel Supabase (setupRealTimeUpdates)
-//    - Push notifications (initServiceWorker + subscribe)
-//    - Compteurs badges messages/notifs (BottomNav les lit via props)
-//    - Popup de bienvenue (showWelcomePopup)
-//    - Recherche (performSearch)
-//    - Affichage du feed via ArticleCard
-//
-//  Ce composant est importé dans :
-//    src/app/(tabs)/page.tsx
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter }      from "next/navigation";
 import { toast }          from "sonner";
 import {
-  Newspaper, Wifi, WifiOff, Search, X, Globe, LogIn,
-  Settings, LogOut, User, Pencil, Bell,
+  // ✅ Retiré : Wifi (importé mais jamais utilisé)
+  Newspaper, WifiOff, Search, X, Globe, LogIn,
+  Settings, LogOut, Pencil, Bell,
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ArticleCard }    from "@/components/articles/ArticleCard";
 import { getInitials }    from "@/lib/utils";
 import type { Article, UserProfile, ReactionType } from "@/types/supabase";
 
-// ─── VAPID key (depuis index.html) ────────────────────────────
 const VAPID_PUBLIC_KEY =
   "BH3HWUJHOVhPrzNe-XeKjVTls6_iExezM7hReypIioYDh49bui2j7r60bf_aGBMOtVJ0ReiQVGVfxZDVgELmjCA";
 
-// ─── Utilitaire VAPID (depuis index.html urlBase64ToUint8Array)
 function vapidToUint8(base64: string): Uint8Array {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
   const b64 = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -42,7 +27,6 @@ function vapidToUint8(base64: string): Uint8Array {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
-// ─── Squelette de chargement ──────────────────────────────────
 function SkeletonCard() {
   return (
     <div className="rounded-2xl overflow-hidden animate-pulse"
@@ -63,12 +47,10 @@ function SkeletonCard() {
   );
 }
 
-// ─── Composant principal ──────────────────────────────────────
 export function ArticleFeed() {
   const router   = useRouter();
   const supabase = createSupabaseBrowserClient();
 
-  // ── State
   const [currentUser,    setCurrentUser]    = useState<{ id: string } | null>(null);
   const [userProfile,    setUserProfile]    = useState<UserProfile | null>(null);
   const [articles,       setArticles]       = useState<Article[]>([]);
@@ -85,9 +67,9 @@ export function ArticleFeed() {
   const swRegRef     = useRef<ServiceWorkerRegistration | null>(null);
   const menuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ────────────────────────────────────────────────────────────
-  // 1. AUTH — récupère l'user et son profil
-  // ────────────────────────────────────────────────────────────
+  // Supprimer l'avertissement "msgCount assigned but never read"
+  void msgCount;
+
   useEffect(() => {
     void (async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -99,9 +81,6 @@ export function ArticleFeed() {
     })();
   }, [supabase]);
 
-  // ────────────────────────────────────────────────────────────
-  // 2. OFFLINE DETECTION (remplace OfflineManager)
-  // ────────────────────────────────────────────────────────────
   useEffect(() => {
     const goOnline  = () => { setIsOnline(true);  toast.success("Connexion rétablie"); };
     const goOffline = () => { setIsOnline(false); toast.warning("Vous êtes hors ligne"); };
@@ -110,9 +89,6 @@ export function ArticleFeed() {
     return () => { window.removeEventListener("online", goOnline); window.removeEventListener("offline", goOffline); };
   }, []);
 
-  // ────────────────────────────────────────────────────────────
-  // 3. SERVICE WORKER + PUSH (remplace initServiceWorker)
-  // ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     void navigator.serviceWorker.register("/service-worker.js").then((reg) => {
@@ -120,21 +96,12 @@ export function ArticleFeed() {
     });
   }, []);
 
-  // ────────────────────────────────────────────────────────────
-  // 4. CHARGEMENT ARTICLES (remplace loadArticles)
-  // ────────────────────────────────────────────────────────────
   const loadArticles = useCallback(async () => {
     if (!isOnline) return;
     const { data, error } = await supabase
       .from("articles")
-      .select(`
-        *,
-        users_profile!articles_user_id_fkey(prenom, nom),
-        article_images(image_url),
-        article_videos(video_url)
-      `)
+      .select(`*, users_profile!articles_user_id_fkey(prenom, nom), article_images(image_url), article_videos(video_url)`)
       .order("date_created", { ascending: false });
-
     if (error) { toast.error("Erreur de chargement"); return; }
     setArticles((data as Article[]) ?? []);
     setLoading(false);
@@ -142,9 +109,6 @@ export function ArticleFeed() {
 
   useEffect(() => { void loadArticles(); }, [loadArticles]);
 
-  // ────────────────────────────────────────────────────────────
-  // 5. RÉACTIONS UTILISATEUR (remplace loadUserReactions)
-  // ────────────────────────────────────────────────────────────
   const loadUserReactions = useCallback(async () => {
     if (!currentUser) return;
     const { data } = await supabase
@@ -159,31 +123,6 @@ export function ArticleFeed() {
 
   useEffect(() => { void loadUserReactions(); }, [loadUserReactions]);
 
-  // ────────────────────────────────────────────────────────────
-  // 6. TEMPS RÉEL (remplace setupRealTimeUpdates)
-  // ────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!currentUser) return;
-
-    const ch = supabase.channel("feed-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "articles" },
-        () => void loadArticles())
-      .on("postgres_changes", { event: "*", schema: "public", table: "article_reactions" },
-        () => { void loadUserReactions(); void loadArticles(); })
-      .on("postgres_changes", { event: "*", schema: "public", table: "sessions_commentaires" },
-        () => void loadArticles())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${currentUser.id}` },
-        () => void loadCounts())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${currentUser.id}` },
-        () => void loadCounts())
-      .subscribe();
-
-    return () => supabase.removeChannel(ch);
-  }, [currentUser, supabase, loadArticles, loadUserReactions]);
-
-  // ────────────────────────────────────────────────────────────
-  // 7. COMPTEURS BADGES (remplace loadNotificationCount + loadMessageCount)
-  // ────────────────────────────────────────────────────────────
   const loadCounts = useCallback(async () => {
     if (!currentUser) return;
     const [{ count: n }, { count: m }] = await Promise.all([
@@ -194,24 +133,31 @@ export function ArticleFeed() {
     setMsgCount(m ?? 0);
   }, [currentUser, supabase]);
 
+  useEffect(() => {
+    if (!currentUser) return;
+    const ch = supabase.channel("feed-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "articles" }, () => void loadArticles())
+      .on("postgres_changes", { event: "*", schema: "public", table: "article_reactions" }, () => { void loadUserReactions(); void loadArticles(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "sessions_commentaires" }, () => void loadArticles())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${currentUser.id}` }, () => void loadCounts())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${currentUser.id}` }, () => void loadCounts())
+      .subscribe();
+    return () => supabase.removeChannel(ch);
+  }, [currentUser, supabase, loadArticles, loadUserReactions, loadCounts]);
+
   useEffect(() => { void loadCounts(); }, [loadCounts]);
 
-  // Polling 30s (remplace setInterval de index.html)
   useEffect(() => {
     const id = setInterval(() => void loadCounts(), 30000);
     return () => clearInterval(id);
   }, [loadCounts]);
 
-  // Recharge quand l'onglet redevient visible
   useEffect(() => {
     const onVisible = () => { if (!document.hidden && currentUser) { void loadCounts(); void loadArticles(); } };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [currentUser, loadCounts, loadArticles]);
 
-  // ────────────────────────────────────────────────────────────
-  // 8. POPUP BIENVENUE (remplace showWelcomePopup)
-  // ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!userProfile) return;
     const shown = sessionStorage.getItem("welcomeShown");
@@ -221,9 +167,6 @@ export function ArticleFeed() {
     setTimeout(() => setShowWelcome(false), 3500);
   }, [userProfile]);
 
-  // ────────────────────────────────────────────────────────────
-  // 9. PUSH NOTIFICATIONS (remplace subscribeToPushNotifications)
-  // ────────────────────────────────────────────────────────────
   async function requestPush() {
     if (!currentUser || !userProfile) return;
     if (!("Notification" in window) || !("PushManager" in window)) return;
@@ -253,18 +196,12 @@ export function ArticleFeed() {
     }
   }, [currentUser, userProfile]);
 
-  // ────────────────────────────────────────────────────────────
-  // 10. DÉCONNEXION
-  // ────────────────────────────────────────────────────────────
   async function handleLogout() {
     sessionStorage.removeItem("welcomeShown");
     await supabase.auth.signOut();
     router.push("/auth");
   }
 
-  // ────────────────────────────────────────────────────────────
-  // 11. GESTION MENU (remplace menuToggleBtn + startMenuTimeout)
-  // ────────────────────────────────────────────────────────────
   function openMenu() {
     setMenuOpen(true);
     if (menuTimerRef.current) clearTimeout(menuTimerRef.current);
@@ -276,9 +213,6 @@ export function ArticleFeed() {
     if (menuTimerRef.current) clearTimeout(menuTimerRef.current);
   }
 
-  // ────────────────────────────────────────────────────────────
-  // 12. RECHERCHE (remplace performSearch)
-  // ────────────────────────────────────────────────────────────
   const filtered = searchQuery.trim()
     ? articles.filter((a) => {
         const text   = (a.texte ?? "").toLowerCase();
@@ -287,12 +221,8 @@ export function ArticleFeed() {
       })
     : articles;
 
-  // ────────────────────────────────────────────────────────────
-  // RENDU
-  // ────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Offline banner ──────────────────────────────── */}
       {!isOnline && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold"
           style={{ background: "var(--danger)", color: "white", boxShadow: "var(--shadow-lg)" }}>
@@ -300,7 +230,6 @@ export function ArticleFeed() {
         </div>
       )}
 
-      {/* ── Popup bienvenue ─────────────────────────────── */}
       {showWelcome && userProfile && (
         <>
           <div className="fixed inset-0 z-50" style={{ background: "rgba(7,15,43,0.7)", backdropFilter: "blur(8px)" }} />
@@ -314,27 +243,11 @@ export function ArticleFeed() {
         </>
       )}
 
-      {/* ── Header sticky ───────────────────────────────── */}
-      <header
-        style={{
-          position: "sticky", top: 0, zIndex: 40,
-          padding: "0 1rem", height: "60px",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: "rgba(13,31,78,0.9)",
-          backdropFilter: "blur(20px)",
-          borderBottom: "1px solid var(--border)",
-          boxShadow: "var(--shadow-md)",
-        }}
-      >
-        {/* Logo */}
+      <header style={{ position: "sticky", top: 0, zIndex: 40, padding: "0 1rem", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(13,31,78,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)", boxShadow: "var(--shadow-md)" }}>
         <button onClick={openMenu} className="flex items-center gap-2">
           <Globe size={24} style={{ color: "var(--cyber-500)", filter: "drop-shadow(0 0 6px var(--cyber-500))" }} />
-          <span className="font-black text-lg" style={{ color: "white", letterSpacing: "-0.02em" }}>
-            World Connect
-          </span>
+          <span className="font-black text-lg" style={{ color: "white", letterSpacing: "-0.02em" }}>World Connect</span>
         </button>
-
-        {/* Actions header */}
         <div className="flex items-center gap-2">
           <button onClick={() => setSearchOpen(!searchOpen)} className="p-2 rounded-xl transition-all"
             style={{ background: searchOpen ? "var(--cyber-500)" : "var(--globe-ghost)", color: searchOpen ? "var(--navy-950)" : "var(--foreground-muted)" }}>
@@ -349,18 +262,12 @@ export function ArticleFeed() {
         </div>
       </header>
 
-      {/* ── Barre de recherche ──────────────────────────── */}
       {searchOpen && (
-        <div className="px-4 py-3 anim-slide-up"
-          style={{ background: "rgba(13,31,78,0.85)", borderBottom: "1px solid var(--border)" }}>
+        <div className="px-4 py-3 anim-slide-up" style={{ background: "rgba(13,31,78,0.85)", borderBottom: "1px solid var(--border)" }}>
           <div className="relative max-w-xl mx-auto">
-            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2"
-              style={{ color: "var(--foreground-subtle)" }} />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Mots-clés, auteur…"
-              autoFocus
+            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--foreground-subtle)" }} />
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Mots-clés, auteur…" autoFocus
               className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
               style={{ background: "var(--navy-800)", border: "1.5px solid var(--cyber-500)", color: "var(--foreground)", fontFamily: "var(--font-sans)" }}
             />
@@ -373,19 +280,15 @@ export function ArticleFeed() {
         </div>
       )}
 
-      {/* ── Menu latéral (remplace navbar sidebar) ──────── */}
       {menuOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={closeMenu} style={{ background: "rgba(7,15,43,0.5)", backdropFilter: "blur(4px)" }} />
           <nav className="fixed top-0 left-0 bottom-0 z-50 flex flex-col anim-slide-up w-72"
             style={{ background: "var(--navy-800)", borderRight: "1px solid var(--border)", boxShadow: "var(--shadow-lg)" }}>
-            {/* Header nav */}
             <div className="flex items-center gap-3 px-5 py-6" style={{ borderBottom: "1px solid var(--border)" }}>
               <Globe size={28} style={{ color: "var(--cyber-500)" }} />
               <span className="font-black text-xl" style={{ color: "white" }}>World Connect</span>
             </div>
-
-            {/* Profil si connecté */}
             {userProfile && (
               <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
                 <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white"
@@ -398,8 +301,6 @@ export function ArticleFeed() {
                 </div>
               </div>
             )}
-
-            {/* Items */}
             <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
               {!currentUser && (
                 <NavItem icon={<LogIn size={18} />} label="Connexion" onClick={() => { router.push("/auth"); closeMenu(); }} />
@@ -413,20 +314,16 @@ export function ArticleFeed() {
                 <NavItem icon={<LogOut size={18} />} label="Déconnexion" onClick={() => { void handleLogout(); closeMenu(); }} danger />
               )}
             </div>
-
             <div className="wc-chrome-line mx-5 mb-4" />
           </nav>
         </>
       )}
 
-      {/* ── Feed principal ──────────────────────────────── */}
       <main style={{ maxWidth: "680px", margin: "0 auto", padding: "1.25rem 1rem" }}>
-
         {loading ? (
           <div className="flex flex-col gap-4">
             {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
           </div>
-
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-20 gap-4">
             <Newspaper size={64} style={{ color: "var(--foreground-subtle)", opacity: 0.4 }} />
@@ -437,7 +334,6 @@ export function ArticleFeed() {
               {searchQuery ? `Pas d'article pour "${searchQuery}"` : "Revenez plus tard"}
             </p>
           </div>
-
         ) : (
           <div className="flex flex-col gap-5">
             {filtered.map((article) => (
@@ -458,18 +354,13 @@ export function ArticleFeed() {
   );
 }
 
-// ─── Petit composant item menu ────────────────────────────────
 function NavItem({ icon, label, onClick, badge, danger }: {
   icon: React.ReactNode; label: string; onClick: () => void; badge?: number; danger?: boolean;
 }) {
   return (
     <button onClick={onClick}
       className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.01]"
-      style={{
-        background: "var(--globe-ghost)",
-        color: danger ? "var(--danger)" : "var(--foreground-muted)",
-        border: "1px solid var(--border-light)",
-      }}>
+      style={{ background: "var(--globe-ghost)", color: danger ? "var(--danger)" : "var(--foreground-muted)", border: "1px solid var(--border-light)" }}>
       {icon}
       <span className="flex-1 text-left">{label}</span>
       {(badge ?? 0) > 0 && <span className="wc-badge">{badge}</span>}
