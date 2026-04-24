@@ -116,7 +116,7 @@ export function ArticleFeed() {
     const map: Record<string, ReactionType[]> = {};
     (data ?? []).forEach((r: { article_id: string; reaction_type: ReactionType }) => {
       if (!map[r.article_id]) map[r.article_id] = [];
-      map[r.article_id].push(r.reaction_type);
+      (map[r.article_id] as ReactionType[]).push(r.reaction_type);
     });
     setUserReactions(map);
   }, [currentUser, supabase]);
@@ -367,3 +367,4 @@ function NavItem({ icon, label, onClick, badge, danger }: {
     </button>
   );
 }
+
