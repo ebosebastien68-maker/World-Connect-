@@ -119,8 +119,13 @@ export async function getUserReactions(
 
   const map: Record<string, ReactionType[]> = {};
   for (const row of data) {
+    // ✅ FIX : on initialise puis on récupère dans une variable locale.
+    //    Sans ça, TypeScript strict considère map[row.article_id] comme
+    //    potentiellement `undefined` même juste après l'initialisation,
+    //    car l'index signature retourne toujours `T | undefined`.
     if (!map[row.article_id]) map[row.article_id] = [];
-    map[row.article_id].push(row.reaction_type as ReactionType);
+    const bucket = map[row.article_id]!;          // assertion non-nulle ✅
+    bucket.push(row.reaction_type as ReactionType);
   }
   return map;
 }
@@ -154,3 +159,4 @@ export async function getUnreadMessageCount(userId: string): Promise<number> {
     .eq("read_status", false);
   return count ?? 0;
 }
+
