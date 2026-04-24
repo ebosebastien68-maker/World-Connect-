@@ -2,12 +2,6 @@
 
 // ═══════════════════════════════════════════════════════════════
 //  src/app/auth/reset/page.tsx
-//  Converti depuis : auth.html (réinitialisation mot de passe)
-//
-//  Références HTML → Next.js :
-//    supabaseClient.js   → createSupabaseBrowserClient()
-//    connexion.html      → router.push("/auth")
-//    window.location.hash (token)  → même logique via supabase.auth
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect } from "react";
@@ -27,10 +21,8 @@ export default function ResetPasswordPage() {
   const [submitting,  setSubmitting]  = useState(false);
   const [error,       setError]       = useState("");
 
-  // ── Vérifier la session de récupération (remplace verifyRecoverySession())
   useEffect(() => {
     const checkSession = async () => {
-      // Supabase SSR gère le token depuis l'URL automatiquement
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { setState("error"); return; }
       setState("form");
@@ -38,7 +30,6 @@ export default function ResetPasswordPage() {
     void checkSession();
   }, [supabase]);
 
-  // ── Indicateur de force du mot de passe
   function getStrength(pwd: string) {
     let score = 0;
     if (pwd.length >= 6) score++;
@@ -48,13 +39,12 @@ export default function ResetPasswordPage() {
     return score;
   }
 
-  const strength    = getStrength(newPwd);
-  const strengthLabel = ["", "Faible", "Moyen", "Bon", "Fort"][strength] ?? "";
+  const strength      = getStrength(newPwd);
+  // ✅ strengthLabel retiré car jamais utilisé dans le JSX
   const strengthColor = ["", "var(--danger)", "var(--warning)", "var(--cyber-400)", "var(--success)"][strength] ?? "";
-  const pwdMatch    = newPwd === confirmPwd && confirmPwd.length > 0;
-  const canSubmit   = strength === 4 && pwdMatch;
+  const pwdMatch      = newPwd === confirmPwd && confirmPwd.length > 0;
+  const canSubmit     = strength === 4 && pwdMatch;
 
-  // ── Soumettre (remplace submit de #password-reset-form)
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
@@ -66,7 +56,6 @@ export default function ResetPasswordPage() {
       setSubmitting(false);
     } else {
       setState("success");
-      // Déconnexion + redirection vers /auth (= connexion.html)
       setTimeout(async () => {
         await supabase.auth.signOut();
         router.push("/auth");
@@ -79,7 +68,6 @@ export default function ResetPasswordPage() {
       style={{ background: "var(--gradient-navy)", backgroundAttachment: "fixed" }}>
 
       <div className="w-full max-w-md anim-fade-in-scale">
-        {/* Logo */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-1">
             <Globe size={28} style={{ color: "var(--cyber-500)" }} />
@@ -90,7 +78,6 @@ export default function ResetPasswordPage() {
 
         <div className="rounded-3xl p-7" style={{ background: "var(--navy-700)", border: "1px solid var(--border)", boxShadow: "var(--shadow-lg)" }}>
 
-          {/* Loading */}
           {state === "loading" && (
             <div className="flex flex-col items-center py-8 gap-4">
               <div className="w-10 h-10 rounded-full border-2 animate-spin"
@@ -99,7 +86,6 @@ export default function ResetPasswordPage() {
             </div>
           )}
 
-          {/* Erreur lien invalide */}
           {state === "error" && (
             <div className="flex flex-col items-center text-center py-4 gap-4">
               <AlertCircle size={56} style={{ color: "var(--danger)" }} />
@@ -113,7 +99,6 @@ export default function ResetPasswordPage() {
             </div>
           )}
 
-          {/* Succès */}
           {state === "success" && (
             <div className="flex flex-col items-center text-center py-4 gap-4 anim-fade-in">
               <CheckCircle size={56} style={{ color: "var(--success)" }} />
@@ -124,7 +109,6 @@ export default function ResetPasswordPage() {
             </div>
           )}
 
-          {/* Formulaire */}
           {state === "form" && (
             <div className="anim-fade-in">
               <h2 className="font-black text-2xl mb-1" style={{ color: "white" }}>🔐 Nouveau mot de passe</h2>
@@ -138,7 +122,6 @@ export default function ResetPasswordPage() {
               )}
 
               <form onSubmit={void handleSubmit} className="flex flex-col gap-4">
-                {/* Nouveau mot de passe */}
                 <div>
                   <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--foreground-muted)" }}>Nouveau mot de passe</label>
                   <div className="relative">
@@ -154,7 +137,6 @@ export default function ResetPasswordPage() {
                       {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
-                  {/* Barre de force */}
                   {newPwd.length > 0 && (
                     <div className="mt-2">
                       <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: "var(--border)" }}>
@@ -170,7 +152,6 @@ export default function ResetPasswordPage() {
                   )}
                 </div>
 
-                {/* Confirmer */}
                 <div>
                   <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--foreground-muted)" }}>Confirmer</label>
                   <div className="relative">
@@ -206,5 +187,5 @@ export default function ResetPasswordPage() {
       </div>
     </div>
   );
-              }
-                    
+}
+
