@@ -96,43 +96,53 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--dark-0);font-f
 /* HUD */
 #hud{position:fixed;inset:0;z-index:50;pointer-events:none;display:none;}
 .hud-top{
-  position:absolute;top:0;left:0;right:0;padding:16px 20px;
-  display:flex;align-items:flex-start;gap:12px;
-  background:linear-gradient(to bottom,rgba(5,8,17,.85) 0%,transparent 100%);
+  position:absolute;top:0;left:0;right:0;padding:14px 18px;
+  display:flex;align-items:flex-start;gap:10px;
+  background:linear-gradient(to bottom,rgba(2,4,12,.92) 0%,rgba(2,4,12,.4) 80%,transparent 100%);
 }
 .hud-card{
-  padding:10px 16px;border-radius:12px;
-  background:rgba(10,15,30,.7);border:1px solid var(--glass-border);
-  backdrop-filter:blur(12px);
-  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:9px 14px;border-radius:10px;
+  background:rgba(5,10,22,.75);border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  box-shadow:0 2px 12px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05);
 }
-.hud-label{font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);}
-.hud-val{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;line-height:1;}
-.hud-val.accent{color:var(--neon-green);}
-.hud-val.speed-val{color:var(--neon-blue);}
-.speedbar-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0;}
-.speedbar-label{display:flex;justify-content:space-between;font-size:.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);}
-.speedbar-track{height:6px;border-radius:3px;background:rgba(255,255,255,.07);position:relative;}
-.speedbar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--neon-green),var(--neon-blue));transition:width .3s ease;position:relative;}
-.speedbar-fill::after{content:'';position:absolute;right:-1px;top:-3px;width:12px;height:12px;border-radius:50%;background:var(--neon-blue);box-shadow:0 0 8px var(--neon-blue);}
-.hud-btn{padding:10px 14px;border-radius:12px;background:rgba(10,15,30,.7);border:1px solid var(--glass-border);color:var(--text-dim);font-size:1rem;cursor:pointer;pointer-events:all;transition:all .2s;}
-.hud-btn:hover{color:var(--text);border-color:rgba(255,255,255,.25);}
+.hud-label{font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(160,180,220,.6);}
+.hud-val{font-family:'Orbitron',sans-serif;font-size:1.25rem;font-weight:700;color:#fff;line-height:1;text-shadow:0 0 12px currentColor;}
+.hud-val.accent{color:#00ff88;text-shadow:0 0 10px #00ff88;}
+.hud-val.speed-val{color:#00d4ff;text-shadow:0 0 10px #00d4ff;}
+.speedbar-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;}
+.speedbar-label{display:flex;justify-content:space-between;font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(160,180,220,.5);}
+.speedbar-track{height:5px;border-radius:3px;background:rgba(255,255,255,.06);position:relative;}
+.speedbar-fill{
+  height:100%;border-radius:3px;
+  background:linear-gradient(90deg,#00ff88,#00d4ff,#ff2d78);
+  transition:width .25s ease;position:relative;
+}
+.speedbar-fill::after{content:'';position:absolute;right:-1px;top:-3px;width:11px;height:11px;border-radius:50%;background:#fff;box-shadow:0 0 8px #00d4ff;}
+.hud-btn{
+  padding:9px 13px;border-radius:10px;
+  background:rgba(5,10,22,.75);border:1px solid rgba(255,255,255,.08);
+  color:rgba(160,180,220,.7);font-size:.95rem;cursor:pointer;pointer-events:all;transition:all .2s;
+}
+.hud-btn:hover{color:#fff;border-color:rgba(255,255,255,.22);}
 /* Time of day badge */
 .tod-badge{
-  padding:8px 14px;border-radius:40px;
-  background:rgba(10,15,30,.7);border:1px solid var(--glass-border);
-  font-size:.72rem;font-weight:700;letter-spacing:.5px;color:var(--text-dim);
-  pointer-events:none;white-space:nowrap;
+  padding:7px 12px;border-radius:20px;
+  background:rgba(5,10,22,.75);border:1px solid rgba(255,255,255,.08);
+  font-size:.68rem;font-weight:700;letter-spacing:.5px;color:rgba(200,220,255,.8);
+  pointer-events:none;white-space:nowrap;backdrop-filter:blur(12px);
 }
 .combo-badge{
-  position:absolute;top:80px;right:20px;
-  padding:8px 14px;border-radius:40px;
-  background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);
-  font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;
-  color:var(--neon-green);display:none;
+  position:absolute;top:78px;right:18px;
+  padding:7px 14px;border-radius:40px;
+  background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.25);
+  font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;
+  color:#00ff88;display:none;letter-spacing:.5px;
   animation:combo-pop .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 0 20px rgba(0,255,136,.15);
 }
-@keyframes combo-pop{from{transform:scale(.6)}to{transform:scale(1)}}
+@keyframes combo-pop{from{transform:scale(.6) translateY(10px)}to{transform:scale(1) translateY(0)}}
 /* CONTROLS */
 #controls{
   position:fixed;bottom:0;left:0;right:0;z-index:60;
@@ -189,12 +199,31 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--dark-0);font-f
 #countdown.show{display:flex;}
 .count-num{font-family:'Orbitron',sans-serif;font-size:min(25vw,180px);font-weight:900;color:#fff;text-shadow:0 0 60px rgba(0,212,255,.6);animation:count-pop .8s cubic-bezier(.34,1.56,.64,1) forwards;}
 @keyframes count-pop{from{opacity:0;transform:scale(2)}60%{opacity:1;transform:scale(1)}90%{opacity:1}to{opacity:0;transform:scale(.8)}}
+/* ── Speed vignette overlay */
+#vignette {
+  position:fixed;inset:0;z-index:40;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,0,0,0) 100%);
+  transition:background .4s;
+}
+/* ── Speed lines canvas */
+#speedLines {
+  position:fixed;inset:0;z-index:41;pointer-events:none;opacity:0;
+  transition:opacity .3s;
+}
+/* ── Day/night overlay tint */
+#nightTint {
+  position:fixed;inset:0;z-index:39;pointer-events:none;
+  background:rgba(10,5,40,0);transition:background 4s;
+}
 #flashFx{position:fixed;inset:0;z-index:300;pointer-events:none;opacity:0;background:rgba(255,45,120,.3);transition:opacity .1s;}
 #flashFx.flash{opacity:1;}
 </style>
 </head>
 <body>
 <canvas id="gameCanvas"></canvas>
+<div id="nightTint"></div>
+<div id="vignette"></div>
+<canvas id="speedLines"></canvas>
 <div id="flashFx"></div>
 <div id="countdown"><div class="count-num" id="countNum">3</div></div>
 
@@ -297,7 +326,7 @@ const ROAD_W          = 9;
 const LANE_X          = [-3, 0, 3];
 const MOVE_SPD        = 0.13;
 const TRAIN_TRACK_X   = 18;
-const DAY_CYCLE_SECS  = 90;   // seconds per full day cycle
+const DAY_CYCLE_SECS  = 180;  // seconds per full day cycle (×2)
 const AIRPLANE_INTERVAL = 38;
 const TRAIN_INTERVAL    = 52;
 
@@ -333,8 +362,10 @@ let rafId=null, lastTime=0;
 // THREE.JS GLOBALS
 // ══════════════════════════════════════════════════════════
 let THREE_scene, THREE_camera, THREE_renderer;
+let reflMesh = null;
 let ambientLt, sunLt, moonLt, fillLt;
 let sunMesh, moonMesh, starPts;
+let skyHemi, skySphereMesh, skySphereMat, hazeMesh, hazeMat;
 let skyBg = new THREE.Color(0x4a90d9);
 
 // ── ENVIRONMENT ARRAYS ──
@@ -419,11 +450,11 @@ function setDiff(btn){
 function initThree() {
   const canvas=document.getElementById('gameCanvas');
   THREE_scene=new THREE.Scene();
-  THREE_scene.fog=new THREE.FogExp2(0x87ceeb, 0.007);
+  THREE_scene.fog=new THREE.Fog(0x87ceeb, 80, 320);
 
-  THREE_camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,0.1,800);
-  THREE_camera.position.set(0,5.5,-12);
-  THREE_camera.lookAt(0,0.5,15);
+  THREE_camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,0.1,800);
+  THREE_camera.position.set(0,3.8,-9);
+  THREE_camera.lookAt(0,1.4,28);
 
   THREE_renderer=new THREE.WebGLRenderer({canvas,antialias:true});
   THREE_renderer.setSize(innerWidth,innerHeight);
@@ -492,86 +523,135 @@ function initThree() {
 // ROAD
 // ══════════════════════════════════════════════════════════
 function buildRoad() {
-  const RLEN=700;
-  // Tarmac
+  const RLEN=800;
+
+  // Asphalt base
   const road=new THREE.Mesh(
     new THREE.PlaneGeometry(ROAD_W,RLEN),
-    new THREE.MeshStandardMaterial({color:0x111118,roughness:.85,metalness:.15})
+    new THREE.MeshStandardMaterial({color:0x1a1a22,roughness:.88,metalness:.08,envMapIntensity:.2})
   );
-  road.rotation.x=-Math.PI/2; road.position.set(0,0,RLEN/2-50);
+  road.rotation.x=-Math.PI/2; road.position.set(0,0,RLEN/2-60);
   road.receiveShadow=true; THREE_scene.add(road);
 
-  // White edge lines
-  const lineMat=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:.7});
-  [-ROAD_W/2,ROAD_W/2].forEach(bx=>{
-    const l=new THREE.Mesh(new THREE.BoxGeometry(.12,.04,RLEN),lineMat);
-    l.position.set(bx,.02,RLEN/2-50); THREE_scene.add(l);
+  // Slight texture variation strips (simulated tyre tracks)
+  [-2.1,-0.7,0.7,2.1].forEach(tx=>{
+    const tg=new THREE.Mesh(new THREE.PlaneGeometry(.55,RLEN),
+      new THREE.MeshStandardMaterial({color:0x131318,roughness:.92,metalness:.05}));
+    tg.rotation.x=-Math.PI/2; tg.position.set(tx,.003,RLEN/2-60);
+    THREE_scene.add(tg);
   });
 
-  // Kerb stripes
-  const kMats=[
-    new THREE.MeshStandardMaterial({color:0xff3333,roughness:.6}),
-    new THREE.MeshStandardMaterial({color:0xffffff,roughness:.4}),
-  ];
-  [-ROAD_W/2-.38,ROAD_W/2+.38].forEach(kx=>{
-    for (let z=-50; z<RLEN-50; z+=2.4){
-      const k=new THREE.Mesh(new THREE.BoxGeometry(.6,.1,1.18),kMats[Math.floor(z/1.2)%2]);
-      k.position.set(kx,.05,z); THREE_scene.add(k);
+  // White solid edge lines
+  const solidLineMat=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:.4,roughness:.3});
+  [-ROAD_W/2+.25,ROAD_W/2-.25].forEach(bx=>{
+    const l=new THREE.Mesh(new THREE.BoxGeometry(.18,.04,RLEN),solidLineMat);
+    l.position.set(bx,.02,RLEN/2-60); THREE_scene.add(l);
+  });
+
+  // Yellow centre line (double)
+  const yellowMat=new THREE.MeshStandardMaterial({color:0xffdd00,emissive:0xffaa00,emissiveIntensity:.25,roughness:.4});
+  [-0.1,0.1].forEach(ox=>{
+    const yl=new THREE.Mesh(new THREE.BoxGeometry(.08,.04,RLEN),yellowMat);
+    yl.position.set(ox,.02,RLEN/2-60); THREE_scene.add(yl);
+  });
+
+  // Dashed white lane dividers (loop)
+  const dashMat=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:.5,roughness:.3});
+  for (let z=-70; z<220; z+=8){
+    [-3,3].forEach(lx=>{
+      const m=new THREE.Mesh(new THREE.BoxGeometry(.14,.03,3.8),dashMat);
+      m.position.set(lx,.015,z); THREE_scene.add(m);
+      laneMarkers.push({mesh:m});
+    });
+  }
+
+  // Kerb red/white stripes
+  const kR=new THREE.MeshStandardMaterial({color:0xff2222,roughness:.6});
+  const kW=new THREE.MeshStandardMaterial({color:0xeeeeee,roughness:.4});
+  [-ROAD_W/2-.42,ROAD_W/2+.42].forEach(kx=>{
+    for (let z=-70; z<RLEN-70; z+=2.2){
+      const k=new THREE.Mesh(new THREE.BoxGeometry(.72,.11,1.06),(Math.floor(z)%2===0?kR:kW));
+      k.position.set(kx,.055,z); THREE_scene.add(k);
     }
   });
 
-  // Centre dashes & lane dividers — these loop
-  const dashMat=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:.5});
-  for (let z=-60; z<200; z+=7){
-    const makeMarker=(x,bz)=>{
-      const m=new THREE.Mesh(new THREE.BoxGeometry(.15,.03,3.5),dashMat);
-      m.position.set(x,.015,bz); THREE_scene.add(m);
-      laneMarkers.push({mesh:m});
-    };
-    makeMarker(0,z); makeMarker(-3,z); makeMarker(3,z);
-  }
-
-  // Shoulder dirt
-  const sMat=new THREE.MeshStandardMaterial({color:0x1a2a10,roughness:1});
+  // Shoulder — tarmac runoff then grass
+  const runoffMat=new THREE.MeshStandardMaterial({color:0x282828,roughness:1});
+  const grassMat=new THREE.MeshStandardMaterial({color:0x2a5c1c,roughness:1});
   [-1,1].forEach(s=>{
-    const sg=new THREE.Mesh(new THREE.PlaneGeometry(30,RLEN),sMat);
-    sg.rotation.x=-Math.PI/2; sg.position.set(s*(ROAD_W/2+15),-.01,RLEN/2-50);
-    sg.receiveShadow=true; THREE_scene.add(sg);
+    const ro=new THREE.Mesh(new THREE.PlaneGeometry(3.5,RLEN),runoffMat);
+    ro.rotation.x=-Math.PI/2; ro.position.set(s*(ROAD_W/2+1.9),-.005,RLEN/2-60);
+    ro.receiveShadow=true; THREE_scene.add(ro);
+    const gr=new THREE.Mesh(new THREE.PlaneGeometry(60,RLEN),grassMat);
+    gr.rotation.x=-Math.PI/2; gr.position.set(s*(ROAD_W/2+21),-.01,RLEN/2-60);
+    gr.receiveShadow=true; THREE_scene.add(gr);
   });
+
+  // Road surface reflection (night wet look — very subtle plane slightly above road)
+  const reflMat=new THREE.MeshStandardMaterial({color:0x2233aa,transparent:true,opacity:.0,roughness:.05,metalness:.9});
+  reflMesh=new THREE.Mesh(new THREE.PlaneGeometry(ROAD_W-.1,RLEN),reflMat);
+  reflMesh.rotation.x=-Math.PI/2; reflMesh.position.set(0,.008,RLEN/2-60);
+  THREE_scene.add(reflMesh);
+  reflMesh.userData.mat=reflMat;
+  nearScrollObjs.push(reflMesh); // will scroll with world? No — keep static
 }
 
 // ══════════════════════════════════════════════════════════
 // SKY ELEMENTS
 // ══════════════════════════════════════════════════════════
 function buildSkyDome() {
-  // Sun
-  const sunGeo=new THREE.SphereGeometry(8,16,16);
-  const sunMat=new THREE.MeshBasicMaterial({color:0xfffde0});
-  sunMesh=new THREE.Mesh(sunGeo,sunMat);
+  // Hemisphere sky for realistic gradient (ground to zenith)
+  skyHemi = new THREE.HemisphereLight(0x87ceeb, 0x3a6b2e, 0.6);
+  THREE_scene.add(skyHemi);
+
+  // Sky sphere for background color control
+  const skyGeo = new THREE.SphereGeometry(380, 32, 16);
+  skySphereMat = new THREE.MeshBasicMaterial({ color:0x87ceeb, side:THREE.BackSide });
+  skySphereMesh = new THREE.Mesh(skyGeo, skySphereMat);
+  THREE_scene.add(skySphereMesh);
+
+  // Horizon haze band
+  const hazeGeo = new THREE.CylinderGeometry(370, 370, 60, 32, 1, true);
+  hazeMat = new THREE.MeshBasicMaterial({ color:0xc8e8f8, transparent:true, opacity:.45, side:THREE.BackSide });
+  hazeMesh = new THREE.Mesh(hazeGeo, hazeMat);
+  hazeMesh.position.y = -28;
+  THREE_scene.add(hazeMesh);
+
+  // Sun disc
+  const sunGeo=new THREE.SphereGeometry(7,20,20);
+  const sunCoreMat=new THREE.MeshBasicMaterial({color:0xfffde0});
+  sunMesh=new THREE.Mesh(sunGeo,sunCoreMat);
   THREE_scene.add(sunMesh);
+  // Sun glow layers
+  [14,22,34].forEach((r,i)=>{
+    const hGeo=new THREE.RingGeometry(r*.92,r,32);
+    const hMat=new THREE.MeshBasicMaterial({color:0xffee88,transparent:true,opacity:.12-i*.03,side:THREE.DoubleSide});
+    sunMesh.add(new THREE.Mesh(hGeo,hMat));
+  });
 
-  // Sun halo (billboard ring)
-  const haloGeo=new THREE.RingGeometry(9,22,32);
-  const haloMat=new THREE.MeshBasicMaterial({color:0xffee88,transparent:true,opacity:.18,side:THREE.DoubleSide});
-  const halo=new THREE.Mesh(haloGeo,haloMat);
-  sunMesh.add(halo);
-
-  // Moon
-  const moonMat=new THREE.MeshStandardMaterial({color:0xdde8ff,emissive:0xdde8ff,emissiveIntensity:.5,roughness:.8});
-  moonMesh=new THREE.Mesh(new THREE.SphereGeometry(5,14,14),moonMat);
+  // Moon disc
+  const moonMat=new THREE.MeshStandardMaterial({color:0xdde8ff,emissive:0x8899bb,emissiveIntensity:.4,roughness:.8});
+  moonMesh=new THREE.Mesh(new THREE.SphereGeometry(5,16,16),moonMat);
+  // Moon craters
+  [[-1.2,.8,.3],[.6,1.2,.2],[-0.4,-.6,.25],[1.0,-.4,.18]].forEach(([cx,cy,cr])=>{
+    const cg=new THREE.SphereGeometry(cr,8,8);
+    const cm=new THREE.MeshStandardMaterial({color:0xaabbcc,roughness:1});
+    const c=new THREE.Mesh(cg,cm);
+    c.position.set(cx,cy,cr*.5); moonMesh.add(c);
+  });
   THREE_scene.add(moonMesh);
 
-  // Stars
-  const sPts=new Float32Array(3000*3);
-  for (let i=0;i<3000*3;i+=3){
-    sPts[i]  =(Math.random()-.5)*600;
-    sPts[i+1]=30+Math.random()*200;
-    sPts[i+2]=(Math.random()-.5)*600;
+  // Stars point cloud
+  const sPts=new Float32Array(4000*3);
+  for (let i=0;i<4000*3;i+=3){
+    const th=Math.random()*Math.PI*2, ph=Math.acos(1-Math.random()*1.8);
+    sPts[i]=300*Math.sin(ph)*Math.cos(th);
+    sPts[i+1]=Math.abs(300*Math.cos(ph))+5;
+    sPts[i+2]=300*Math.sin(ph)*Math.sin(th);
   }
   const sGeo=new THREE.BufferGeometry();
   sGeo.setAttribute('position',new THREE.BufferAttribute(sPts,3));
-  const sMat=new THREE.PointsMaterial({color:0xffffff,size:.45,transparent:true,opacity:0});
-  starPts=new THREE.Points(sGeo,sMat);
+  starPts=new THREE.Points(sGeo,new THREE.PointsMaterial({color:0xffffff,size:.5,transparent:true,opacity:0}));
   THREE_scene.add(starPts);
 }
 
@@ -1255,7 +1335,7 @@ function spawnEnemy() {
   cfg.roof=cfg.color;
   const enemy=buildRealisticCar(cfg,false);
   enemy.position.set(xPos,0,100);
-  enemy.rotation.y=Math.PI;
+  enemy.rotation.y=0;             // front faces camera = oncoming traffic
   enemy.userData.counted=false;
   THREE_scene.add(enemy);
   enemies.push(enemy);
@@ -1269,51 +1349,75 @@ function updateDayNight(dt) {
   dayTime=(dayTime + dt/(DAY_CYCLE_SECS*60)) % 1;
   const dn=lerpDN(dayTime);
 
-  THREE_scene.background.copy(dn.bg);
+  // Sky sphere background
+  THREE_scene.background = null;
+  skySphereMat.color.copy(dn.bg);
   THREE_scene.fog.color.copy(dn.fog);
+
+  // Haze band colour (horizon glow)
+  const isGolden = (dayTime>.17&&dayTime<.27)||(dayTime>.73&&dayTime<.82);
+  hazeMat.color.set(isGolden ? 0xff8844 : dn.fog);
+  hazeMat.opacity = isGolden ? .55 : .3;
+
+  // Lights
   ambientLt.intensity=dn.ai;
   ambientLt.color.copy(dn.ac);
   sunLt.intensity=dn.si;
   sunLt.color.copy(dn.sc);
   moonLt.intensity=dn.mi;
+  skyHemi.intensity = .2 + dn.ai*.5;
+  skyHemi.color.copy(dn.bg);
+  fillLt.intensity = .08 + dn.ai*.28;
 
-  // Sun arc
-  const sA=(dayTime-.5)*Math.PI*2;
-  const sx=-Math.sin(sA)*160, sy=Math.cos(sA)*100;
-  sunMesh.position.set(sx,sy,90);
-  sunLt.position.set(sx,sy,90);
-  sunMesh.visible = sy > -15;
-  // Sun emissive based on height
-  const sunH=Math.max(0,sy/100);
-  sunMesh.material.color.setHex(dayTime<.25||dayTime>.75 ? 0xff8844 : 0xfffde0);
+  // Sun arc — smooth full-circle orbit
+  const sA=(dayTime)*Math.PI*2;
+  const sr=140;
+  const sx=-Math.sin(sA)*sr, sy=Math.cos(sA)*sr*.7;
+  sunMesh.position.set(sx,sy,60);
+  sunLt.position.set(sx,sy,60);
+  sunMesh.visible = sy > -12;
+
+  // Sun colour by phase
+  const isRise=dayTime>.17&&dayTime<.30;
+  const isSet =dayTime>.70&&dayTime<.82;
+  sunMesh.material.color.set((isRise||isSet)?0xff8844:0xfffde0);
 
   // Moon opposite
-  moonMesh.position.set(-sx,-sy,90);
-  moonLt.position.set(-sx,-sy,90);
-  moonMesh.visible = -sy > -15;
+  moonMesh.position.set(-sx,-sy,60);
+  moonLt.position.set(-sx,-sy,60);
+  moonMesh.visible = -sy > -12;
 
-  // Stars
-  const nightFactor=Math.max(0,1-sunH*3);
-  starPts.material.opacity=nightFactor*.85;
+  // Night factor 0=day, 1=night
+  const nightFactor=Math.max(0,Math.min(1, 1-Math.max(0,sy/80)*2.5));
+  starPts.material.opacity = nightFactor*.92;
+
+  // Fog distance adapts to time — tighter at night
+  THREE_scene.fog.near = 60 + (1-nightFactor)*80;
+  THREE_scene.fog.far  = 220 + (1-nightFactor)*160;
 
   // Streetlights
-  lampGlows.forEach(lm=>{ lm.emissiveIntensity=.08+nightFactor*1.9; });
+  lampGlows.forEach(lm=>{ lm.emissiveIntensity=.05+nightFactor*2.2; });
 
-  // Building windows: random flicker pattern based on night
-  const winInt=nightFactor*.9;
-  buildingWins.forEach((wm,i)=>{ wm.emissiveIntensity=winInt*(Math.sin(i*7.3)>.3?.0:1); });
+  // Building windows — staggered, some always lit, more at night
+  buildingWins.forEach((wm,i)=>{
+    const alwaysOn = (i%7)<2;
+    const emI = alwaysOn ? nightFactor*.6 : nightFactor*(Math.sin(i*13.7)>.2?.0:1);
+    wm.emissiveIntensity = emI;
+  });
 
   // Train windows
-  trainWins.forEach(wm=>{ wm.emissiveIntensity=nightFactor*.85; });
+  trainWins.forEach(wm=>{ wm.emissiveIntensity=nightFactor*.95; });
 
-  // Cloud visibility/opacity — fade at night slightly
-  cloudObjs.forEach(c=>c.children.forEach(s=>{ if(s.material) s.material.opacity=.6+sunH*.2; }));
+  // Road wet reflection at night
+  // (handled by emissive boost of lane markers)
 
-  // HUD time-of-day label
+  // Wet road reflection — appears at night
+  if (reflMesh) reflMesh.userData.mat.opacity = nightFactor*.07;
+
+  // HUD time badge
   const todLabels=['🌙 Nuit','🌅 Aube','☀️ Matin','☀️ Midi','🌤️ Après-midi','🌇 Crépuscule','🌙 Nuit'];
-  const todIdx=Math.floor(dayTime*6.99);
   const todEl=document.getElementById('todBadge');
-  if (todEl) todEl.textContent=todLabels[todIdx]||'☀️ Jour';
+  if (todEl) todEl.textContent=todLabels[Math.min(6,Math.floor(dayTime*7))];
 }
 
 function updateScrolling(delta) {
@@ -1425,6 +1529,52 @@ function updateClouds(dt) {
 }
 
 // ══════════════════════════════════════════════════════════
+// SPEED FX — vignette + speed lines + night tint
+// ══════════════════════════════════════════════════════════
+let slCtx = null;
+function initSpeedCanvas() {
+  const sl = document.getElementById('speedLines');
+  sl.width = innerWidth; sl.height = innerHeight;
+  slCtx = sl.getContext('2d');
+  window.addEventListener('resize', ()=>{ sl.width=innerWidth; sl.height=innerHeight; });
+}
+
+function updateSpeedFX() {
+  const ratio = speed / diffSettings.maxSpeed;
+
+  // Vignette darkens at high speed
+  const vd = document.getElementById('vignette');
+  const vigR = Math.round(ratio*55);
+  vd.style.background = `radial-gradient(ellipse at 50% 50%, transparent ${55-ratio*22}%, rgba(0,0,0,${ratio*.72}) 100%)`;
+
+  // Speed lines at high speed
+  const sl = document.getElementById('speedLines');
+  sl.style.opacity = ratio > .55 ? ((ratio-.55)/.45)*.85 : 0;
+  if (slCtx && ratio > .55) {
+    slCtx.clearRect(0,0,sl.width,sl.height);
+    const cx=sl.width/2, cy=sl.height/2;
+    const n = Math.floor(ratio*38);
+    for (let i=0;i<n;i++){
+      const angle=Math.random()*Math.PI*2;
+      const r0=sl.width*.22+Math.random()*sl.width*.22;
+      const len=sl.width*.04+Math.random()*sl.width*.12*(ratio-.3);
+      slCtx.strokeStyle=`rgba(200,220,255,${.08+Math.random()*.18})`;
+      slCtx.lineWidth=.8+Math.random()*1.2;
+      slCtx.beginPath();
+      slCtx.moveTo(cx+Math.cos(angle)*r0, cy+Math.sin(angle)*r0);
+      slCtx.lineTo(cx+Math.cos(angle)*(r0+len), cy+Math.sin(angle)*(r0+len));
+      slCtx.stroke();
+    }
+  }
+
+  // Night tint
+  const nightFactor = Math.max(0,Math.min(1,(dayTime<.22||dayTime>.78)?
+    (dayTime<.22?((.22-dayTime)/.22):(dayTime-.78)/.22):0));
+  document.getElementById('nightTint').style.background =
+    `rgba(8,4,28,${nightFactor*.28})`;
+}
+
+// ══════════════════════════════════════════════════════════
 // GAME LOOP
 // ══════════════════════════════════════════════════════════
 function gameLoop(now) {
@@ -1438,22 +1588,32 @@ function gameLoop(now) {
   speed=Math.min(speed+diffSettings.speedInc*dt, diffSettings.maxSpeed);
   if (speed>maxSpeedReached) maxSpeedReached=speed;
 
-  // Player movement
+  // Player movement with smooth banking
   if (moveLeft)  playerX-=MOVE_SPD*dt;
   if (moveRight) playerX+=MOVE_SPD*dt;
   playerX=Math.max(-ROAD_W/2+.7, Math.min(ROAD_W/2-.7, playerX));
   playerCar.position.x=playerX;
-  playerCar.rotation.z=moveLeft?.06:moveRight?-.06:0;
 
-  // Spin player wheels
-  playerCar.children.forEach(c=>{ if(c.userData.isWheel) c.rotation.x-=speed*.05*dt; });
+  // Realistic car banking on turns (lean into curve)
+  const targetTilt = moveLeft ? -.065 : moveRight ? .065 : 0;
+  playerCar.rotation.z += (targetTilt - playerCar.rotation.z) * .12 * dt;
+
+  // Subtle camera sway following steering
+  THREE_camera.position.x += (-playerX*.18 - THREE_camera.position.x) * .04 * dt;
+
+  // Camera speed bob (simulate suspension)
+  const bob = Math.sin(distance*1.8)*.018*(speed/6);
+  THREE_camera.position.y = 3.8 + bob;
+
+  // Spin player wheels — reversed because car faces forward (rotation.y=PI)
+  playerCar.children.forEach(c=>{ if(c.userData.isWheel) c.rotation.x+=speed*.05*dt; });
 
   // Enemies
   const scrollDelta=speed*.12*dt;
   for (let i=enemies.length-1;i>=0;i--){
     const e=enemies[i];
     e.position.z-=scrollDelta*1.4;
-    e.children.forEach(c=>{ if(c.userData.isWheel) c.rotation.x+=speed*.05*dt; });
+    e.children.forEach(c=>{ if(c.userData.isWheel) c.rotation.x-=speed*.05*dt; });
     if (!e.userData.counted&&e.position.z<playerCar.position.z-3){
       e.userData.counted=true; score++; showCombo();
     }
@@ -1473,6 +1633,7 @@ function gameLoop(now) {
   updateTrain(dt);
   updatePedestrians(dt);
   updateClouds(dt);
+  updateSpeedFX();
 
   // HUD
   const spd=Math.round(speed*18);
@@ -1520,7 +1681,7 @@ function launchGame() {
   if (playerCar) THREE_scene.remove(playerCar);
   playerCar=buildRealisticCar(CAR_MODELS[selectedCarIdx],true);
   playerCar.position.set(0,0,0);
-  playerCar.rotation.y=0;
+  playerCar.rotation.y=Math.PI;  // back to camera = realistic driving view
   THREE_scene.add(playerCar);
 
   document.getElementById('hud').style.display='block';
@@ -1540,8 +1701,8 @@ function triggerCrash() {
     THREE_camera.position.x=(Math.random()-.5)*.9;
     THREE_camera.position.y=5.5+(Math.random()-.5)*.5;
     THREE_renderer.render(THREE_scene,THREE_camera);
-    if (sf<20) requestAnimationFrame(sl);
-    else { THREE_camera.position.set(0,5.5,-12); showGameOver(); }
+    if (sf<22) requestAnimationFrame(sl);
+    else { THREE_camera.position.set(0,3.8,-9); THREE_camera.lookAt(0,1.4,28); showGameOver(); }
   }
   const fx=document.getElementById('flashFx');
   fx.classList.add('flash');
@@ -1652,6 +1813,7 @@ window.addEventListener('offline',updateConn);
 // BOOT
 // ══════════════════════════════════════════════════════════
 initThree();
+initSpeedCanvas();
 updateConn();
 </script>
 </body>
