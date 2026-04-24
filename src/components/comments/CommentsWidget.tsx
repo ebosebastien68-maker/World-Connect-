@@ -11,7 +11,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Send, Reply, Pencil, Trash2, X, Check, MessageCircle, Lock } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { insertComment, updateComment, deleteComment, insertReply, deleteReply } from "@/lib/supabase/mutations";
-import { cn, getInitials, formatDate } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 import type { UserProfile } from "@/types/supabase";
 
 // ─── Types locaux ─────────────────────────────────────────────
