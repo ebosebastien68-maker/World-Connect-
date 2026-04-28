@@ -23,6 +23,8 @@
       --text-muted: #8a9ab0;
       --border:     #e2e8f0;
       --border-warm:#ddd5c8;
+      --wa-green:   #25D366;
+      --wa-dark:    #128C7E;
       --display:    'Fraunces', serif;
       --sans:       'Plus Jakarta Sans', sans-serif;
       --radius:     14px;
@@ -46,6 +48,87 @@
       height: 3px; width: 0%;
       background: linear-gradient(90deg, var(--blue), var(--khaki), var(--choco));
       transition: width .1s linear;
+    }
+
+    /* ============================================================
+       WHATSAPP FLOATING BUTTON
+    ============================================================ */
+    .wa-float {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 8888;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: .75rem;
+    }
+
+    /* Tooltip bubble */
+    .wa-tooltip {
+      background: var(--navy);
+      color: #fff;
+      font-size: .82rem;
+      font-weight: 600;
+      padding: .6rem 1.1rem;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+      box-shadow: 0 8px 28px rgba(15,27,45,0.22);
+      opacity: 0;
+      transform: translateX(10px);
+      transition: opacity .3s ease, transform .3s ease;
+      pointer-events: none;
+    }
+    .wa-float:hover .wa-tooltip,
+    .wa-tooltip.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Main button */
+    .wa-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--wa-green);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow:
+        0 6px 24px rgba(37,211,102,0.45),
+        0 2px 8px rgba(37,211,102,0.3);
+      transition: transform .25s cubic-bezier(.68,-.55,.265,1.55), box-shadow .25s ease, background .25s;
+      position: relative;
+    }
+    .wa-btn:hover {
+      transform: scale(1.12);
+      background: var(--wa-dark);
+      box-shadow:
+        0 10px 36px rgba(18,140,126,0.5),
+        0 2px 8px rgba(18,140,126,0.3);
+    }
+    .wa-btn svg {
+      width: 30px;
+      height: 30px;
+      fill: #fff;
+    }
+
+    /* Pulse ring */
+    .wa-btn::before {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px solid var(--wa-green);
+      opacity: 0;
+      animation: wa-pulse 2.8s ease-out infinite;
+    }
+    @keyframes wa-pulse {
+      0%   { opacity: .7; transform: scale(1); }
+      70%  { opacity: 0;  transform: scale(1.5); }
+      100% { opacity: 0;  transform: scale(1.5); }
     }
 
     /* NAV */
@@ -72,6 +155,10 @@
       text-decoration: none; transition: color .2s;
     }
     .nav-links a:hover { color: var(--blue); }
+
+    /* Nav actions group */
+    .nav-actions { display: flex; align-items: center; gap: .75rem; }
+
     .nav-cta {
       padding: .65rem 1.6rem;
       font-family: var(--sans); font-size: .85rem; font-weight: 700;
@@ -81,6 +168,19 @@
       transition: background .2s, border-color .2s;
     }
     .nav-cta:hover { background: var(--navy); border-color: var(--navy); }
+
+    /* WhatsApp nav button */
+    .nav-wa {
+      padding: .65rem 1.3rem;
+      font-family: var(--sans); font-size: .85rem; font-weight: 700;
+      background: var(--wa-green); color: #fff;
+      border-radius: var(--radius-pill); text-decoration: none;
+      border: 2px solid var(--wa-green);
+      display: flex; align-items: center; gap: .45rem;
+      transition: background .2s, border-color .2s;
+    }
+    .nav-wa:hover { background: var(--wa-dark); border-color: var(--wa-dark); }
+    .nav-wa svg { width: 16px; height: 16px; fill: #fff; flex-shrink: 0; }
 
     /* LAYOUT */
     .wrap { max-width: 1220px; margin: 0 auto; padding: 0 5%; }
@@ -163,6 +263,18 @@
       transition: border-color .25s, background .25s;
     }
     .btn-ghost:hover { border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.06); }
+
+    /* WhatsApp hero button */
+    .btn-wa {
+      padding: .9rem 2.2rem;
+      font-family: var(--sans); font-size: .9rem; font-weight: 700;
+      background: var(--wa-green); color: #fff;
+      border-radius: var(--radius-pill); border: 2px solid var(--wa-green);
+      text-decoration: none; display: inline-flex; align-items: center; gap: .55rem;
+      transition: background .25s, box-shadow .25s;
+    }
+    .btn-wa:hover { background: var(--wa-dark); border-color: var(--wa-dark); box-shadow: 0 10px 30px rgba(37,211,102,0.35); }
+    .btn-wa svg { width: 20px; height: 20px; fill: #fff; flex-shrink: 0; }
 
     /* hero visual */
     .hero-visual {
@@ -362,6 +474,41 @@
     .cta-content p { font-size: 1.02rem; color: rgba(255,255,255,0.6); line-height: 1.8; margin-bottom: 2.5rem; }
     .cta-btns { display: flex; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 2; }
 
+    /* WhatsApp CTA card */
+    .wa-cta-card {
+      position: relative; z-index: 2;
+      background: rgba(37,211,102,0.1);
+      border: 1px solid rgba(37,211,102,0.3);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.8rem;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      gap: 1rem; min-width: 220px;
+      transition: background .25s, border-color .25s, box-shadow .25s;
+    }
+    .wa-cta-card:hover {
+      background: rgba(37,211,102,0.16);
+      border-color: rgba(37,211,102,0.55);
+      box-shadow: 0 16px 50px rgba(37,211,102,0.15);
+    }
+    .wa-cta-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--wa-green);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 24px rgba(37,211,102,0.4);
+    }
+    .wa-cta-icon svg { width: 28px; height: 28px; fill: #fff; }
+    .wa-cta-card h4 { font-size: .92rem; font-weight: 700; color: #fff; }
+    .wa-cta-card p  { font-size: .8rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+    .wa-cta-link {
+      display: inline-block;
+      padding: .65rem 1.5rem;
+      background: var(--wa-green); color: #fff;
+      font-size: .85rem; font-weight: 700;
+      border-radius: var(--radius-pill); text-decoration: none;
+      transition: background .2s, box-shadow .2s;
+    }
+    .wa-cta-link:hover { background: var(--wa-dark); box-shadow: 0 6px 20px rgba(37,211,102,0.4); }
+
     /* FOOTER */
     footer { background: var(--navy); padding: 5rem 0 2.5rem; border-top: 1px solid rgba(255,255,255,0.06); }
     .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 4rem; margin-bottom: 4rem; }
@@ -377,6 +524,17 @@
       text-decoration: none; margin-bottom: .65rem; transition: color .2s;
     }
     .footer-col a:hover { color: var(--khaki); }
+    .footer-wa-btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .55rem 1.2rem;
+      background: rgba(37,211,102,0.12); color: var(--wa-green);
+      border: 1px solid rgba(37,211,102,0.25);
+      border-radius: var(--radius-pill); font-size: .85rem; font-weight: 700;
+      text-decoration: none; margin-top: .5rem;
+      transition: background .2s, border-color .2s;
+    }
+    .footer-wa-btn:hover { background: rgba(37,211,102,0.22); border-color: rgba(37,211,102,0.5); color: #fff; }
+    .footer-wa-btn svg { width: 16px; height: 16px; fill: currentColor; }
     .footer-bottom {
       padding-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.06);
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
@@ -399,7 +557,9 @@
       .about-cred { right: -.5rem; }
       .sol-grid { grid-template-columns: repeat(2,1fr); }
       .cta-box { grid-template-columns: 1fr; padding: 3rem; }
+      .wa-cta-card { min-width: unset; width: 100%; flex-direction: row; text-align: left; }
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+      .nav-wa .nav-wa-label { display: none; }
     }
     @media (max-width: 640px) {
       nav .nav-links { display: none; }
@@ -412,12 +572,33 @@
       .cta-box-photo { display: none; }
       .footer-grid { grid-template-columns: 1fr; }
       .footer-bottom { flex-direction: column; text-align: center; }
+      .wa-float { bottom: 1.2rem; right: 1.2rem; }
+      .wa-btn { width: 54px; height: 54px; }
     }
   </style>
 </head>
 <body>
 
 <div id="progress"></div>
+
+<!-- ============================================================
+     WHATSAPP FLOATING BUTTON
+============================================================ -->
+<div class="wa-float" id="waFloat">
+  <div class="wa-tooltip" id="waTooltip">Discuter sur WhatsApp</div>
+  <a
+    href="https://wa.me/55337775?text=Bonjour%20je%20suis%20int%C3%A9ress%C3%A9%20par%20vos%20services"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="wa-btn"
+    aria-label="Nous contacter sur WhatsApp"
+  >
+    <!-- Official WhatsApp icon SVG -->
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16.004 2.667C8.64 2.667 2.667 8.64 2.667 16c0 2.333.613 4.613 1.773 6.613L2.667 29.333l6.907-1.76A13.28 13.28 0 0016.004 29.333C23.36 29.333 29.333 23.36 29.333 16S23.36 2.667 16.004 2.667zm0 24.267a11 11 0 01-5.653-1.56l-.4-.24-4.107 1.053 1.08-3.96-.267-.413A11 11 0 015 16c0-6.067 4.933-11 11-11S27 9.933 27 16s-4.933 10.933-11 10.933zm6.04-8.16c-.333-.167-1.96-.96-2.267-1.067-.307-.107-.533-.16-.76.16-.227.32-.867 1.067-1.067 1.28-.2.213-.387.24-.72.08-.333-.16-1.4-.52-2.667-1.64-.987-.88-1.653-1.96-1.853-2.293-.193-.333-.02-.52.147-.68.153-.147.333-.387.5-.573.16-.187.213-.32.32-.533.107-.213.053-.4-.027-.573-.08-.16-.76-1.84-1.04-2.52-.273-.667-.547-.573-.747-.587l-.64-.013c-.213 0-.56.08-.853.387-.293.307-1.12 1.093-1.12 2.667s1.147 3.093 1.307 3.307c.16.213 2.253 3.44 5.453 4.827.76.333 1.36.533 1.827.68.76.24 1.453.2 2 .12.613-.093 1.893-.773 2.16-1.52.267-.747.267-1.387.187-1.52-.08-.133-.293-.213-.627-.373z"/>
+    </svg>
+  </a>
+</div>
 
 <!-- NAV -->
 <nav id="nav">
@@ -431,7 +612,21 @@
     <li><a href="#problems">Problèmes</a></li>
     <li><a href="#solutions">Solutions</a></li>
   </ul>
-  <a href="https://www.world-connect.world/messages.html" class="nav-cta">Nous Contacter</a>
+  <div class="nav-actions">
+    <a
+      href="https://wa.me/55337775?text=Bonjour%20je%20suis%20int%C3%A9ress%C3%A9%20par%20vos%20services"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="nav-wa"
+      aria-label="WhatsApp"
+    >
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16.004 2.667C8.64 2.667 2.667 8.64 2.667 16c0 2.333.613 4.613 1.773 6.613L2.667 29.333l6.907-1.76A13.28 13.28 0 0016.004 29.333C23.36 29.333 29.333 23.36 29.333 16S23.36 2.667 16.004 2.667zm0 24.267a11 11 0 01-5.653-1.56l-.4-.24-4.107 1.053 1.08-3.96-.267-.413A11 11 0 015 16c0-6.067 4.933-11 11-11S27 9.933 27 16s-4.933 10.933-11 10.933zm6.04-8.16c-.333-.167-1.96-.96-2.267-1.067-.307-.107-.533-.16-.76.16-.227.32-.867 1.067-1.067 1.28-.2.213-.387.24-.72.08-.333-.16-1.4-.52-2.667-1.64-.987-.88-1.653-1.96-1.853-2.293-.193-.333-.02-.52.147-.68.153-.147.333-.387.5-.573.16-.187.213-.32.32-.533.107-.213.053-.4-.027-.573-.08-.16-.76-1.84-1.04-2.52-.273-.667-.547-.573-.747-.587l-.64-.013c-.213 0-.56.08-.853.387-.293.307-1.12 1.093-1.12 2.667s1.147 3.093 1.307 3.307c.16.213 2.253 3.44 5.453 4.827.76.333 1.36.533 1.827.68.76.24 1.453.2 2 .12.613-.093 1.893-.773 2.16-1.52.267-.747.267-1.387.187-1.52-.08-.133-.293-.213-.627-.373z"/>
+      </svg>
+      <span class="nav-wa-label">WhatsApp</span>
+    </a>
+    <a href="https://www.world-connect.world/messages.html" class="nav-cta">Nous Contacter</a>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -445,6 +640,17 @@
     </p>
     <div class="hero-actions">
       <a href="https://www.world-connect.world/index.html" class="btn-main">Accéder à la Plateforme</a>
+      <a
+        href="https://wa.me/55337775?text=Bonjour%20je%20suis%20int%C3%A9ress%C3%A9%20par%20vos%20services"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-wa"
+      >
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16.004 2.667C8.64 2.667 2.667 8.64 2.667 16c0 2.333.613 4.613 1.773 6.613L2.667 29.333l6.907-1.76A13.28 13.28 0 0016.004 29.333C23.36 29.333 29.333 23.36 29.333 16S23.36 2.667 16.004 2.667zm0 24.267a11 11 0 01-5.653-1.56l-.4-.24-4.107 1.053 1.08-3.96-.267-.413A11 11 0 015 16c0-6.067 4.933-11 11-11S27 9.933 27 16s-4.933 10.933-11 10.933zm6.04-8.16c-.333-.167-1.96-.96-2.267-1.067-.307-.107-.533-.16-.76.16-.227.32-.867 1.067-1.067 1.28-.2.213-.387.24-.72.08-.333-.16-1.4-.52-2.667-1.64-.987-.88-1.653-1.96-1.853-2.293-.193-.333-.02-.52.147-.68.153-.147.333-.387.5-.573.16-.187.213-.32.32-.533.107-.213.053-.4-.027-.573-.08-.16-.76-1.84-1.04-2.52-.273-.667-.547-.573-.747-.587l-.64-.013c-.213 0-.56.08-.853.387-.293.307-1.12 1.093-1.12 2.667s1.147 3.093 1.307 3.307c.16.213 2.253 3.44 5.453 4.827.76.333 1.36.533 1.827.68.76.24 1.453.2 2 .12.613-.093 1.893-.773 2.16-1.52.267-.747.267-1.387.187-1.52-.08-.133-.293-.213-.627-.373z"/>
+        </svg>
+        Écrire sur WhatsApp
+      </a>
       <a href="https://www.world-connect.world/messages.html" class="btn-ghost">Nous écrire</a>
     </div>
   </div>
@@ -604,6 +810,24 @@
           <a href="https://www.world-connect.world/messages.html" class="btn-ghost">Analyse Gratuite · Sans Engagement</a>
         </div>
       </div>
+      <!-- WhatsApp CTA card -->
+      <div class="wa-cta-card">
+        <div class="wa-cta-icon">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16.004 2.667C8.64 2.667 2.667 8.64 2.667 16c0 2.333.613 4.613 1.773 6.613L2.667 29.333l6.907-1.76A13.28 13.28 0 0016.004 29.333C23.36 29.333 29.333 23.36 29.333 16S23.36 2.667 16.004 2.667zm0 24.267a11 11 0 01-5.653-1.56l-.4-.24-4.107 1.053 1.08-3.96-.267-.413A11 11 0 015 16c0-6.067 4.933-11 11-11S27 9.933 27 16s-4.933 10.933-11 10.933zm6.04-8.16c-.333-.167-1.96-.96-2.267-1.067-.307-.107-.533-.16-.76.16-.227.32-.867 1.067-1.067 1.28-.2.213-.387.24-.72.08-.333-.16-1.4-.52-2.667-1.64-.987-.88-1.653-1.96-1.853-2.293-.193-.333-.02-.52.147-.68.153-.147.333-.387.5-.573.16-.187.213-.32.32-.533.107-.213.053-.4-.027-.573-.08-.16-.76-1.84-1.04-2.52-.273-.667-.547-.573-.747-.587l-.64-.013c-.213 0-.56.08-.853.387-.293.307-1.12 1.093-1.12 2.667s1.147 3.093 1.307 3.307c.16.213 2.253 3.44 5.453 4.827.76.333 1.36.533 1.827.68.76.24 1.453.2 2 .12.613-.093 1.893-.773 2.16-1.52.267-.747.267-1.387.187-1.52-.08-.133-.293-.213-.627-.373z"/>
+          </svg>
+        </div>
+        <h4>Contact rapide</h4>
+        <p>Réponse en moins de 2h via WhatsApp</p>
+        <a
+          href="https://wa.me/55337775?text=Bonjour%20je%20suis%20int%C3%A9ress%C3%A9%20par%20vos%20services"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="wa-cta-link"
+        >
+          Écrire maintenant →
+        </a>
+      </div>
     </div>
   </div>
 </section>
@@ -638,6 +862,17 @@
         <a href="https://www.world-connect.world/messages.html">Envoyer un Message</a>
         <a href="https://www.world-connect.world/index.html">Plateforme</a>
         <a href="https://www.world-connect.world/messages.html">Analyse Gratuite</a>
+        <a
+          href="https://wa.me/55337775?text=Bonjour%20je%20suis%20int%C3%A9ress%C3%A9%20par%20vos%20services"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="footer-wa-btn"
+        >
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16.004 2.667C8.64 2.667 2.667 8.64 2.667 16c0 2.333.613 4.613 1.773 6.613L2.667 29.333l6.907-1.76A13.28 13.28 0 0016.004 29.333C23.36 29.333 29.333 23.36 29.333 16S23.36 2.667 16.004 2.667zm0 24.267a11 11 0 01-5.653-1.56l-.4-.24-4.107 1.053 1.08-3.96-.267-.413A11 11 0 015 16c0-6.067 4.933-11 11-11S27 9.933 27 16s-4.933 10.933-11 10.933zm6.04-8.16c-.333-.167-1.96-.96-2.267-1.067-.307-.107-.533-.16-.76.16-.227.32-.867 1.067-1.067 1.28-.2.213-.387.24-.72.08-.333-.16-1.4-.52-2.667-1.64-.987-.88-1.653-1.96-1.853-2.293-.193-.333-.02-.52.147-.68.153-.147.333-.387.5-.573.16-.187.213-.32.32-.533.107-.213.053-.4-.027-.573-.08-.16-.76-1.84-1.04-2.52-.273-.667-.547-.573-.747-.587l-.64-.013c-.213 0-.56.08-.853.387-.293.307-1.12 1.093-1.12 2.667s1.147 3.093 1.307 3.307c.16.213 2.253 3.44 5.453 4.827.76.333 1.36.533 1.827.68.76.24 1.453.2 2 .12.613-.093 1.893-.773 2.16-1.52.267-.747.267-1.387.187-1.52-.08-.133-.293-.213-.627-.373z"/>
+          </svg>
+          WhatsApp Direct
+        </a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -700,6 +935,13 @@
       t.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
+
+  /* WhatsApp tooltip — show after 3s then hide on scroll */
+  const tooltip = document.getElementById('waTooltip');
+  setTimeout(() => {
+    tooltip.classList.add('show');
+    setTimeout(() => tooltip.classList.remove('show'), 4000);
+  }, 3000);
 </script>
 </body>
 </html>
