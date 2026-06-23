@@ -1,6 +1,6 @@
 /* ============================================================================
    WORLD CONNECT - STYLE.CSS COMPLET CORRIGÉ
-   Version: 5.0.3 PRO
+   Version: 5.1.0 PRO
    Date: 2026
    ============================================================================ */
 
@@ -55,24 +55,6 @@ body {
     margin: 0;
     padding: 0;
     height: 100vh;
-}
-
-/* ============================================================================
-   CANVAS BACKGROUND
-   ============================================================================ */
-#canvas-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0.4;
-}
-
-body.dark-mode #canvas-container {
-    opacity: 0.3;
 }
 
 /* ============================================================================
@@ -827,8 +809,6 @@ body.dark-mode #canvas-container {
     width: 100%;
     height: 100%;
     padding: 80px 20px 100px 20px;
-    max-width: 800px;
-    margin: 0 auto;
     box-sizing: border-box;
 }
 
@@ -1009,7 +989,7 @@ body.dark-mode .skeleton-action-btn {
 .skeleton-action-btn:nth-child(4) { animation-delay: 1s; }
 
 /* ============================================================================
-   ✅ ARTICLES STYLES - CORRIGÉ
+   ARTICLES STYLES
    ============================================================================ */
 .article-card {
     background: var(--bg-secondary);
@@ -1106,7 +1086,6 @@ body.dark-mode .skeleton-action-btn {
     font-weight: 500;
 }
 
-/* ✅ CORRECTION MAJEURE : CONTENU ET TEXTE */
 .article-content {
     padding: 24px;
     display: flex;
@@ -1114,43 +1093,35 @@ body.dark-mode .skeleton-action-btn {
     gap: 16px;
 }
 
-/* ✅ CONTENEUR DU TEXTE AVEC BOUTON "VOIR PLUS" */
 .article-text-container {
     position: relative;
     min-height: 50px;
 }
 
-/* ✅ STYLE DU TEXTE - PRÉSERVATION DES ESPACES */
 .article-text {
     color: var(--text-primary);
     line-height: 1.8;
     font-size: 15.5px;
     font-weight: 400;
     letter-spacing: -0.1px;
-    
-    /* ✅ CORRECTION CRITIQUE : Préservation des espaces et sauts de ligne */
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    
     text-align: left;
     max-width: 100%;
     margin: 0;
 }
 
-/* État étendu du texte */
 .article-text.expanded {
     white-space: pre-wrap;
     max-height: none;
 }
 
-/* Amélioration du contraste en mode sombre */
 body.dark-mode .article-text {
     color: var(--text-primary);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Style pour les codes ou extraits */
 .article-text code {
     background: rgba(0, 0, 0, 0.05);
     padding: 2px 6px;
@@ -1163,7 +1134,6 @@ body.dark-mode .article-text code {
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* ✅ NOUVEAU : BOUTON "VOIR PLUS" */
 .show-more-btn {
     background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
     border: none;
@@ -1205,7 +1175,6 @@ body.dark-mode .article-text code {
     transform: scale(1.2);
 }
 
-/* Animation du chevron */
 @keyframes chevronRotate {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(180deg); }
@@ -1303,7 +1272,7 @@ body.dark-mode .article-text code {
 }
 
 /* ============================================================================
-   ✅ RÉACTIONS - CORRECTION DU BOUTON "RIRE"
+   RÉACTIONS
    ============================================================================ */
 .reactions {
     display: flex;
@@ -1390,25 +1359,11 @@ body.dark-mode .reaction-btn span {
     color: var(--text-primary);
 }
 
-/* ✅ COULEURS DES RÉACTIONS */
-.reaction-btn:nth-child(1) {
-    color: var(--accent-blue);
-}
+.reaction-btn:nth-child(1) { color: var(--accent-blue); }
+.reaction-btn:nth-child(2) { color: var(--accent-red); }
+.reaction-btn:nth-child(3) { color: var(--accent-yellow); }
+.reaction-btn:nth-child(4) { color: var(--accent-orange); }
 
-.reaction-btn:nth-child(2) {
-    color: var(--accent-red);
-}
-
-/* ✅ CORRECTION : Bouton "rire" */
-.reaction-btn:nth-child(3) {
-    color: var(--accent-yellow);
-}
-
-.reaction-btn:nth-child(4) {
-    color: var(--accent-orange);
-}
-
-/* ✅ ÉTATS ACTIFS DES RÉACTIONS */
 .reaction-btn.active {
     background: currentColor;
     color: white;
@@ -1633,7 +1588,7 @@ body.dark-mode .reaction-btn:not(.active):hover {
 .share-option.twitter i { color: #1da1f2; }
 .share-option.whatsapp i { color: #25d366; }
 .share-option.telegram i { color: #0088cc; }
-.share-option.instagram i { 
+.share-option.instagram i {
     background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -1760,7 +1715,7 @@ body.dark-mode .share-option.tiktok i { color: #ffffff; }
 }
 
 .options-menu a.delete {
-     color: #ef4444;
+    color: #ef4444;
 }
 
 .options-menu a.delete:hover {
@@ -1972,6 +1927,46 @@ body.dark-mode .share-option.tiktok i { color: #ffffff; }
 }
 
 /* ============================================================================
-   FIN DU FICHIER CSS - WORLD CONNECT
-   Version: 5.0.3 PRO - Toutes les corrections appliquées
+   DESKTOP - GRILLE ARTICLES
    ============================================================================ */
+@media (min-width: 769px) {
+    .spa-page {
+        padding: 80px 40px 100px 90px;
+    }
+
+    #articles-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 28px;
+        align-items: start;
+    }
+
+    .article-card {
+        margin-bottom: 0;
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+    }
+
+    #loader {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (min-width: 1400px) {
+    .spa-page {
+        padding: 80px 60px 100px 100px;
+    }
+
+    #articles-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 32px;
+    }
+}
+
+/* ============================================================================
+   FIN DU FICHIER CSS - WORLD CONNECT
+   Version: 5.1.0 PRO - Grille desktop 2/3 colonnes, Three.js retiré
+   ============================================================================ */
+
