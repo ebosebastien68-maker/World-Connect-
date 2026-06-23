@@ -26,6 +26,24 @@
     
     <!-- Lien vers le fichier CSS externe -->
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* ============================================================
+           CORRECTIFS INLINE — s'appliquent par-dessus style.css
+           ============================================================ */
+
+        /* 1. Empêche le scroll horizontal provoqué par les images
+              bord-à-bord (margin négatif) sur mobile */
+        .spa-container {
+            overflow-x: hidden;
+        }
+
+        /* 2. Garantit que l'image unique occupe bien 100 % de la
+              largeur du conteneur sur les navigateurs Webkit */
+        .article-images.single img {
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
 
@@ -214,7 +232,7 @@
     <script src="commentaires.js"></script>
     
     <!-- ============================================================================
-         SCRIPT PRINCIPAL - VERSION CORRIGÉE 5.1.0
+         SCRIPT PRINCIPAL - VERSION CORRIGÉE 5.2.0
          ============================================================================ -->
     <script>
         // ============================================================================
@@ -1210,14 +1228,14 @@
             const commentCountBadge = commentCount > 0 ? `<span class="comment-count-badge">${commentCount}</span>` : '';
 
             const userArticleReactions = userReactions[article.article_id] || [];
-            const likeActive = userArticleReactions.includes('like') ? 'active' : '';
-            const loveActive = userArticleReactions.includes('love') ? 'active' : '';
-            const rireActive = userArticleReactions.includes('rire') ? 'active' : '';
+            const likeActive   = userArticleReactions.includes('like')   ? 'active' : '';
+            const loveActive   = userArticleReactions.includes('love')   ? 'active' : '';
+            const rireActive   = userArticleReactions.includes('rire')   ? 'active' : '';
             const colereActive = userArticleReactions.includes('colere') ? 'active' : '';
             
-            const reactionLike = article.reaction_like || 0;
-            const reactionLove = article.reaction_love || 0;
-            const reactionRire = article.reaction_rire || 0;
+            const reactionLike   = article.reaction_like   || 0;
+            const reactionLove   = article.reaction_love   || 0;
+            const reactionRire   = article.reaction_rire   || 0;
             const reactionColere = article.reaction_colere || 0;
 
             const formattedDate = new Date(article.date_created).toLocaleDateString('fr-FR', { 
@@ -1233,7 +1251,13 @@
             const truncatedText = isLongText ? textContent.substring(0, 300) + '...' : textContent;
             const articleTextId = `article-text-${article.article_id}`;
             
-            const escapedFullText = textContent.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            // Encodage sécurisé pour l'attribut data-full-text
+            const escapedFullText = textContent
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
             
             const textHTML = isLongText ? `
                 <div class="article-text-container">
@@ -1328,22 +1352,31 @@
         }
 
         // ============================================================================
-        // Toggle du texte complet
+        // CORRECTION 3 — Toggle du texte complet
+        // innerHTML au lieu de textContent pour respecter les entités HTML
         // ============================================================================
         function toggleFullText(articleId) {
             const textContainer = document.getElementById(`article-text-${articleId}`);
             const button = textContainer.parentElement.querySelector('.show-more-btn');
             const fullText = textContainer.getAttribute('data-full-text');
-            
-            const decodedFullText = fullText.replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+
+            // Décodage des entités HTML encodées dans l'attribut
+            const decodedFullText = fullText
+                .replace(/&amp;/g, '&')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>');
             
             if (textContainer.classList.contains('expanded')) {
+                // Réduire : revenir au texte tronqué
                 const truncatedText = decodedFullText.substring(0, 300) + '...';
-                textContainer.textContent = truncatedText;
+                textContainer.innerHTML = truncatedText;    // ← innerHTML (correction)
                 textContainer.classList.remove('expanded');
                 button.innerHTML = '<i class="fas fa-chevron-down"></i> Voir plus';
             } else {
-                textContainer.textContent = decodedFullText;
+                // Étendre : afficher le texte complet
+                textContainer.innerHTML = decodedFullText; // ← innerHTML (correction)
                 textContainer.classList.add('expanded');
                 button.innerHTML = '<i class="fas fa-chevron-up"></i> Voir moins';
             }
@@ -1703,7 +1736,7 @@
             console.log('✅ Événements configurés');
             
             console.log('✅ APPLICATION WORLD CONNECT INITIALISÉE AVEC SUCCÈS');
-            console.log('📱 Version: 5.1.0 PRO');
+            console.log('📱 Version: 5.2.0 PRO');
             console.log('👤 Utilisateur:', currentUser ? `${userProfile?.prenom} ${userProfile?.nom}` : 'Non connecté');
         });
 
